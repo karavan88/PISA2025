@@ -12,7 +12,7 @@ not certified as reproducing through the new shared build.
 - `02_scripts/00_tools/`: repository checks and shared-build entry point.
 - `02_scripts/01_harmonization/`: the authoritative current variable construction.
 - `03_outputs/01_harmonized/`: local shared data and hash-based build manifest.
-- `04_manuscripts/`: historical manuscript paths; the active path is a local compatibility link.
+- `04_manuscripts/`: local manuscript shortcuts; inactive drafts are under `00_archived/`.
 - `05_papers/`: numbered paper folders; see `05_papers/REGISTRY.md`.
 - `06_scoping/`: new ideas before they become papers.
 - `07_archive/`: local historical material.
@@ -44,8 +44,11 @@ under the paper's ignored `04_output/00_logs/`.
 1. Clone the private repository. Install R 4.4.1, Python 3, Quarto, and XeLaTeX.
    PDF rendering currently uses the PT Serif font; install that font too.
 2. Install renv if needed (`install.packages("renv")`), then restore the pinned R packages:
-   `Rscript -e 'renv::restore(library="renv/library", prompt=FALSE)'`.
-   The Python entry points use that project library automatically. Set `R_LIBS_USER` to its absolute path when running R/Quarto directly.
+   `Rscript -e 'renv::restore(prompt=FALSE)'`.
+   The tracked `.Rprofile` activates the platform-specific project library automatically.
+   Python entry points also set the project profile when launching R or Quarto.
+   `DESCRIPTION` declares direct dependencies; `renv.lock` pins all 87 packages.
+   Run `Rscript -e 'renv::status()'` to check synchronization.
 3. Place the licensed/provider files in `01_data/`, or set `PISA_DATA`.
    See `01_data/README.md` for exact filenames.
 4. Restore the local aggregate snapshot to the paper's `02_results/` if reproducing

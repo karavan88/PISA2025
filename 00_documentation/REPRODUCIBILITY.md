@@ -52,3 +52,9 @@ The manifest alone cannot regenerate absent observations or estimates.
 The central build reproduced all 157 archived country/exposure input objects without numerical differences (attributes excluded from comparison). An unchanged second run skipped processing. Cached reporting passed 657 checks; all 62 saved parental-control fits passed the retained-draw checks. A clean staged-file checkout, with only the local aggregate CSV snapshot restored and no raw data or model caches, rebuilt both PDFs with identical extracted text. No full bootstrap re-estimation was run.
 
 When a central build exists locally, reporting checks its source/code fingerprints against the approved snapshot and rejects changed inputs. Without raw data or a central build, reporting is explicitly frozen-snapshot reproduction.
+
+## Activated renv environment — 14 November 2026
+
+The project now includes `.Rprofile`, `renv/activate.R`, explicit dependency settings, and `DESCRIPTION`. The local platform-specific library was hydrated from the installed packages; all 87 package versions match the unchanged lockfile. `renv::status()` reports a consistent state. WeMix 4.0.3 and lme4 load successfully. Python entry points explicitly pass the root R profile for subprocesses.
+
+The optional renv system-library sandbox is disabled to avoid filesystem-lock stalls in the desktop execution sandbox. The project library remains first in the R library search path; the system library is available as a fallback. Package version checks compare every lockfile entry. On another machine, run `renv::restore(prompt=FALSE)` from the repository root. Legacy workflows may need additional declared dependencies before they are certified.

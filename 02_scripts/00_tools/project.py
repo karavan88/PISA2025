@@ -9,8 +9,10 @@ def digest(path):
     return h.hexdigest()
 def run(args):
     env=os.environ.copy()
-    local=ROOT/"renv/library"
-    if local.exists():env["R_LIBS_USER"]=str(local)
+    profile=ROOT/".Rprofile"
+    if profile.exists():
+        env["R_PROFILE_USER"]=str(profile)
+        env["RENV_PROJECT"]=str(ROOT)
     subprocess.run(args,cwd=ROOT,check=True,env=env)
 def log(stage):
     out=PAPER/'04_output/00_logs';out.mkdir(parents=True,exist_ok=True)

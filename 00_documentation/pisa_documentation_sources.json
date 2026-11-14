@@ -1,0 +1,29 @@
+{
+  "landing_page": "https://www.oecd.org/en/data/datasets/pisa-2025-database.html",
+  "files": [
+    {
+      "file": "STUDENT QUESTIONNAIRE PISA 2025.pdf",
+      "source": "https://www.oecd.org/content/dam/oecd/en/data/datasets/pisa/pisa-2025-datasets/questionnaires/STUDENT%20QUESTIONNAIRE%20PISA%202025.pdf",
+      "sha256": "9fac758f10e089400e56351fc2c9493403187f929e9f76714098d83d965eb81f",
+      "bytes": 1638887,
+      "verified_utc": "2026-11-14T11:55:15.237798+00:00",
+      "verification": "Downloaded from official OECD link; byte-identical to existing local copy."
+    },
+    {
+      "file": "SCHOOL QUESTIONNAIRE PISA 2025.pdf",
+      "source": "https://www.oecd.org/content/dam/oecd/en/data/datasets/pisa/pisa-2025-datasets/questionnaires/SCHOOL%20QUESTIONNAIRE%20PISA%202025.pdf",
+      "sha256": "7709063f8e066da5727c9aa8b4ce2d3342caf4d061c8de77422135d9552e03b3",
+      "bytes": 1618872,
+      "verified_utc": "2026-11-14T11:55:15.239255+00:00",
+      "verification": "Downloaded from official OECD link; byte-identical to existing local copy."
+    },
+    {
+      "file": "PISA2025_Codebook.xlsx",
+      "source": "https://webfs.oecd.org/pisa2022/2025/PISA2025_Codebook.xlsx",
+      "sha256": "d527a3e75f4c2b49c9810728bea78381683ac98ddb28d40cc7d3824086473b1c",
+      "bytes": 985161,
+      "verified_utc": "2026-11-14T11:55:15.240818+00:00",
+      "verification": "Downloaded from official OECD link; byte-identical to existing local copy."
+    }
+  ]
+}

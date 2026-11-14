@@ -4,7 +4,7 @@
     "target": "05_papers/02_paperA/01_code"
   },
   {
-    "alias": "04_manuscripts/paperA",
+    "alias": "04_manuscripts/00_archived/paperA",
     "target": "05_papers/02_paperA/03_manuscript"
   },
   {
@@ -12,7 +12,7 @@
     "target": "05_papers/02_paperA/04_output"
   },
   {
-    "alias": "04_manuscripts/paperA_eap",
+    "alias": "04_manuscripts/00_archived/paperA_eap",
     "target": "05_papers/03_paperA_eap/03_manuscript"
   },
   {
@@ -20,7 +20,7 @@
     "target": "05_papers/04_paperB/01_code"
   },
   {
-    "alias": "04_manuscripts/paperB",
+    "alias": "04_manuscripts/00_archived/paperB",
     "target": "05_papers/04_paperB/03_manuscript"
   },
   {
@@ -44,7 +44,7 @@
     "target": "05_papers/06_sestransmit/01_code"
   },
   {
-    "alias": "04_manuscripts/sestransmit",
+    "alias": "04_manuscripts/00_archived/sestransmit",
     "target": "05_papers/06_sestransmit/03_manuscript"
   },
   {
@@ -68,7 +68,7 @@
     "target": "05_papers/08_skillsgain/01_code"
   },
   {
-    "alias": "04_manuscripts/skillsgain",
+    "alias": "04_manuscripts/00_archived/skillsgain",
     "target": "05_papers/08_skillsgain/03_manuscript"
   },
   {
@@ -100,7 +100,7 @@
     "target": "05_papers/11_epf_postsoviet/01_code"
   },
   {
-    "alias": "04_manuscripts/epf_postsoviet",
+    "alias": "04_manuscripts/00_archived/epf_postsoviet",
     "target": "05_papers/11_epf_postsoviet/03_manuscript"
   },
   {
@@ -112,7 +112,7 @@
     "target": "05_papers/12_caucasus_central_asia/01_code"
   },
   {
-    "alias": "04_manuscripts/caucasus_central_asia",
+    "alias": "04_manuscripts/00_archived/caucasus_central_asia",
     "target": "05_papers/12_caucasus_central_asia/03_manuscript"
   },
   {
@@ -130,5 +130,9 @@
   {
     "alias": "04_manuscripts/ijed_ses_seg",
     "target": "05_papers/01_SESTransmission/03_manuscript"
+  },
+  {
+    "alias": "04_manuscripts/resilwb",
+    "target": "05_papers/10_resilwb/03_manuscript"
   }
 ]

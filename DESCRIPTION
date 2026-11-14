@@ -1,0 +1,25 @@
+Package: PISA2025Research
+Title: PISA Research Environment
+Version: 0.0.1
+Description: Package requirements for the shared build and maintained IJED workflow.
+Authors@R: person("Garen", "Avanesian", role = c("aut", "cre"))
+License: Proprietary
+Imports:
+    data.table,
+    haven,
+    WeMix,
+    lme4,
+    ggplot2,
+    patchwork,
+    ggrepel,
+    kableExtra,
+    knitr,
+    rmarkdown,
+    ragg,
+    svglite,
+    Rcpp,
+    RcppArmadillo,
+    jsonlite,
+    digest,
+    renv,
+    scales

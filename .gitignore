@@ -104,3 +104,6 @@ renv/cache/
 /02_scripts/ijed_ses_seg
 /03_outputs/ijed_ses_seg
 /04_manuscripts/ijed_ses_seg
+
+# Project-local renv sandbox
+renv/sandbox/
