@@ -1,4 +1,4 @@
-# 01 — Socio-emotional skills and socio-economic transmission
+# 01 — Do socio-emotional skills transmit socio-economic (dis)advantage? Evidence from PISA 2025 data
 
 Active manuscript: `03_manuscript/ijed_ses_seg_rev2.qmd`.
 Tables/figures-only appendix: `03_manuscript/ijed_ses_seg_supplement_rev2.qmd`.

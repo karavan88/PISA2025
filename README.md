@@ -2,7 +2,7 @@
 
 Garen Avanesian's PISA research repository. Shared harmonization runs centrally;
 paper folders consume prepared inputs and perform analysis. The active migrated
-paper is **01_SESTransmission** (IJED draft). Fuzzy-RD learning and wellbeing are also active; all other projects are in
+paper is **01_SESTransmission**. Fuzzy-RD learning and wellbeing are also active; all other projects are in
 `06_scoping` and are not certified against the shared build.
 
 ## Numbered layout
@@ -12,14 +12,13 @@ paper is **01_SESTransmission** (IJED draft). Fuzzy-RD learning and wellbeing ar
 - `02_scripts/00_tools/`: repository checks and shared-build entry point.
 - `02_scripts/01_harmonization/`: the authoritative current variable construction.
 - `03_outputs/01_harmonized/`: local shared data and hash-based build manifest.
-- [04_manuscripts/](04_manuscripts/): active shortcuts `ijed_ses_seg`, `fuzzy_rd_learning` (gradegain), and `resilwb`; inactive drafts are under `00_archived/`.
 - `05_papers/`: the 3 active projects; see [registry](05_papers/REGISTRY.md).
 - [06_scoping/](06_scoping/): all other projects and exploratory drafts.
 - `07_archive/`: local historical material.
 
 The active paper contains `01_code/`, `02_results/`, `03_manuscript/`,
-`04_output/`, `05_archive/`, and `06_submissions/`. Earlier numbered paths remain
-as local compatibility links so existing PDF links continue to work.
+`04_output/`, `05_archive/`, and `06_submissions/`. Manuscript sources live inside each project’s `03_manuscript/` folder.
+Code and output compatibility links remain local.
 
 ## Reproduction on this machine
 

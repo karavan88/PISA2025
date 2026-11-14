@@ -1,7 +1,7 @@
 Package: PISA2025Research
 Title: PISA Research Environment
 Version: 0.0.1
-Description: Package requirements for the shared build and maintained IJED workflow.
+Description: Package requirements for the shared build and maintained socio-economic transmission workflow.
 Authors@R: person("Garen", "Avanesian", role = c("aut", "cre"))
 License: Proprietary
 Imports:

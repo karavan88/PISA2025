@@ -7,11 +7,6 @@
 /05_papers/**/04_output/
 /05_papers/**/05_archive/
 /05_papers/**/06_submissions/
-/04_manuscripts/*
-!/04_manuscripts/README.md
-!/04_manuscripts/00_archived/
-/04_manuscripts/00_archived/*
-!/04_manuscripts/00_archived/README.md
 /07_archive/
 /work/
 /Claude outputs/
@@ -76,38 +71,27 @@ renv/cache/
 
 # Compatibility symlinks (recreated locally, not additional source copies)
 /02_scripts/paperA
-/04_manuscripts/paperA
 /03_outputs/paperA
-/04_manuscripts/paperA_eap
 /02_scripts/paperB
-/04_manuscripts/paperB
 /03_outputs/paperB
 /02_scripts/paperC
-/04_manuscripts/paperC
 /03_outputs/paperC
 /02_scripts/sestransmit
-/04_manuscripts/sestransmit
 /03_outputs/sestransmit
 /02_scripts/schoolgain
-/04_manuscripts/schoolgain
 /03_outputs/schoolgain
 /02_scripts/skillsgain
-/04_manuscripts/skillsgain
 /03_outputs/skillsgain
 /02_scripts/gradegain
-/04_manuscripts/gradegain
 /03_outputs/gradegain
 /02_scripts/resilwb
 /03_outputs/resilwb
 /02_scripts/epf_postsoviet
-/04_manuscripts/epf_postsoviet
 /03_outputs/epf_postsoviet
 /02_scripts/caucasus_central_asia
-/04_manuscripts/caucasus_central_asia
 /03_outputs/caucasus_central_asia
 /02_scripts/ijed_ses_seg
 /03_outputs/ijed_ses_seg
-/04_manuscripts/ijed_ses_seg
 
 # Project-local renv sandbox
 renv/sandbox/
