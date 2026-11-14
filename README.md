@@ -12,7 +12,7 @@ not certified as reproducing through the new shared build.
 - `02_scripts/00_tools/`: repository checks and shared-build entry point.
 - `02_scripts/01_harmonization/`: the authoritative current variable construction.
 - `03_outputs/01_harmonized/`: local shared data and hash-based build manifest.
-- `04_manuscripts/`: local manuscript shortcuts; inactive drafts are under `00_archived/`.
+- `04_manuscripts/`: active shortcuts `ijed_ses_seg`, `fuzzy_rd_learning` (gradegain), and `resilwb`; inactive drafts are under `00_archived/`.
 - `05_papers/`: numbered paper folders; see `05_papers/REGISTRY.md`.
 - `06_scoping/`: new ideas before they become papers.
 - `07_archive/`: local historical material.

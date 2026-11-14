@@ -32,7 +32,7 @@
     "target": "05_papers/05_paperC/01_code"
   },
   {
-    "alias": "04_manuscripts/paperC",
+    "alias": "04_manuscripts/00_archived/paperC",
     "target": "05_papers/05_paperC/03_manuscript"
   },
   {
@@ -56,7 +56,7 @@
     "target": "05_papers/07_schoolgain/01_code"
   },
   {
-    "alias": "04_manuscripts/schoolgain",
+    "alias": "04_manuscripts/00_archived/schoolgain",
     "target": "05_papers/07_schoolgain/03_manuscript"
   },
   {
@@ -80,7 +80,7 @@
     "target": "05_papers/09_gradegain/01_code"
   },
   {
-    "alias": "04_manuscripts/gradegain",
+    "alias": "04_manuscripts/fuzzy_rd_learning",
     "target": "05_papers/09_gradegain/03_manuscript"
   },
   {
