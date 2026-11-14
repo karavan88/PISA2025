@@ -17,7 +17,7 @@ case "$1" in
     [ -e "$OUT" ] && { echo "Refusing to write into an existing directory: $OUT"; exit 1; }
     mkdir -p "$OUT/logs"; OUT="$(cd "$OUT" && pwd)"
     printf '{"utc":"%s","git_commit":"%s","r":"%s"}\n' "$(date -u +%FT%TZ)" "$(git rev-parse HEAD)" "$(Rscript -e 'cat(R.version.string)' 2>/dev/null)" > "$OUT/run.json"
-    for s in 03_response_style 04_gap 05_mechanism 06_oriv 07_curiosity; do echo "$(date +%T) $s"; PAPER_OUT="$OUT" Rscript $P/01_code/$s.R > "$OUT/logs/$s.log" 2>&1 || { echo "FAILED: $OUT/logs/$s.log"; exit 1; }; done
+    for s in 03_response_style 04_gap 05_mechanism 06_oriv 07_curiosity 08_threshold 09_focal; do echo "$(date +%T) $s"; PAPER_OUT="$OUT" Rscript $P/01_code/$s.R > "$OUT/logs/$s.log" 2>&1 || { echo "FAILED: $OUT/logs/$s.log"; exit 1; }; done
     echo "Done: $OUT  (next: run_all.sh compare $OUT)" ;;
   compare)
     Rscript 02_scripts/02_legacy/wellbeing_shared/compare_outputs.R "$2" $P/04_output ;;

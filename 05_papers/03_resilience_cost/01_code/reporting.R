@@ -3,7 +3,9 @@
 suppressPackageStartupMessages(library(data.table))
 OUT <- normalizePath(file.path("..", "02_results", "snapshot")); FIGS <- file.path("..", "02_results", "figs")
 rd <- function(f) fread(file.path(OUT, f))
-T <- list(gap = rd("gap_pool.csv"), rs = rd("rs_pool.csv"), mech = rd("mech_pool.csv"), cur = rd("cur_pool.csv"))
+T <- list(gap = rd("gap_pool.csv"), rs = rd("rs_pool.csv"), mech = rd("mech_pool.csv"), cur = rd("cur_pool.csv"), thr = rd("thr_pool.csv"), foc = rd("foc_pool.csv"))
+thrm <- rd("thr_model.csv")                                         # pooled threshold model (step 8): term, est, se
+focm <- rd("foc_model.csv")                                         # pooled focal-answer quantities (step 9): term, est, se
 orivb <- rd("oriv_resil.csv"); cut <- rd("cutoff_pool.csv")        # cutoff_pool.csv is a snapshot of paper 04's estimate
 gap_sys <- rd("gap_sys.csv"); cov <- rd("coverage.csv")
 
@@ -24,6 +26,10 @@ nneg <- function(tab, term_) row_(tab, term_)$n_neg
 sneg <- function(tab, term_) row_(tab, term_)$sig_neg
 spos <- function(tab, term_) row_(tab, term_)$sig_pos
 i2  <- function(tab, term_) num(row_(tab, term_)$I2, 0)
+# pooled threshold model: estimate (or se), optionally as a magnitude or scaled (100 for percentage points)
+tm  <- function(term_, d = 2, what = "est", mag = FALSE, scale = 1, tab = thrm) { r <- tab[term == term_]; if (nrow(r) != 1) stop("pooled-model term not found: ", term_); v <- scale * r[[what]]; num(if (mag) abs(v) else v, d) }
+fm  <- function(...) tm(..., tab = focm)                            # the same for the focal-answer quantities
+pps <- function(tab, term_, d = 1) num(100 * row_(tab, term_)$re_se, d)             # standard error in percentage points
 # cutoff IV (pooled, legacy skillsgain format)
 krow <- function(spec_, outcome_, term_ = "gamma", set_ = "all 20") { r <- cut[spec == spec_ & outcome == outcome_ & term == term_ & set == set_]; if (nrow(r) != 1) stop("cutoff row not found"); r }
 k   <- function(spec_, outcome_, term_ = "gamma", set_ = "all 20", d = 3, scale = 1) num(scale * krow(spec_, outcome_, term_, set_)$re_mean, d)
