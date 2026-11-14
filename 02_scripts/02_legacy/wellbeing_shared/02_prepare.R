@@ -2,10 +2,10 @@
 # Sample: students with life satisfaction, ESCS, achievement PVs and the system's skill index; systems where the six-scale index has
 # at least four scales. Builds within-system z-scores, ESCS quartiles, the leave-one-out school ESCS, the response-style indices,
 # questionnaire speed flags and the PV-wise achievement composites.
-# Output: 01_data/derived/resilwb_analytic.rds ; 03_outputs/resilwb/coverage.csv
-source("02_scripts/resilwb/00_helpers.R")
+# Output: 01_data/derived/resilwb_analytic.rds, resilwb_coverage.csv   (WELLBEING_DERIVED redirects both, for validation)
+source("02_scripts/02_legacy/wellbeing_shared/00_survey_helpers.R")
 log_step("read extract")
-d <- fread("01_data/derived/resilwb_students.csv.gz")
+d <- fread(STUDENTS)
 RS4 <- c("ST131Q04NA", "ST131Q10DA", "ST131Q12DA", "ST131Q05DA", "ST131Q13DA", "ST131Q17DA", "ST499Q02DA", "ST499Q04DA", "ST499Q05DA",
          "ST499Q06DA", "ST500Q03DA", "ST500Q05DA", "ST500Q06DA", "ST500Q09DA", "ST501Q03DA", "ST501Q05DA", "ST501Q06DA", "ST501Q07DA")
 RS5 <- c("ST307Q01JA", "ST307Q02JA", "ST307Q03JA", "ST307Q07JA", "ST307Q09JA", "ST307Q10JA", "ST301Q01JA", "ST301Q04JA", "ST301Q06JA", "ST301Q08JA", "ST301Q10JA")
@@ -65,6 +65,6 @@ saveRDS(d, DERIV)
 cov <- d[, .(n = .N, se_scales = se_ok[match(.BY$CNT, CNT), se_scales], LS_mean = round(wmean(LS, w), 2), LS10 = round(wmean(LS10, w), 3),
              SEI = mean(!is.na(SEI)), ERS = mean(!is.na(ERS)), ACQ5 = mean(!is.na(ACQ5)), timing = mean(!is.na(sec_per_item)),
              speeder = round(wmean(speeder, w), 3), parent = mean(!is.na(PQSELFREG)), female = mean(!is.na(female))), by = CNT]
-fwrite(cov, orr("coverage.csv"))
+fwrite(cov, file.path(DERIVED, "resilwb_coverage.csv"))
 log_step("saved", nrow(d), "students,", uniqueN(d$CNT), "systems")
 print(cov[order(CNT)])

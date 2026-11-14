@@ -1,0 +1,182 @@
+---
+title: "The price of progress"
+subtitle: "Achievement, school progression and adolescent life satisfaction in PISA 2025. Research report B"
+author:
+  - name: Karen Avanesian
+date: today
+date-format: "D MMMM YYYY"
+lang: en
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.4cm
+    mainfont: PT Serif
+    sansfont: PT Sans
+    fontsize: 10.5pt
+    linestretch: 1.12
+    number-sections: true
+    toc: false
+    colorlinks: true
+    linkcolor: "black"
+    urlcolor: "blue"
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox,xcolor,caption}
+        \captionsetup{font=small,labelfont=bf,skip=4pt}
+        \AtBeginEnvironment{longtable}{\small\setlength{\tabcolsep}{4pt}}
+        \setlength{\emergencystretch}{3em}
+        \definecolor{verd}{HTML}{B34700}
+        \newcommand{\verdict}[1]{\textcolor{verd}{\textsf{\textbf{#1}}}}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source("../01_code/reporting.R")
+```
+
+::: {.callout-note appearance="simple" icon=false}
+**In brief.** Across `r nsys("x","all:ach_skill")` education systems, 15-year-olds who achieve more are not more satisfied with their lives, and once their socio-emotional skills are held fixed they are less satisfied: `r e("x","all:ach_skill",3)` SD per SD of achievement, at every level of family background. Skills hide this slope because they rise with achievement and raise life satisfaction, a link that holds when a parent rates the skill. A school-entry cutoff design in `r N$iv_systems` systems shows that the relation is causal for school progression: one extra grade at the same age raises achievement by `r k("base","ACH",d=0)` PISA points and lowers life satisfaction by `r num(abs(krow("base","LS_z")$re_mean), 3)` SD. In both designs the loss is a drop in the share of students who rate their life 10 out of 10, with no rise in the share who are dissatisfied. The companion report A examines the students for whom this trade-off was expected to be sharpest, disadvantaged high achievers.
+:::
+
+# Problem statement
+
+Education policy treats learning as an unqualified good for children, and for their future it is. Whether it is also good for how they feel about their lives now is a separate question, and one that child-indicator research asks by taking children's own evaluations as an outcome in their own right. International reports usually answer it with a reassuring fact: within countries, test scores and life satisfaction are almost unrelated, so schools need not choose between them.
+
+That fact is the starting point of this report, and we reproduce it. In PISA 2025 the within-school relation between achievement and life satisfaction is `r es("x","all:ach_noskill",3)` SD per SD of achievement, close to zero. The absence of a relation is not evidence that achievement is neutral for wellbeing, because higher achievers differ from lower achievers in ways that raise life satisfaction. They have more perseverance, more curiosity, better self-regulation and clearer goals, and these skills are among the stronger correlates of adolescent life satisfaction. A flat line can therefore be the sum of two slopes with opposite signs: what high achievers bring with them, and what achieving costs them.
+
+@fig-b1 shows the two slopes. As reported, life satisfaction is roughly flat across achievement deciles for better-off students and falls slightly for the poorest. With the skill index held fixed it falls steadily in every quartile of family background.
+
+Two questions follow. The first is whether the negative slope is a property of achievement or of the students who achieve, which a cross-section cannot settle. The second is what kind of loss it is: more unhappy adolescents, or fewer who call their life as good as it could be. We address the first with a school-entry cutoff design that moves students one grade ahead for reasons unrelated to them, and the second by looking at where on the 0 to 10 ladder the difference arises.
+
+![Life satisfaction by achievement decile and quartile of family background. Left: as reported. Right: after removing the part of life satisfaction predicted by the skill index within each system. First plausible value; means of system means over `r N$systems` systems. Descriptive; the estimates in section 4 use all plausible values, school fixed effects and replicate weights.](`r fig("fig_b1_gradient")`){#fig-b1 width=100%}
+
+# Hypotheses and research questions
+
+Five hypotheses and one open question organise the report. As in report A, they were formulated during exploration of the data and are to be read as claims for replication. The literature anchors are listed from memory and need to be verified at the paper stage.
+
+**H1. A masked gradient.** Achievement and life satisfaction are unrelated on the surface and negatively related once socio-emotional skills are held fixed.
+*To anchor:* PISA well-being reports on the weak achievement–satisfaction relation (OECD 2017, 2019); suppression effects; skills as correlates of wellbeing (OECD Survey on Social and Emotional Skills 2021, 2024).
+
+**H2. At every level of family background.** The negative gradient is not confined to disadvantaged students.
+*To anchor:* the academic-resilience and skin-deep-resilience literatures, which locate the cost among low-status youth (see report A).
+
+**H3. Skills do raise life satisfaction.** The relation between skills and life satisfaction is not produced by the same student rating both.
+*To anchor:* measurement error and common-method bias in self-reported skills; obviously related instrumental variables (Gillen, Snowberg and Yariv 2019); multi-informant designs in child wellbeing research.
+
+**H4. Progression lowers life satisfaction.** Being one grade further ahead at the same age lowers life satisfaction.
+*To anchor:* schoolwork pressure and adolescent wellbeing (Cosma and colleagues 2020 on HBSC trends; Steare and colleagues 2023 review); grade-gain designs in PISA (Avvisati and Givord 2021); school starting age and relative age.
+
+**H5. A loss at the top of the ladder.** The loss takes the form of fewer students at the maximum, not more students with low life satisfaction.
+*To anchor:* rising aspirations and shifting reference points in evaluative wellbeing; the low life satisfaction of students in high-performing systems (Rudolf and Bethmann 2023); evaluative versus affective wellbeing in childhood.
+
+**RQ1. Who pays more?** Does the effect of progression differ by family background or by skills?
+*To anchor:* differential sensitivity to academic pressure; skills as protective factors.
+
+# Empirical tests
+
+## Data and measures
+
+The data are the PISA 2025 student file: `r big(N$students)` students in `r N$systems` systems that fielded the life-satisfaction item and at least four of the six socio-emotional skill scales. Life satisfaction (0 to 10) is standardised within each system, where one SD is about 2.3 ladder points. Achievement is the average of mathematics, reading and science, also standardised within system; one SD is about 84 PISA points in the median system. The skill index is the average of the six skill scales. Family background is the PISA index of economic, social and cultural status.
+
+## Two designs
+
+*Cross-section.* Life satisfaction is regressed on achievement with school fixed effects, sex, age, grade and family background, first without and then with the skill index. The comparison is among students in the same school. Estimates are computed system by system with replicate weights and all ten plausible values, then pooled by random-effects meta-analysis.
+
+*School-entry cutoff.* In `r N$iv_systems` systems a single enrolment cutoff date places children born just before it one grade ahead of children born just after. At the PISA test, two students of nearly the same age are therefore in different grades for a reason unrelated to their ability, family or temperament. Following Avvisati and Givord, the grade a student is in is instrumented by the grade the cutoff assigns, with birth month relative to the cutoff as a linear control. The first stage is strong: the assigned grade raises the probability of being in the upper grade by `r k("base","LS_z","fs",d=2)` on average. The estimate is the effect of one extra grade at a given age for students who comply with the cutoff. The sample is `r big(N$iv_students)` students.
+
+This design identifies the effect of school progression, not of achievement alone. A student in the higher grade has had a year more of curriculum, faces the demands of that grade, is among the youngest in her class, and in six systems attends a different school. All of these travel with the grade.
+
+*Two raters.* In `r N$par_systems` systems parents rated their child's self-regulated learning. The student's and the parent's ratings are two noisy measures of one skill. We report the relation of each with life satisfaction and the correlation of life satisfaction with the part the two ratings share. The parent's rating comes from a different questionnaire and a different person than the outcome.
+
+## Test for each hypothesis
+
+| | Test | Main threat and how it is addressed |
+|:--|:-----------------|:-------------------------------|
+| **H1** | Achievement slope of life satisfaction without and with the skill index, same sample; product of the skill–achievement slope and the skill–satisfaction slope as the implied offset. | School sorting: school fixed effects. The skill control is a mediator-type adjustment, so the adjusted slope is descriptive; H4 supplies the causal test. |
+| **H2** | The same two slopes within each quartile of family background. | Different gradients by background could be hidden in the average. |
+| **H3** | Life satisfaction on student-rated and on parent-rated self-regulation; instrumenting each rating with the other; correlation with the shared component. Achievement held fixed. | Same-source bias: the parent rating shares no questionnaire with the outcome. Parents inferring skill from grades: achievement control. |
+| **H4** | Cutoff IV for life satisfaction and, for scale, achievement; all 20 systems, the 14 where both grades share schools, and with school fixed effects. | Selection into achievement: the cutoff. School change bundled with the grade: same-school systems. |
+| **H5** | Cross-section and IV re-estimated for the share answering 10 and the share answering 4 or below. | A change in the mean could come from either tail. |
+| **RQ1** | Interaction of the instrumented grade with the bottom status quartile, the status index, the skill index and curiosity. | The grade itself changes skills, so the skill index is first purged of the grade's effect. |
+
+: Tests by hypothesis {tbl-colwidths="[8,46,46]"}
+
+# Results
+
+| | Verdict | Key estimate |
+|:--|:----------|:------------------------------------------|
+| **H1** Masked gradient | \verdict{Supported} | `r e("x","all:ach_noskill",3)` SD per SD of achievement without skills, `r e("x","all:ach_skill",3)` with |
+| **H2** Every background | \verdict{Supported} | `r e("x","q1:ach_skill",3)` in the bottom status quartile, `r e("x","q4:ach_skill",3)` in the top |
+| **H3** Skills raise satisfaction | \verdict{Supported; size uncertain} | `r o("ach:ols_student")` student-rated, `r o("ach:ols_parent")` parent-rated |
+| **H4** Progression lowers it | \verdict{Supported} | `r k("base","LS_z")` SD per extra grade (SE `r kse("base","LS_z")`) |
+| **H5** Top of the ladder | \verdict{Supported} | Share at 10: `r k("base","LS10",d=1,scale=100)` points per grade; share at 4 or below: `r k("base","LSle4",d=1,scale=100)` |
+| **RQ1** Who pays more | \verdict{No difference found} | Bottom status quartile: `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`) |
+
+: Summary of results {tbl-colwidths="[26,26,48]"}
+
+## H1 and H2: a negative slope hidden by skills
+
+Without the skill index, a student one SD higher in achievement than a schoolmate reports life satisfaction that differs by `r es("x","all:ach_noskill",3)` SD. With the skill index held fixed the slope is `r es("x","all:ach_skill",3)`, negative in `r nneg("x","all:ach_skill")` of `r nsys("x","all:ach_skill")` systems and significantly so in `r sneg("x","all:ach_skill")` (@fig-b2).
+
+The arithmetic of the masking is simple. The skill index rises by `r e("x","all:sei_on_ach")` SD per SD of achievement, and each SD of the index goes with `r e("x","all:SEI")` SD more life satisfaction. The product, `r num(row_("x","all:sei_on_ach")$re_mean * row_("x","all:SEI")$re_mean, 3)`, is the amount by which skills lift high achievers, and it accounts for the difference between the two slopes.
+
+The adjusted slope is negative in each quartile of family background: `r e("x","q1:ach_skill",3)` in the bottom quartile, `r e("x","q2:ach_skill",3)` and `r e("x","q3:ach_skill",3)` in the middle two, and `r e("x","q4:ach_skill",3)` in the top. It is somewhat steeper for poorer students, and only for them is the unadjusted slope also clearly negative (`r esp("x","q1:ach_noskill",3)`).
+
+H1 and H2 are supported. The size of the slope differs across systems (I² = `r i2("x","all:ach_skill")`%), which the paper stage should describe; the sign does not.
+
+![Achievement slope of life satisfaction, without and with the skill index, for all students and by quartile of family background. Within school; sex, age and grade controlled, and family background in the all-students row. Random-effects means over `r nsys("x","all:ach_skill")` systems with 95% intervals.](`r fig("fig_b2_masking")`){#fig-b2 width=100%}
+
+## H3: the skill link holds when a parent does the rating
+
+The masking argument depends on skills raising life satisfaction and not merely sharing a questionnaire with it. With achievement held fixed, one SD of student-rated self-regulated learning goes with `r o("ach:ols_student")` (SE `r ose("ach:ols_student")`) SD more life satisfaction, and one SD of the parent's rating of the same skill goes with `r o("ach:ols_parent")` (SE `r ose("ach:ols_parent")`) (@fig-b3). The parent-rated relation is positive in every system and significant in `r orow("ach:ols_parent")$sig_pos` of `r orow("ach:ols_parent")$n_sys`. A single parent item on how well the child manages emotions while learning gives `r o("ach:ols_parent_emo")`.
+
+Student and parent agree only weakly (a slope of `r o("ach:fs_s_on_p")` between the two ratings), so instrumenting one rating with the other produces slopes near `r o("ach:oriv",d=1)` that should not be read as magnitudes. A scale-free summary is the correlation between life satisfaction and the component the two ratings share, `r o("ach:latent_r")` against `r o("ach:ols_student")` for the student's rating alone. That figure is an upper reading if parents rate contented children as more self-regulated.
+
+H3 is supported in sign. About `r num(100 * orow("ach:ols_parent")$re_mean / orow("ach:ols_student")$re_mean, 0)`% of the self-report relation survives the change of rater; the true size lies somewhere between the parent-rated slope and the shared-component correlation.
+
+![Life satisfaction and self-regulated learning as rated by the student and by a parent, system by system. Within school; sex, age, grade and achievement controlled; 95% intervals. Fifteen systems with a parent questionnaire and school identifiers.](`r fig("fig_b6_raters")`){#fig-b3 width=100%}
+
+## H4: an extra grade lowers life satisfaction
+
+Being one grade ahead at the same age raises achievement by `r k("base","ACH",d=1)` PISA points (SE `r kse("base","ACH",d=1)`), significantly in `r ksig("base","ACH",dir="pos")` of 20 systems, and lowers life satisfaction by `r num(abs(krow("base","LS_z")$re_mean), 3)` SD (SE `r kse("base","LS_z")`) (@fig-b4). Individual systems are noisy: `r ksig("base","LS_z")` of 20 are significantly negative and none is significantly positive.
+
+In the 14 systems where both grades are taught in the same schools the effect is `r k("base","LS_z",set_="same-school 14")` (SE `r kse("base","LS_z",set_="same-school 14")`), and `r k("fe","LS_z")` (SE `r kse("fe","LS_z")`) when students are compared within schools. In the six systems where the upper grade means a new school it is `r k("base","LS_z",set_="transition 6")`. A change of school thus adds to the cost. Where there is none, the effect is about `r num(100 * krow("base","LS_z",set_="same-school 14")$re_mean / krow("base","LS_z")$re_mean, 0)`% of the 20-system average and remains significant.
+
+Per 100 PISA points gained through the extra grade, life satisfaction falls by `r num(abs(100 * krow("base","LS_z")$re_mean / krow("base","ACH")$re_mean), 2)` SD. The cross-sectional slope of `r e("x","all:ach_skill",3)` per SD of achievement corresponds to roughly a quarter of that. The grade therefore lowers life satisfaction through more than the achievement it produces, and the estimate is best read as the effect of moving ahead in school.
+
+H4 is supported for progression. It does not isolate achievement.
+
+![Effect of one extra grade at the same age on life satisfaction and on achievement, by system, from the school-entry cutoff design. 95% intervals; diamonds are random-effects means.](`r fig("fig_b3_iv")`){#fig-b4 width=100%}
+
+## H5: fewer tens, not more unhappy students
+
+Both designs place the loss at the top of the ladder (@fig-b5). In the cross-section, each SD of achievement lowers the share answering 10 by `r ppa("x","LS10:ach_skill")` percentage points with skills held fixed, and by `r ppa("x","LS10:ach_noskill")` points even without that control, in every one of `r nsys("x","LS10:ach_skill")` systems. The share answering 4 or below changes by `r pp("x","LSle4:ach_skill")` points. In the cutoff design an extra grade lowers the share at 10 by `r num(abs(100 * krow("base","LS10")$re_mean), 1)` points (SE `r kse("base","LS10",d=1,scale=100)`) and changes the share at 4 or below by `r k("base","LSle4",d=1,scale=100)` (SE `r kse("base","LSle4",d=1,scale=100)`).
+
+H5 is supported. Report A shows that the same pattern is not a general habit of avoiding the top of numeric scales: on effort questions with the same format, high achievers choose the maximum as often as low achievers or more often.
+
+![Left: distribution of life satisfaction for students in the top and bottom achievement quartiles (bottom and top quartiles of family background combined; first plausible value). Right: effect on the share answering 10 and the share answering 4 or below, per SD of achievement in the cross-section and per extra grade in the cutoff design; 95% intervals.](`r fig("fig_b4_topbox")`){#fig-b5 width=100%}
+
+## RQ1: the effect of a grade is the same for everyone we can distinguish
+
+The effect of an extra grade does not vary with family background (@fig-b6). For the bottom status quartile it differs from the rest by `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`), and per SD of the status index by `r k("ses","LS_z","gamma:SES")` (SE `r kse("ses","LS_z","gamma:SES")`). The achievement gain from the grade is also unrelated to background. Nor do skills change the effect: `r k("se","LS_z","gamma:SE_p")` (SE `r kse("se","LS_z","gamma:SE_p")`) per SD of the skill index and `r k("cur","LS_z","gamma:CURIO_z")` (SE `r kse("cur","LS_z","gamma:CURIO_z")`) per SD of curiosity.
+
+No group pays detectably more. The interaction with low status has a 95% interval of about ±0.07, which leaves room for a difference as large as the average effect itself, so this is absence of evidence at the precision the 20 systems allow.
+
+![Difference in the effect of an extra grade on life satisfaction by family background and skills. The skill index is purged of the grade's own effect. 95% intervals.](`r fig("fig_b5_heterogeneity")`){#fig-b6 width=100%}
+
+## What remains open before the paper stage
+
+- Separating achievement from the other things a grade brings. Candidates are workload and test-pressure items, if PISA 2025 or an earlier cycle carries them, and designs that shift achievement without shifting grade.
+- Relative age. Students moved ahead by the cutoff are the youngest in their class; the literature on relative age and wellbeing has to be brought in to bound this channel.
+- A threshold model for the life-satisfaction item (shared with report A), to rule out a change in how the ladder is used at higher grades.
+- Extending the cutoff design from 20 systems to all systems with a clean cutoff, which the grade-gain project already identifies, to tighten RQ1.
+- An outcome beyond the ladder. PISA 2018 included meaning-in-life and affect scales (to be confirmed against the codebook) and would show whether the loss is confined to evaluative wellbeing.
+- The literature anchors in section 2 need to be verified and the hypotheses restated against them.
+
+*Reproduction.* `bash 05_papers/04_price_of_progress/01_code/run_all.sh report` verifies the approved result snapshot (`02_results/snapshot`), redraws the figures and renders this report. Every number is read from the snapshot at render time; nothing is estimated.

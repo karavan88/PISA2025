@@ -1,0 +1,185 @@
+---
+title: "The cost of resilience"
+subtitle: "Life satisfaction among disadvantaged high achievers in PISA 2025. Research report A"
+author:
+  - name: Karen Avanesian
+date: today
+date-format: "D MMMM YYYY"
+lang: en
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.4cm
+    mainfont: PT Serif
+    sansfont: PT Sans
+    fontsize: 10.5pt
+    linestretch: 1.12
+    number-sections: true
+    toc: false
+    colorlinks: true
+    linkcolor: "black"
+    urlcolor: "blue"
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox,xcolor,caption}
+        \captionsetup{font=small,labelfont=bf,skip=4pt}
+        \AtBeginEnvironment{longtable}{\small\setlength{\tabcolsep}{4pt}}
+        \setlength{\emergencystretch}{3em}
+        \definecolor{verd}{HTML}{B34700}
+        \newcommand{\verdict}[1]{\textcolor{verd}{\textsf{\textbf{#1}}}}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source("../01_code/reporting.R")
+```
+
+::: {.callout-note appearance="simple" icon=false}
+**In brief.** Students from the poorest quarter of families who reach the top quarter of achievement in their country report lower life satisfaction than equally poor classmates at the bottom of the achievement distribution. The gap is `r e("gap","lad:demo")` SD before their skills are taken into account and `r e("gap","lad:sei")` SD after, it appears in `r nneg("gap","lad:sei")` of `r nsys("gap","lad:sei")` education systems, and it does not come from the way these students use rating scales. It is a shortfall of very high scores, not a surplus of unhappy students. School context does not explain it. Advantaged high achievers show a smaller penalty of the same kind, which is the subject of the companion report B.
+:::
+
+# Problem statement
+
+Academic resilience is one of the most used success indicators in comparative education. A student counts as resilient when she comes from a disadvantaged family and still performs at a high level, and education systems are ranked by how many such students they produce. The indicator records an achievement outcome. It says nothing about how these students are doing as people, and child-indicator research has long argued that children's own evaluation of their lives deserves equal standing with their test scores.
+
+There are reasons to expect that the two do not move together. Health research on upwardly mobile youth describes a pattern in which disadvantaged adolescents who succeed through sustained effort look well on school and behavioural outcomes while carrying physiological and psychological costs. Sociological work on social mobility describes the strain of leaving one's milieu. Research on school peer environments shows that students judge themselves against those around them. Each of these literatures suggests that success against the odds may be paid for.
+
+PISA 2025 allows a direct look. It measures life satisfaction on the 0 to 10 ladder, achievement in three domains, family background, and six socio-emotional skills in `r N$systems` education systems, with `r big(N$students)` students in our analytic sample. Among them about `r big(N$R)` are resilient by the standard definition and `r big(N$PL)` are disadvantaged low achievers.
+
+The descriptive fact that motivates this report is in @fig-a1. Resilient students have far more socio-emotional skills than disadvantaged low achievers (a difference of `r e("rs","diff:R-PL:SEI")` SD on the skill index), and skills go with higher life satisfaction. Yet resilient students report the lowest life satisfaction of the four groups formed by crossing family background with achievement: `r e("rs","mean:R:LS")` on the ladder against `r e("rs","mean:PL:LS")` for disadvantaged low achievers and about `r e("rs","mean:AT:LS",1)` for both advantaged groups.
+
+The report asks whether this gap is real, whether it is specific to disadvantaged students, and what moves it. It treats resilient students as the critical case: if academic success costs wellbeing anywhere, it should show most clearly among the students who had the least support in achieving it.
+
+![Life satisfaction by family background and achievement. Left: distribution of answers on the 0–10 ladder for the two disadvantaged groups (first plausible value, each system weighted equally). Right: mean life satisfaction of the four groups with 95% intervals, random-effects means over `r nsys("rs","mean:R:LS")` systems; labels give each group's mean on the socio-emotional skill index. Disadvantaged and advantaged are the bottom and top quartiles of the PISA index of economic, social and cultural status within each system; low and top achievers are the bottom and top quartiles of the mean of mathematics, reading and science.](`r fig("fig_a1_cells")`){#fig-a1 width=100%}
+
+# Hypotheses and research questions
+
+Four directional hypotheses follow from the literatures named above. Two further questions are left open because the literature gives no clear sign. All six were formulated while exploring the data, so the report treats the tests as evidence to be replicated, not as confirmation of pre-registered predictions. For each item we name the literature that the paper stage has to engage; these anchors are listed from memory and still need to be verified.
+
+**H1. The cost.** Resilient students report lower life satisfaction than disadvantaged low achievers who attend the same school.
+*To anchor:* "skin-deep resilience" (Brody and colleagues 2013; Miller and colleagues 2015); OECD work on academic resilience (Agasisti, Avvisati, Borgonovi and Longobardi 2018); PISA well-being volumes.
+
+**H2. Masking.** The gap is larger once socio-emotional skills and relationships are held fixed, because resilient students have more of both and both raise life satisfaction.
+*To anchor:* OECD Survey on Social and Emotional Skills (2021, 2024) on skills and wellbeing; sense of belonging and peer relations as correlates of children's subjective wellbeing in the child-indicators literature.
+
+**H3. Not a reporting artefact.** The gap is not produced by differences in how high and low achievers use rating scales.
+*To anchor:* response styles and reference-group effects in PISA questionnaire scales (He and van de Vijver; Kyllonen and Bertling); measurement of children's life satisfaction with single-item ladders.
+
+**H4. Specificity.** The life-satisfaction penalty attached to high achievement is larger among disadvantaged than among advantaged students.
+*To anchor:* skin-deep resilience again, which predicts costs only for low-status youth; social-mobility strain (Friedman 2016 on *habitus clivé*).
+
+**RQ1. Context.** Is the gap larger where a resilient student is surrounded by better-off or higher-achieving schoolmates, for girls, or for students with high educational aspirations?
+*To anchor:* big-fish-little-pond effect (Marsh and Hau 2003); status mismatch; gender differences in adolescent wellbeing; aspiration–resource gaps.
+
+**RQ2. Skills as buffers.** Do particular socio-emotional skills make the gap smaller or larger?
+*To anchor:* self-control as the costly trait in skin-deep resilience; self-regulated learning; curiosity and openness in relation to wellbeing.
+
+# Empirical tests
+
+## Data, groups and measures
+
+The data are the PISA 2025 student file. The outcome is the single life-satisfaction item (0 to 10), standardised within each system; one SD is about 2.3 ladder points. Socio-emotional skills are the six PISA 2025 scales (perseverance, curiosity, enjoyment of problem-solving, cognitive adaptability, goal setting, self-regulated learning) and their average, the skill index. Relationships are sense of belonging, exposure to bullying, family support and feeling safe at school. Systems enter if they fielded life satisfaction and at least four skill scales, which gives `r N$systems`; models that compare students within schools use the `r nsys("gap","lad:sei")` systems with school identifiers and at least 80 students in each compared group.
+
+Within each system, disadvantaged students are the bottom quartile of the index of economic, social and cultural status, and top and low achievers are the top and bottom quartiles of the average of the three test domains. Resilient students are in both the bottom status quartile and the top achievement quartile.
+
+## Estimation common to all tests
+
+Every model is estimated system by system with the final student weights. Standard errors combine the 80 balanced-repeated-replication weights with the variation across the 10 plausible values; because group membership depends on achievement, it is recomputed for every plausible value and every replicate. System estimates are pooled with a random-effects meta-analysis. Unless stated otherwise, models include school fixed effects, sex, age and grade, so resilient students are compared with disadvantaged low achievers in the same school.
+
+Family background is not an important confounder here. Within systems the status index correlates only 0.07 with life satisfaction, and the comparison is in any case made inside the bottom status quartile.
+
+## Test for each hypothesis
+
+| | Test | Main threat and how it is addressed |
+|:--|:-----------------|:-------------------------------|
+| **H1** | Within-school gap in life satisfaction, resilient minus disadvantaged low achievers. | School differences: school fixed effects. Composition: sex, age, grade. |
+| **H2** | The same gap after adding the skill index, then the six skills, then relationships; Gelbach decomposition of the change. | Order dependence of sequential controls: the decomposition is order-free. |
+| **H3** | (a) Indices of extreme, acquiescent and midpoint responding built from 18 items unrelated to wellbeing and from reverse-worded skill items; (b) exclusion of students who rushed the questionnaire; (c) the gap at each threshold of the ladder; (d) placebo: the same gap in choosing 10 on three effort scales that use a 1–10 format. | Scale use that differs by achievement. The placebo separates a general reluctance to choose the top of a numeric scale from something specific to life satisfaction. |
+| **H4** | (a) The same contrast among advantaged students and the difference between the two gaps; (b) an instrumental-variable test: the effect of one extra grade, instrumented by the school-entry cutoff, and its interaction with low status (20 systems; details in report B). | Selection into high achievement differs by background: the cutoff shifts academic progression for reasons unrelated to the student. |
+| **RQ1** | Interaction of resilience with the mean status and mean achievement of schoolmates, sex, and expecting a university degree; meta-regression of system gaps on system traits. | Many moderators: Bonferroni threshold across the ten tested. |
+| **RQ2** | Interaction of resilience with each skill; for self-regulation, the same test with the parent's rating in the 17 systems with a parent questionnaire; for curiosity, a battery of checks inside the student questionnaire. | Shared reporting between self-rated skills and self-rated life satisfaction: second rater where available. |
+
+: Tests by hypothesis {tbl-colwidths="[8,46,46]"}
+
+One design rule applies throughout. Skills help produce achievement, so among top achievers a student with few skills must have something else unobserved in her favour. We therefore never compare high- and low-skill students within the resilient group; skills enter as controls or as moderators of the resilient-versus-low-achiever contrast.
+
+# Results
+
+| | Verdict | Key estimate |
+|:--|:----------|:------------------------------------------|
+| **H1** The cost | \verdict{Supported} | Gap `r e("gap","lad:demo")` SD, about `r e("rs","diff:R-PL:LS")` ladder points unadjusted |
+| **H2** Masking | \verdict{Supported} | Gap `r e("gap","lad:sei")` SD with skills held; `r nneg("gap","lad:sei")` of `r nsys("gap","lad:sei")` systems negative |
+| **H3** Not an artefact | \verdict{Supported, one check open} | `r e("rs","gap:sei_rs")` with response-style controls; placebo gaps near zero or positive |
+| **H4** Specificity | \verdict{Partly supported} | Difference in gaps `r e("gap","did:sei")` SD in the cross-section; `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`) in the IV |
+| **RQ1** Context | \verdict{No moderation found} | All four context interactions within `r num(0.04)` of zero |
+| **RQ2** Skills as buffers | \verdict{Unsettled} | Self-regulation fails the second rater; curiosity holds within self-report |
+
+: Summary of results {tbl-colwidths="[24,26,50]"}
+
+## H1 and H2: the gap exists and skills hide half of it
+
+Compared with disadvantaged low achievers in the same school, resilient students report lower life satisfaction: the gap is `r e("gap","lad:demo")` SD (SE `r se("gap","lad:demo")`). Holding the skill index fixed widens it to `r es("gap","lad:sei")`, and adding the four relationship scales leaves it at `r e("gap","lad:full")` SD, or `r e("gap","lad:full_points")` points on the ladder (@fig-a2). The decomposition attributes the change to what resilient students have more of: the skill index offsets `r e("gap","gel:SEI",3)` SD of the gap, belonging `r e("gap","gel:BELONG_z",3)` and family support `r e("gap","gel:FAMSUP_z",3)`.
+
+H1 is supported, with a small raw gap. H2 is supported: the raw comparison understates the penalty by about half because resilient students bring assets that would otherwise make them more satisfied than their peers.
+
+![The life-satisfaction gap between resilient students and disadvantaged low achievers under successive specifications. Points are random-effects means across systems with 95% intervals. All rows except the last include school fixed effects, sex, age and grade.](`r fig("fig_a2_ladder")`){#fig-a2 width=100%}
+
+The gap is close to uniform across the world (@fig-a3). It is negative in `r nneg("gap","lad:sei")` of `r nsys("gap","lad:sei")` systems, significantly so in `r sneg("gap","lad:sei")`, and never significantly positive; the between-system variance is estimated at zero (I² = `r i2("gap","lad:sei")`%). Individual systems are imprecise, so the evidence is in the pooled estimate and the consistency of sign.
+
+![The gap with the skill index held fixed, system by system, with 95% intervals (truncated for three imprecise systems).](`r fig("fig_a3_systems")`){#fig-a3 width=100%}
+
+## H3: the gap is not a reporting artefact
+
+Three checks address general response style. Controlling for extreme, acquiescent and midpoint responding leaves the gap at `r e("rs","gap:sei_rs")` SD (`r e("rs","gap:sei_rssample")` in the same sample without these controls). Excluding students who rushed through the questionnaire gives `r e("rs","gap:sei_nospeed")`. On items unrelated to wellbeing, resilient students in fact answer at the extremes more often than low achievers (`r e("rs","rsgap:ERS_z")` SD), so a habit of moderate answering cannot be the source.
+
+The gap is concentrated at the top of the ladder (@fig-a4, left). Resilient students are `r ppa("rs","thr:LS10")` percentage points less likely to answer 10 and `r ppa("rs","thr:LSge9")` points less likely to answer 9 or 10, while the share answering 6 or more is the same (a difference of `r pp("rs","thr:LSge6")` points).
+
+A top-of-scale gap invites the objection that high achievers simply avoid the maximum of any numeric scale. The placebo test says otherwise (@fig-a4, right). On three effort questions with the same 1–10 format, resilient students choose 10 about as often as low achievers on two (differences of `r pp("rs","plac:EFF1_10")` and `r pp("rs","plac:EFFQ_10")` points) and far more often on the third (`r pp("rs","plac:EFF2_10")` points more). Netting out these three leaves the life-satisfaction gap at 10 unchanged at `r pp("rs","thr:LS10_netplac")` points.
+
+H3 is supported against every form of general scale use we can measure. What remains untested is a difference in how the two groups map their feelings onto the life-satisfaction ladder specifically, which requires a model with group-specific thresholds.
+
+![Left: gap between resilient students and disadvantaged low achievers in the share at or above each point of the ladder. Right: the same gap in the share answering 10, for life satisfaction and for three effort questions on a 1–10 scale. Skill index held fixed; 95% intervals.](`r fig("fig_a4_topbox")`){#fig-a4 width=100%}
+
+## H4: is the penalty specific to disadvantaged students?
+
+Among advantaged students, top achievers also report lower life satisfaction than low achievers once skills are held fixed (`r esp("gap","q4:sei")`). The penalty among disadvantaged students is larger by `r esa("gap","did:sei")` SD, or by `r ea("gap","did:demo")` without the skill control. On this cross-sectional evidence the cost is about twice as large for disadvantaged students.
+
+The instrumental-variable test does not reproduce the difference. In the 20 systems where a school-entry cutoff shifts students into a higher grade for reasons unrelated to them, an extra grade lowers life satisfaction by `r k("base","LS_z")` SD on average, and the additional effect for the bottom status quartile is `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`). The interval is wide enough to contain the cross-sectional difference, so the two results are not in conflict, but the causal design gives no positive evidence of a larger cost for the poor.
+
+H4 is partly supported. The firm result is a penalty that high achievers pay at every level of family background. Whether disadvantaged students pay more is suggested by the cross-section and not confirmed by the design that handles selection.
+
+## RQ1: context does not move the gap
+
+None of the context variables changes the gap (@fig-a5, top). Per SD of schoolmates' mean status the gap changes by `r es("mech","mod:schESCS:topX")`; per SD of schoolmates' mean achievement by `r es("mech","mod:schACH:topX")`. It is no larger for girls (`r esp("mech","mod:female:topX")`) or for students who expect a university degree (`r esp("mech","mod:uni:topX")`). Across systems, mean life satisfaction, the share answering 10, school segregation by status and mean achievement all fail to predict the size of the gap.
+
+Two candidate channels also account for none of it. Resilient students have more science self-efficacy (`r e("mech","acc:gamma:EFFSCIE_z")` SD) and are `r pp("mech","acc:gamma:uni",0)` points more likely to expect a university degree, but adding these and career clarity moves the gap from `r e("mech","acc:base",3)` to `r e("mech","acc:full",3)`.
+
+The answer to RQ1 is negative. Status mismatch and peer comparison, the two mechanisms with the strongest prior support, leave no trace in these data.
+
+![Change in the gap associated with each moderator, with 95% intervals. Estimates significant at the 1% level are highlighted. Context and skill rows: random-effects means over 69 systems. Two-rater rows: pooled sample of the 17 systems with a parent questionnaire.](`r fig("fig_a5_moderators")`){#fig-a5 width=100%}
+
+## RQ2: which skills change the cost?
+
+Two skills moderate the gap in student reports (@fig-a5, middle). Each SD of self-regulated learning makes the gap smaller by `r es("mech","mod:SELFREG:topX")`, and each SD of curiosity makes it larger by `r esa("mech","mod:CURIO:topX")`. Both pass the Bonferroni threshold. Perseverance does not moderate the gap (`r esp("mech","mod:PERSEV:topX")`), nor do goal setting or adaptability. This pattern runs against the skin-deep-resilience account, in which the cost falls on those who succeed through persistence and self-control.
+
+The self-regulation result does not survive a change of rater. In the 17 systems with a parent questionnaire (`r big(N$parR)` resilient students), the interaction is `r ob("noach:ols_student:topXSR")` (SE `r ob("noach:ols_student:topXSR", what = "se")`) with the student's own rating and `r ob("noach:ols_parent:topXSR")` (SE `r ob("noach:ols_parent:topXSR", what = "se")`) with the parent's rating of the same skill (@fig-a5, bottom). The parent sample is too small to exclude an effect of the original size, but its point estimate is zero.
+
+Curiosity has no second rater, so we tested it inside the student questionnaire. The interaction stays between `r e("cur","purged",3)` and `r e("cur","joint:CURIO",3)` when response-style indices and their interactions are added, when curiosity is purged of response style, when speeders are dropped and when all six skills enter together. The reverse-worded curiosity item alone gives the same sign (`r esp("cur","items:rev")`), which acquiescence could not produce. The effect appears as more students at 4 or below (`r pp("cur","ladder:LSle4")` points more per SD) and not as fewer at 10 (`r pp("cur","ladder:LS10")` points), and a weaker version is present among advantaged high achievers (`r esp("cur","q4")`).
+
+RQ2 remains unsettled. Curiosity is the one moderator that holds up within self-report, and it points to a different kind of cost, outright dissatisfaction, from the top-of-scale shortfall that defines the main gap. The fate of the self-regulation result shows how far a self-report moderator can be trusted without a second measure.
+
+## What remains open before the paper stage
+
+- A threshold model for the life-satisfaction item, to close H3.
+- A sharper test of H4. The IV interaction has a standard error of `r kse("lowses","LS_z","gamma:lowSES")`; more cutoff systems or a pooled individual-level model would narrow it.
+- Emotional-stability skills (stress resistance, optimism, emotional control), which the wider literature ties most closely to wellbeing, are not measured in PISA 2025. PISA 2022 measured some of them (to be confirmed against the codebook) and could test RQ2 properly.
+- A eudaimonic outcome. PISA 2025 has only the life-satisfaction ladder; PISA 2018 included meaning-in-life and affect scales (to be confirmed).
+- The literature anchors in section 2 need to be verified and the hypotheses restated against them.
+
+*Reproduction.* `bash 05_papers/03_resilience_cost/01_code/run_all.sh report` verifies the approved result snapshot (`02_results/snapshot`), redraws the figures and renders this report. Every number is read from the snapshot at render time; nothing is estimated.

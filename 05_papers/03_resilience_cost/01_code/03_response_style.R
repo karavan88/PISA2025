@@ -5,8 +5,8 @@
 #   (b) the resilient-vs-disadvantaged-low-achiever gap: demographics -> + skill index -> + response-style indices
 #   (c) the gap after dropping questionnaire speeders (absolute < 1 s/item and system bottom 5%)
 #   (d) the gap along the ladder: P(LS >= k) for k = 4, 6, 8, 9, 10 -- a pure top-box effect would show up only at k = 10
-# Output: 03_outputs/resilwb/rs_sys.csv (per system), rs_pool.csv (random-effects summaries)
-source("02_scripts/resilwb/00_helpers.R")
+# Output: 05_papers/03_resilience_cost/04_output/rs_sys.csv (per system), rs_pool.csv (random-effects summaries)
+source("05_papers/03_resilience_cost/01_code/00_helpers.R")
 d <- load_rw()
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0), LSle4 = as.integer(LS <= 4))]
 for (k in c(4, 6, 8, 9)) d[, (paste0("LSge", k)) := as.integer(LS >= k)]

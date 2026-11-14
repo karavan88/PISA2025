@@ -2,12 +2,13 @@
 The Cost of Resilience -- student extract (all PISA 2025 systems).
 Life satisfaction, socio-emotional skills, SES, achievement PVs, replicate weights, parent-rated skills, the raw items used for the
 response-style indices, and questionnaire screen timings (STU_TT file) for the careless-responding check.
-Run from repo root:  python3 -I 02_scripts/resilwb/01_build.py   (pyreadstat; ~2 min)
+Run from repo root:  python3 -I 02_scripts/02_legacy/wellbeing_shared/01_build.py   (pyreadstat; ~2 min)
+Legacy provider read: to be migrated into 02_scripts/01_harmonization. WELLBEING_DERIVED redirects the output directory.
 Output: 01_data/derived/resilwb_students.csv.gz
 """
 import os, pandas as pd, numpy as np, pyreadstat
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 DATA = os.path.join(ROOT, '01_data')
 
 PV = [f'PV{i}{d}' for i in range(1, 11) for d in ['SCIE', 'MATH', 'READ']]
@@ -42,7 +43,7 @@ tt['sec_per_item'] = spi.median(axis=1, skipna=True)      # median over screens:
 tt['n_screens_timed'] = spi.notna().sum(axis=1)
 d = d.merge(tt[['CNTSTUID', 'sec_per_item', 'n_screens_timed', 'ST016_TT']], on='CNTSTUID', how='left')
 
-out = os.path.join(DATA, 'derived', 'resilwb_students.csv.gz')
+out = os.path.join(os.environ.get('WELLBEING_DERIVED', os.path.join(DATA, 'derived')), 'resilwb_students.csv.gz')
 d.to_csv(out, index=False, compression='gzip')
 print(d.shape, '->', out)
 print('sec_per_item quantiles:', d.sec_per_item.quantile([.01, .05, .25, .5, .75, .95]).round(2).to_dict())

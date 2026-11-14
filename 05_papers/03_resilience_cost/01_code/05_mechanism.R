@@ -13,7 +13,7 @@
 # meta-regression: per-system gap (step 4, lad:sei) on system traits: mean LS, share choosing 10, between-school ESCS segregation,
 #   mean achievement, share of resilient students in schools with a disadvantaged low achiever.
 # Output: mech_sys.csv, mech_pool.csv, meta_reg.csv, system_traits.csv
-source("02_scripts/resilwb/00_helpers.R")
+source("05_papers/03_resilience_cost/01_code/00_helpers.R")
 d <- load_rw()
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0), uni = as.integer(EXPECEDU >= 7))]
 d[, EXPECEDU_z := zw(EXPECEDU, w), by = CNT]

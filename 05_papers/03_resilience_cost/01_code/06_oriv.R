@@ -11,7 +11,7 @@
 # Part B (pooled 17-system data, weights normalised per system, BRR + Rubin): resilience gap and its moderation by self-regulation,
 #   R vs disadvantaged low achievers within school -- OLS student, OLS parent, ORIV (top x SR instrumented by top x the other rater).
 # Output: oriv_sys.csv, oriv_pool.csv, oriv_resil.csv
-source("02_scripts/resilwb/00_helpers.R")
+source("05_papers/03_resilience_cost/01_code/00_helpers.R")
 d <- load_rw()[!is.na(PQSELFREG)]
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0))]
 d[, PEMO_z := zw(PA204Q04DA, w), by = CNT]                    # parent: "good at managing emotions when learning" (4-pt agree)

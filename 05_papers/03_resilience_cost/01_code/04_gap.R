@@ -7,8 +7,8 @@
 #   did:     difference in the two achiever gaps from one model on Q1+Q4 (top x Q1), school FE, demo + skill index
 #   cont:    continuous version on everyone: LS ~ ach*ESCS + skill index + demo | school  (achievement and ESCS in system SD)
 #   gelbach: decomposition of (gap demo) - (gap full) into the skill index and each relationship scale (Gelbach 2016)
-# Output: 03_outputs/resilwb/gap_sys.csv, gap_pool.csv
-source("02_scripts/resilwb/00_helpers.R")
+# Output: 05_papers/03_resilience_cost/04_output/gap_sys.csv, gap_pool.csv
+source("05_papers/03_resilience_cost/01_code/00_helpers.R")
 d <- load_rw()
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0))]
 SEZ <- paste0(SE6, "_z"); CTZ <- paste0(CTX, "_z")

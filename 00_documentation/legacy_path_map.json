@@ -56,14 +56,6 @@
     "target": "05_papers/02_fuzzy_rd_learning/04_output"
   },
   {
-    "alias": "02_scripts/resilwb",
-    "target": "05_papers/03_resilwb/01_code"
-  },
-  {
-    "alias": "03_outputs/resilwb",
-    "target": "05_papers/03_resilwb/04_output"
-  },
-  {
     "alias": "02_scripts/epf_postsoviet",
     "target": "06_scoping/11_epf_postsoviet/01_code"
   },

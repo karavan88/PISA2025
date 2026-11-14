@@ -1,18 +1,28 @@
-# The Cost of Resilience -- shared helpers
-# Socio-emotional skills, academic resilience and life satisfaction at 15 (PISA 2025, every system with the measures).
-# Resilient = bottom within-system ESCS quartile AND top within-system achievement quartile (mean of math, reading, science; PV by PV).
-# Core estimand: the within-school life-satisfaction gap between resilient students and disadvantaged low achievers, how it moves when
-# skills and relationships are held fixed, whether it survives response-style controls, and whether it is larger than the
-# high-achiever gap among advantaged students.
-# Estimation is per system (Fay BRR, 80 replicates + Rubin over 10 PVs, via gradegain's pisa_est); the PV enters through the
-# achievement composite, so resilience status is re-derived for every PV and every replicate weight. Cross-system summaries are
-# DerSimonian-Laird random-effects means (skillsgain's pool()). Outputs are CSV in 03_outputs/resilwb/.
+# Wellbeing papers -- shared survey-estimation helpers (FROZEN shared layer; legacy, not yet migrated to 02_scripts/01_harmonization).
+# Used by 05_papers/03_resilience_cost and 05_papers/04_price_of_progress. Neither paper session edits this folder; a change here
+# alters both papers and must be made deliberately, with both papers re-estimated into fresh output directories and compared.
+# Contents: plausible-value / replicate-weight names, Fay BRR + Rubin estimator, weighted moments and quantiles, within-group
+# demeaning and WLS with absorbed school effects, DerSimonian-Laird pooling, the per-system parallel runner.
+# pisa_est(), wmean(), wsd(), PV(), RW and log_step() are verbatim copies of the functions the pipeline used on 2026-11-14
+# (then sourced from the grade-gain project); they are kept here so the wellbeing papers do not depend on another project's code.
 suppressPackageStartupMessages({ library(data.table) })
-source("02_scripts/gradegain/00_helpers.R")      # PV(), RW, pisa_est(), wmean(), wsd(), log_step(), SYS_NAMES
-OUTR <- "03_outputs/resilwb/"; dir.create(OUTR, recursive = TRUE, showWarnings = FALSE)
-orr <- function(f) paste0(OUTR, f)
-DERIV <- "01_data/derived/resilwb_analytic.rds"
+PV  <- function(dom) paste0("PV", 1:10, dom)
+RW  <- paste0("W_FSTURWT", 1:80)
+pisa_est <- function(dt, statfun, ys, brr = TRUE) {            # Fay BRR (k = 0.5) + Rubin over PVs; statfun(dt, y, w) -> named vector
+  th_pv <- sapply(ys, function(p) statfun(dt, dt[[p]], dt$W_FSTUWT))
+  if (is.null(dim(th_pv))) th_pv <- matrix(th_pv, nrow = 1, dimnames = list(names(statfun(dt, dt[[ys[1]]], dt$W_FSTUWT)), ys))   # scalar statistic: keep its own name
+  est <- rowMeans(th_pv); v_imp <- if (length(ys) > 1) (1 + 1 / length(ys)) * apply(th_pv, 1, var) else 0; v_samp <- 0
+  if (brr) { th_r <- sapply(RW, function(r) statfun(dt, dt[[ys[1]]], dt[[r]])); if (is.null(dim(th_r))) th_r <- matrix(th_r, nrow = 1); v_samp <- rowSums((th_r - th_pv[, 1])^2) / 20 }
+  data.table(term = names(est), est = est, se = sqrt(v_samp + v_imp))
+}
+wmean <- function(x, w) { ok <- !is.na(x) & !is.na(w); sum(x[ok] * w[ok]) / sum(w[ok]) }
+wsd   <- function(x, w) { ok <- !is.na(x) & !is.na(w); m <- wmean(x[ok], w[ok]); sqrt(sum(w[ok] * (x[ok] - m)^2) / sum(w[ok])) }
+log_step <- function(...) cat(format(Sys.time(), "%H:%M:%S"), ..., "\n")
 
+# prepared inputs (written by 02_prepare.R in this folder). WELLBEING_DERIVED redirects them for validation runs.
+DERIVED <- Sys.getenv("WELLBEING_DERIVED", "01_data/derived")
+DERIV <- file.path(DERIVED, "resilwb_analytic.rds")
+STUDENTS <- file.path(DERIVED, "resilwb_students.csv.gz")       # item-level extract (01_build.py)
 SE6 <- c("PERSEV", "CURIO", "ENPROBS", "COGABIL", "GOALSET", "SELFREG")
 CTX <- c("BELONG", "BULLIED", "FAMSUP", "FEELSAFE")
 ACH <- paste0("ACH", 1:10)                         # PV-wise achievement composites, built in 02_prepare.R
