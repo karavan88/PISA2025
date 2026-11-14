@@ -1,0 +1,393 @@
+---
+title: "Do Socio-Emotional Skills Transmit Family Advantage? A Causal Mediation Analysis of the Socio-Economic Gradient in Learning across East Asian, Post-Soviet and Post-Communist Education Systems"
+author:
+  - name: Garen Avanesian
+    affiliations:
+      - name: Southern Federal University, Future Skills Research Lab, Rostov-on-Don
+    corresponding: true
+date: today
+date-format: "D MMMM YYYY"
+abstract: |
+  Socio-emotional skills are routinely described as a channel through which family advantage becomes school achievement. We test this claim directly with causal mediation analysis on PISA 2025, the first cycle to measure skills on the taxonomy of the OECD Survey on Social and Emotional Skills, in nineteen non-OECD education systems that share a socialist or Chinese-heritage tradition of character-forming schooling (108,647 students), estimating every model separately for each system. Treating a family's percentile position on the national socio-economic ladder (the PISA ESCS index, ranked within each system) as the exposure, seven dispositions — perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving, stress adaptability and a growth mindset — as mediators, and reading as the primary outcome, we estimate average causal mediation effects with the Imai–Keele–Tingley framework and report the sensitivity of each effect to unmeasured confounding. Conditional on the school a student attends, the dispositions jointly mediate a median of 17 per cent of the socio-economic gradient in reading across the nineteen systems (interquartile range 14–26 per cent); against the total gradient, of which more than half is sorting between schools, the median share is one-eighth. Curiosity is the largest single pathway in twelve of the nineteen systems and carries a median of 12 per cent of the gradient on its own; perseverance is a secondary pathway whose weight varies more than any other, from nil in the Chinese cities to a fifth of the gradient in Georgia and Kosovo; growth mindset adds a stable 4 per cent that is independent of the six scales; self-regulated learning carries almost nothing anywhere. The mediated share ranges from 7 per cent in Viet Nam to about a third in Kazakhstan, Kosovo, Georgia and Azerbaijan, and the ranking of pathways is the same for mathematics and science. A second exposure — the number of items a family cannot afford, at a given position on the ladder — is mediated to the same degree (18 per cent), but through perseverance more than through curiosity: a shortage of resources runs through effort where a status gradient runs through intellectual disposition. The mediated effects are robust to unmeasured confounding of moderate size but not to a confounder as strong as prior achievement, so they are best read as upper bounds. Socio-emotional skills are a substantial conduit of family advantage — in the typical system they carry close to a fifth of the gradient among classmates, and in a quarter of the systems more than a quarter — alongside the larger channel of sorting between schools; the conduit is intellectual disposition rather than diligence, and its width varies across systems in a way that tracks the strength of the school rather than the bloc a system belongs to.
+keywords: [socio-emotional skills, non-cognitive skills, socio-economic status, causal mediation, educational inequality, PISA 2025, transition economies]
+bibliography: references.bib
+format:
+  pdf:
+    documentclass: article
+    papersize: a4
+    geometry: margin=25mm
+    fontsize: 11pt
+    mainfont: Linux Libertine O   # carries Greek and combining marks used in table headers (ρ*, R̃²)
+    linestretch: 1.15
+    number-sections: true
+    colorlinks: true
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{longtable}
+        \usepackage{pdflscape}
+        \usepackage{float}
+        \usepackage{caption}
+        \captionsetup{font=small}
+        \usepackage{etoolbox}
+        \AtBeginEnvironment{tabular}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\footnotesize\renewcommand{\arraystretch}{0.9}}
+        \setlength{\LTpre}{4pt}\setlength{\LTpost}{4pt}
+  docx:
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+#| include: false
+invisible(Sys.setlocale("LC_CTYPE", "C.UTF-8"))   # UTF-8 symbols in table headers and captions under a POSIX locale
+# The manuscript reads results produced by the numbered scripts in 02_scripts/paperA/ (01_build_dataset.py -> 12_paper_tables.R).
+# Chunks run from the repository root (or the analysis folder); the helper functions detect the layout.
+root <- if (dir.exists("../../03_outputs")) normalizePath("../..") else if (dir.exists("../outputs")) normalizePath("..") else getwd()
+knitr::opts_knit$set(root.dir = root)
+```
+
+```{r helpers}
+#| include: false
+src <- if (file.exists("02_scripts/paperA/12_paper_tables.R")) "02_scripts/paperA/12_paper_tables.R" else "scripts/12_paper_tables.R"
+source(src)
+FIGP <- if (REPO) "../../03_outputs/paperA/figures_paper/" else "../outputs/figures_paper/"   # relative to the .qmd, where image paths resolve
+# inline helpers
+AL <- function(dom) all_lab(dom)
+mv <- function(dom, spec, unit, mediator, what, treat = "pct") { x <- as.data.frame(med(dom, spec, treat)); x <- x[as.character(x$unit) == unit & as.character(x$mediator) == mediator, ]; x[[what]][1] }   # data.frame: a data.table would resolve `unit`/`mediator` as columns
+Pm <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "All skills (joint)", d = 1, treat = "pct") pct(mv(dom, spec, unit, mediator, "prop", treat), d)
+Ac <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "All skills (joint)", d = 2, treat = "pct") fmt(mv(dom, spec, unit, mediator, "acme", treat), d)
+Tt <- function(dom = "READ", spec = "within", unit = AL(dom), d = 1, treat = "pct") fmt(mv(dom, spec, unit, "All skills (joint)", "total", treat), d)
+Ad <- function(dom = "READ", spec = "within", unit = AL(dom), d = 1) fmt(mv(dom, spec, unit, "All skills (joint)", "ade"), d)
+Rh <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "Curiosity", d = 2) fmt(mv(dom, spec, unit, mediator, "rho_star"), d)
+R2 <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "Curiosity", d = 3) fmt(mv(dom, spec, unit, mediator, "R2tilde_thresh"), d)
+Bc <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "All skills (joint)", d = 1) fmt(mv(dom, spec, unit, mediator, "acme_B10_T10"), d)
+Ctr <- function(dom = "READ", spec = "within", unit = AL(dom)) fmt(mv(dom, spec, unit, "All skills (joint)", "contrast"), 1)
+rho_joint <- function(dom = "READ", spec = "within", unit = AL(dom)) Rh(dom, spec, unit, "All skills (joint)")
+share_between <- function(dom = "READ") { t <- mv(dom, "total", AL(dom), "All skills (joint)", "total"); w <- mv(dom, "within", AL(dom), "All skills (joint)", "total"); pct((t - w) / t, 0) }
+econ_range <- function(dom = "READ", spec = "within", what = "prop", min_total = 4) { x <- as.data.frame(med(dom, spec)); x <- x[x$n_sys == 1 & x$mediator == "All skills (joint)" & abs(x$total) >= min_total, ]; r <- range(x[[what]]); c(lo = r[1], hi = r[2], lo_u = as.character(x$unit[which.min(x[[what]])]), hi_u = as.character(x$unit[which.max(x[[what]])])) }
+bgr_total <- function() fmt(mv("READ", "within", "Bulgaria", "All skills (joint)", "total"), 1)
+Cr <- function(a, b, dom = "READ") { cm <- fread(tp(dom, "t_skill_intercorr.csv")); setnames(cm, "skill", "Skill"); cm[Skill == "Enjoyment of problem-solving", Skill := "Problem-solving enjoyment"]; setnames(cm, "Enjoyment of problem-solving", "Problem-solving enjoyment", skip_absent = TRUE); fmt(as.numeric(cm[Skill == a][[b]]), 2) }
+gb_raw <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "All skills (joint)", treat = "pct") { x <- as.data.frame(gelbach_shares(dom, spec, treat)); 100 * x$share[as.character(x$unit) == unit & as.character(x$mediator) == mediator][1] }
+Gb <- function(dom = "READ", spec = "within", unit = AL(dom), mediator = "All skills (joint)", d = 1, treat = "pct") fmt(gb_raw(dom, spec, unit, mediator, treat), d)
+Iq <- function(dom = "READ", spec = "within", mediator = "All skills (joint)", what = "prop", d = 1, treat = "pct") { x <- as.data.frame(med(dom, spec, treat)); x <- x[as.character(x$unit) == AL(dom) & as.character(x$mediator) == mediator, ]; k <- if (what == "prop") 100 else 1; paste0(fmt(k * x[[paste0(what, "_lo")]][1], d), "–", fmt(k * x[[paste0(what, "_hi")]][1], d)) }
+top_cur <- function(dom) { x <- med(dom, "within")[n_sys == 1 & mediator != "All skills (joint)"]; x[, .(top = mediator[which.max(acme)]), by = unit][top == "Curiosity", .N] }
+n_top_cur <- top_cur("READ"); n_top_cur_m <- top_cur("MATH"); n_top_cur_s <- top_cur("SCIE")
+n_sig_joint <- med("READ", "within")[n_sys == 1 & mediator == "All skills (joint)", sum(abs(acme / acme_se) > 1.96)]
+n_sig_pers <- med("READ", "within")[n_sys == 1 & mediator == "Perseverance", sum(abs(acme / acme_se) > 1.96)]
+n_sig_growth <- med("READ", "within")[n_sys == 1 & mediator == "Growth mindset", sum(abs(acme / acme_se) > 1.96)]
+rank_cor <- { w <- med("READ", "within")[n_sys == 1 & mediator == "All skills (joint)" & unit != "Bulgaria", .(unit, pw = prop)]; t <- med("READ", "total")[n_sys == 1 & mediator == "All skills (joint)", .(unit, pt = prop)]; z <- merge(w, t, by = "unit"); cor(z$pw, z$pt, method = "spearman") }
+er <- econ_range(); ert <- econ_range(spec = "total")
+dep_iqr <- { x <- as.data.frame(med("READ", "within", "dep")); x <- x[as.character(x$unit) == AL("READ") & x$mediator == "All skills (joint)", ]; paste0(fmt(abs(x$total_hi), 1), "–", fmt(abs(x$total_lo), 1)) }
+dep_any <- { a0 <- readRDS(if (REPO) "01_data/derived/paperA_analytic.rds" else "data/paperA_analytic.rds"); a0[!is.na(DEP) & !is.na(PV1READ), .(p = sum(W_FSTUWT * (DEP > 0)) / sum(W_FSTUWT)), by = CNT]$p }; dep_any_lo <- min(dep_any); dep_any_hi <- max(dep_any)
+growth_share <- { a0 <- readRDS(if (REPO) "01_data/derived/paperA_analytic.rds" else "data/paperA_analytic.rds"); sum(a0$w_senate * a0$GROWTH) / sum(a0$w_senate) }
+n_students <- formatC(mv("READ", "within", AL("READ"), "All skills (joint)", "N"), big.mark = ",")
+n_econ <- fread(tp("READ", "n_economies.txt"))$n
+```
+
+**JEL codes:** I24, J24, Z13
+
+# Introduction
+
+Two findings about socio-emotional skills — the dispositions that psychology organises as the Big Five and that the OECD Survey on Social and Emotional Skills (SSES) re-labels as task performance, open-mindedness, emotional regulation, collaboration and engaging with others — are by now settled. They predict school achievement over and above cognitive ability [@heckman2006; @almlund2011; @kautz2014], and they are unequally distributed by family background: adolescents from educated, well-off homes are more persistent, more curious and better able to regulate their learning than adolescents from poor ones [@farkas2003; @lundberg2013]. Put together, the two findings license a claim that has become standard in policy discourse: socio-emotional skills are a *channel* through which family advantage is converted into achievement, and therefore a lever through which the socio-economic gradient of learning can be flattened.
+
+The claim is a mediation claim, and it is almost never tested as one. What the literature offers instead is the observation that the coefficient on socio-economic status shrinks when skill measures are added to an achievement regression, read as evidence that skills "explain part of" the gradient. That reading is valid only under assumptions that the informal comparison neither states nor examines: that the skills are causally prior to achievement, that no unmeasured variable drives both, and that the shrinkage can be attributed to specific skills rather than to the block. Causal mediation analysis in the potential-outcomes framework of @imai2010psych and @imai2010statsci makes these assumptions explicit, delivers the quantity the claim is actually about — the average causal mediation effect of socio-economic status on achievement through each skill — and, most usefully, tells the reader how strong an unmeasured confounder would have to be to erase it.
+
+This paper applies that framework to PISA 2025, the first PISA cycle to carry skill scales built on the SSES taxonomy — perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving and stress adaptability — together with a growth-mindset item, alongside the standard index of economic, social and cultural status (ESCS). The setting is `r n_econ` non-OECD education systems that share a socialist institutional legacy or a Chinese-heritage schooling tradition: B-S-J-Z (China), Hong Kong, Macao, Viet Nam and Mongolia in East Asia; Kazakhstan, Kyrgyzstan, Georgia, Azerbaijan, Moldova and Armenia in the post-Soviet space; and Serbia, Bulgaria, Romania, Croatia, Albania, North Macedonia, Montenegro and Kosovo in post-communist Europe. The analytic sample is `r n_students` students. Reading is the primary outcome; mathematics and science are analysed in parallel.
+
+The question is a single one: *how much of the socio-economic gradient in achievement runs through socio-emotional skills, through which skills, and how much does the answer vary across systems?* The choice of systems gives the last clause its force. The socialist school inherited a collectivist, effort-centred moral pedagogy — *vospitanie* in the Soviet tradition, *deyu* in the Chinese — that treated diligence and self-discipline as public virtues to be cultivated by the school for all children. Since 1990 the blocs have diverged: the Chinese-heritage systems have built an examination meritocracy of great intensity on that foundation, the post-Soviet systems have kept comprehensive structures while losing much of their resource base and acquiring a large shadow-education sector, and the Balkan systems have moved towards European models with earlier tracking and growing private segments. If skills transmit class advantage, the correspondence principle [@bowles1976] predicts that they do so most where schooling most closely mirrors the labour market's demand for disciplined effort; if the school still does the cultivating, family background should matter less for skills and skills should mediate less. The three groups define the sample, not the units of analysis: every model is estimated separately for each system, every system is reported, and the summary statistic throughout is the median across systems with its interquartile range. With five to eight heterogeneous systems per group, a group mean would summarise little and conceal much.
+
+The results are consistent across estimators, outcomes and specifications. Across the `r n_econ` systems the seven skills jointly mediate a median of `r Pm()` per cent of the ESCS gradient in reading conditional on the school a student attends (interquartile range `r Iq()`); against the total gradient, of which about `r share_between()` per cent is carried by sorting between schools, the median share is `r Pm(spec = "total")` per cent. Curiosity is the largest single pathway in `r n_top_cur` of the `r n_econ` systems and carries a median of `r Pm(mediator = "Curiosity")` per cent of the gradient on its own; perseverance is a secondary pathway whose weight varies more across systems than that of any other skill; growth mindset adds a median of `r Pm(mediator = "Growth mindset")` per cent that is independent of the six scales; self-regulated learning carries almost nothing anywhere. The joint mediated share ranges from `r pct(as.numeric(er["lo"]))` per cent in `r er["lo_u"]` to `r pct(as.numeric(er["hi"]))` per cent in `r er["hi_u"]`, is smallest in the systems whose comprehensive school is least changed and largest in the Caucasus and Central Asia, and the ranking of pathways is the same for mathematics and science. Sensitivity analysis shows that a confounder inducing a residual correlation of about `r Rh()` between curiosity and reading would eliminate the curiosity effect — a moderate threshold that prior achievement could plausibly meet — so the mediated shares are upper bounds. Socio-emotional skills are a substantial channel of social reproduction — close to a fifth of the gradient among classmates in the typical system, a third in the Caucasus, Kazakhstan and Kosovo — that operates alongside the larger channel of sorting between schools; the channel runs mainly through intellectual disposition, with diligence a system-dependent second; and its width varies with the strength of the school more than with the bloc a system belongs to.
+
+The paper builds on two earlier studies by the author. @avanesian2025epf estimated an education production function on PISA 2018 for Brazil, China and Russia and found that peer socio-economic composition dwarfed most school inputs while achievement motivation predicted reading across all territories. @avanesian2025ncs used the SSES to show that adding skills to a model of high achievement reduced the disadvantage of the bottom 40 per cent by about two percentage points, with parallel skill slopes across SES groups. The present paper replaces the informal shrinkage comparison of the second study with a formal causal decomposition, on nationally representative samples, with the sensitivity analysis that the claim requires.
+
+# Socio-emotional skills as a channel of social reproduction
+
+## Skills and achievement
+
+The Big Five framework organises personality into openness, conscientiousness, extraversion, agreeableness and neuroticism [@john1999]. The OECD's SSES re-labels the five for the school context as open-mindedness, task performance, engaging with others, collaboration and emotional regulation, each with three facets [@chernyshenko2018; @oecd2021]. Meta-analyses agree on the ordering of predictive validity: conscientiousness and its facets — persistence, self-control, achievement striving — are the most consistent correlates of grades and attainment, while openness, in particular its intellectual-curiosity facet, is the most consistent correlate of standardised test performance [@poropat2009; @richardson2012]. Economists have absorbed these findings into a human-capital framework in which non-cognitive skills are produced by families and schools, remain malleable into adolescence, and carry wage returns of the same order as cognitive skills [@heckman2006; @borghans2008; @heckman2012].
+
+PISA 2025 fields six scales aligned with this taxonomy, and one item on mindset. Perseverance (SSES persistence) and self-regulated learning (planning, monitoring, changing strategy, help-seeking) belong to task performance; goal setting sits on its self-direction facet; curiosity and enjoyment of problem-solving belong to open-mindedness; stress adaptability is the emotional-regulation facet closest to stress resistance. The two social domains — engaging with others and collaboration — are not measured. The taxonomy is therefore incomplete, but the two domains that carry the predictive weight in the literature are the two best measured. To the six scales we add growth mindset — the belief that intelligence can be changed — which sits outside the SSES taxonomy but has its own literature as a stratified, malleable and achievement-relevant disposition [@dweck2006; @claro2016], and which PISA measures with a single item.
+
+## Skills and family background
+
+That socio-emotional skills are socially stratified is not in doubt. Class differences in persistence, self-control and curiosity are visible at school entry and persist through adolescence [@farkas2003; @lundberg2013]. Two mechanisms are usually invoked. Families transmit dispositions directly, through modelling and socialisation; and the material and cultural resources that ESCS measures — books, a quiet place to study, parents who read — create the conditions in which curiosity is rewarded and persistence is possible. Either way, the observation that skills are stratified is a necessary condition for mediation, not evidence of it: mediation also requires that the skills, so distributed, produce achievement.
+
+## The mediation claim and its two readings
+
+The strongest version of the claim is sociological. In the correspondence principle of @bowles1976, schools reward dispositions — punctuality, perseverance, deference to task structure — that mirror the traits demanded by the capitalist labour process, and these dispositions are differentially instilled by class-specific socialisation; the school converts class-conditioned character into certified merit. Bourdieu's habitus makes the same argument in a different idiom: dispositions acquired in the family are converted by the school into achievement, so that inheritance appears as talent [@bourdieu1977]. On this reading the causal chain runs SES → dispositions → achievement, and the prediction is a *large* indirect effect carried by the task-performance dispositions — the ones that look like labour discipline.
+
+A weaker version comes from the economics of skill formation. Non-cognitive skills are one input among several in the technology of skill formation [@cunha2007]; they are stratified because investment is stratified, and they mediate the SES gradient to the extent that they are both stratified and productive. This reading predicts a *modest* indirect effect whose composition depends on which skills the school actually rewards — which need not be the disciplinary ones.
+
+The two readings differ in the size and composition of the mediated effect, and both can be tested against a benchmark the data themselves supply: the share of the total gradient that is carried not by any individual disposition but by the sorting of students into schools of different socio-economic composition. @avanesian2025epf found that composition dominated school inputs in the same East Asian territories in 2018; if it also dominates individual skills as a channel, the reproduction reading must locate the mechanism in institutions rather than in character.
+
+## Why transition and East Asian systems
+
+Most evidence on socio-emotional skills and inequality comes from the United States and Western Europe. The systems studied here inherited a school that was explicitly in the business of forming character — Soviet *vospitanie* and Chinese *deyu* assigned the cultivation of diligence, collective responsibility and self-discipline to a comprehensive, weakly tracked, publicly provided school. Thirty-five years on, three institutional endpoints can be compared. The Chinese-heritage systems combine a residual moral pedagogy with an examination meritocracy in which effort is culturally coded as the route to success [@li2012]. The post-Soviet systems of Central Asia and the Caucasus have kept a comprehensive structure, lost resources and acquired a large tutoring sector. The Balkan systems have moved towards European models with earlier tracking and growing private and selective segments. If the mediating role of skills depends on the regime, systems should differ in the size of the mediated share along these institutional lines and, on the correspondence reading, in whether disciplinary or intellectual dispositions carry it. We treat the three groups as a description of the sample rather than as categories to be averaged over: the institutional endpoints are ideal types, and within each group the systems differ in resources, tracking and the reach of private tutoring at least as much as the groups differ from each other.
+
+## Research question and expectations
+
+*How much of the ESCS gradient in achievement is mediated by socio-emotional skills, through which skills, and how much does this vary across the `r n_econ` systems?* Three expectations follow from the above. First, the median mediated share is modest — below one-fifth of the within-school gradient — because the socio-economic gradient of skills is much flatter than that of achievement. Second, the share is carried by open-mindedness (curiosity) rather than by task performance, contrary to the correspondence reading. Third, the share is smallest where the school most intensively cultivates and selects on effort and larger where family resources substitute for a weakened school — an expectation about individual systems, which we read off the system-level estimates rather than off group means.
+
+# Data
+
+## Sample
+
+PISA 2025 assessed 15-year-olds in 91 education systems. We select the non-OECD systems with a socialist legacy or Chinese-heritage schooling tradition listed in @tbl-sample, grouped into three regions for presentation. Ukraine participated with a partial sample and is excluded; Dushanbe (Tajikistan) and Cambodia did not field the skill scales; Uzbekistan has no reading or mathematics plausible values in the public-use file and enters the science analysis only (Appendix). Kazakhstan and Albania did not administer the perseverance items, so models for these systems use five skills, and the median for perseverance is taken over the 17 systems that fielded it. Macao's public-use file carries no school identifier, so its school-level controls are set to the student's own values and it does not contribute to the between-school component.
+
+The analytic sample requires non-missing ESCS, fielded skills, controls and plausible values. Coverage ranges from 98 per cent of the original sample in B-S-J-Z to 55 per cent in Bulgaria, Kosovo and North Macedonia and 20 per cent in Armenia. The skill items sit late in the questionnaire and non-response is selective — in the Balkan and Caucasus systems, students who skipped the curiosity items score 40–65 points below respondents. Armenia's estimates should be read as pertaining to the fifth of students who completed the items; Section 5.7 re-weights the analytic sample to the full sample on observed achievement as a check.
+
+::: {.landscape}
+```{r tbl-sample}
+#| label: tbl-sample
+#| tbl-cap: "Analytic sample by education system. EA = East Asia, PS = post-Soviet, PCE = post-communist Europe. Weighted by final student weights. Deprived = cannot afford at least one of four personal items (ST488). Macao: no school identifier in the public-use file. Achievement means on the PISA scale (OECD mean 500, SD 100 in the base year)."
+kb(tbl_sample(), NULL, font = 7, landscape = TRUE, group = "Bloc")
+```
+:::
+
+## Outcome
+
+The primary outcome is reading, measured by ten plausible values on the PISA scale. Reading was the major domain of PISA 2018 and the outcome of @avanesian2025epf; it is also the domain in which the correlation of achievement with curiosity is strongest. Mathematics and science (the 2025 major domain) are analysed in parallel and reported alongside. Within the analytic sample the senate-weighted standard deviation of reading is close to 100 points, so coefficients in PISA points can be read as hundredths of a standard deviation.
+
+## Exposure: position on the socio-economic ladder, and material deprivation
+
+The exposure is socio-economic position, measured by ESCS — the PISA index of economic, social and cultural status combining parental education, parental occupation and home possessions. A unit of the index has no substantive meaning and its distribution differs across systems, so the headline analysis converts ESCS into a **within-system percentile rank** (0–100, computed with final student weights on every student with an ESCS value) and enters it as rank/10: one unit is a move of ten percentile points up the national socio-economic ladder, the same quantity in every system. Effects are also reported for the contrast between the median student of the bottom and of the top decile — P10 to P90, about `r Ctr()` units. The mediated share is not invariant to this transformation, because rank is a nonlinear function of the index; the appendix repeats every headline table with ESCS in its original units and the conclusions do not change. The linear-in-rank model assumes that each step on the ladder is worth the same in achievement, which holds approximately in these data (Section 5.1).
+
+A second exposure tests whether the same dispositions mediate a *resource* shock rather than a *status* gradient: **material deprivation**, the number of items among the child-deprivation module that the family "cannot afford" — two pairs of properly fitting shoes, new clothes, outdoor leisure equipment, indoor games (ST488), and, where fielded, celebrations, paid leisure activities, inviting friends, school trips and a yearly holiday (ST401). The core four items were fielded everywhere; the ST401 items were national options, so the count runs over four items in Bulgaria, Kosovo and Mongolia and over five or six elsewhere (the number per system is given in @tbl-econ-dep). Between `r pct(dep_any_lo, 0)` and `r pct(dep_any_hi, 0)` per cent of students lack at least one item. Deprivation effects are estimated conditional on ESCS, so they measure what an additional item the family cannot afford does at a given position on the ladder.
+
+## Mediators: socio-emotional skills
+
+The six scales are weighted-likelihood estimates that the OECD anchors to mean zero and standard deviation one across OECD countries. That anchoring has no meaning for a sample of non-OECD systems, so we re-standardise each scale to the analytic sample — mean zero and standard deviation one across the systems, with senate weights so that each system counts equally — and a one-unit change is one *sample* standard deviation, a metric common across systems (@tbl-scales). Mediation effects in achievement points and the shares mediated are invariant to this rescaling; only the skill gradients change units. Growth mindset is a single item — agreement with the statement that one has a certain amount of intelligence and cannot do much to change it — and a single four-point item cannot meaningfully be standardised; we code it as a binary indicator equal to one for students who disagree or strongly disagree (`r pct(growth_share, 0)` per cent of the sample), and model it with a probit mediator model. @tbl-corr gives the correlation matrix of the seven dispositions with ESCS and the three achievement domains. The open-mindedness pair (curiosity and problem-solving enjoyment) and perseverance are the most closely related; stress adaptability and self-regulated learning are more distinct; growth mindset is nearly orthogonal to the six scales (correlations of `r Cr("Growth mindset", "Problem-solving enjoyment")`–`r Cr("Growth mindset", "Stress adaptability")`) while correlating with reading (`r Cr("Growth mindset", "Reading")`) about as strongly as perseverance does (`r Cr("Perseverance", "Reading")`). Curiosity has the strongest association with achievement of any disposition (`r Cr("Curiosity", "Reading")` with reading); ESCS correlates with achievement at `r Cr("ESCS", "Reading")`–`r Cr("ESCS", "Mathematics")` and with the dispositions at only `r Cr("ESCS", "Self-regulated learning")`–`r Cr("ESCS", "Goal setting")`, which already says that the skill channel cannot be wide. Because the six scales are correlated — curiosity and problem-solving enjoyment at `r Cr("Curiosity", "Problem-solving enjoyment")`, perseverance with each of them at about `r Cr("Perseverance", "Problem-solving enjoyment")`–`r Cr("Perseverance", "Curiosity")`, goal setting with all three at `r Cr("Goal setting", "Curiosity")`–`r Cr("Goal setting", "Perseverance")` — models that enter them together estimate partial returns among near-collinear regressors. We therefore estimate single-mediator models for each disposition — the effect that runs through it when the others are not in the model — and a joint model in which the seven enter as a block, and use the allocation of the block across dispositions only as a check on composition (Section 4.2). The single-mediator effects are pathway-specific and do not sum to the joint effect; the joint effect is the total mediated share.
+
+```{r tbl-scales}
+#| label: tbl-scales
+#| tbl-colwidths: [15, 14, 11, 46, 14]
+#| tbl-cap: "Socio-emotional skill scales in PISA 2025 and their mapping to the SSES taxonomy, plus the growth-mindset item. The six scales are weighted-likelihood estimates re-standardised to the analytic sample (senate-weighted mean 0, SD 1 across the systems); growth mindset is a binary indicator. R = reversed item."
+sc <- data.table(
+ `SSES domain` = c("Task performance", "Task performance", "Task performance / self-direction", "Open-mindedness", "Open-mindedness", "Emotional regulation", "— (mindset)"),
+ Scale = c("Perseverance", "Self-regulated learning", "Goal setting", "Curiosity", "Problem-solving enjoyment", "Stress adaptability", "Growth mindset"),
+ `PISA variable` = c("PERSEV", "SELFREG", "GOALSET", "CURIO", "ENPROBS", "COGABIL", "ST420Q01"),
+ Items = c("ST307 (6): keep working until finished; extra effort when challenging; finish tasks even when boring; quit long homework (R); finish what I start; give up easily (R)",
+           "ST432–ST434: plan approach to studying; summarise key points to find gaps; self-question to check understanding; change unsuccessful approach; ask classmates/teachers for help; evaluate what I learned; ask for feedback",
+           "Goal-setting items of the self-regulated learning block",
+           "ST301 (5): curious about many things; like to know how things work; more curious than most people; find learning new things boring (R); like learning new things",
+           "ST435 (4): enjoy finding solutions; like situations where I have to think hard; prefer complicated problems; keep working on a problem I might not solve",
+           "ST216 (4): handle unusual situations; adapt under stress or pressure; adapt to a new culture; resolve difficult situations with others",
+           "ST420Q01 (1): you have a certain amount of intelligence and you really can't do much to change it (R); binary = disagree or strongly disagree"),
+ Note = c("Not fielded in KAZ, ALB", "", "", "", "", "PISA label: cognitive adaptability", "Single item, not scaled"))
+kb(sc)
+```
+
+```{r tbl-corr}
+#| label: tbl-corr
+#| tbl-cap: "Correlation matrix of the seven dispositions, ESCS and achievement (mean of the ten plausible values per domain), analytic sample; continuous variables standardised within system, growth mindset binary; senate-weighted, on the systems that fielded perseverance."
+kb(tbl_corr("READ"), NULL, font = 9)
+```
+
+## Controls
+
+Student controls are sex, age, grade relative to the modal grade, grade repetition, immigrant background and speaking a language other than the test language at home. School controls are the leave-one-out school mean of ESCS computed on the full national sample before listwise deletion, a private-school indicator and a three-category community size. Two specifications are reported. The *within-school* specification includes the school controls; the ESCS effect is then the family gradient among students attending schools of the same composition, type and location, and the mediated share is the share of that gradient. The *total* specification omits them; the ESCS effect is then the full family gradient including the part carried by which school a child attends. The difference between the two total effects measures the between-school component that no individual skill can mediate.
+
+# Method
+
+## Causal mediation framework
+
+Let $T_i$ be ESCS, $M_i$ a skill and $Y_i$ achievement. Following @imai2010psych, define potential mediators $M_i(t)$ and potential outcomes $Y_i(t, m)$. The average causal mediation effect (ACME) for a change in ESCS from $t_0$ to $t_1$ is
+
+$$\delta(t) = E\big[Y_i(t, M_i(t_1)) - Y_i(t, M_i(t_0))\big],$$
+
+the change in achievement that would result if the skill were shifted from its value under low SES to its value under high SES while SES itself were held fixed. The average direct effect is $\zeta(t) = E[Y_i(t_1, M_i(t)) - Y_i(t_0, M_i(t))]$, and the total effect is their sum. Identification requires sequential ignorability [@imai2010statsci]: conditional on pre-treatment covariates $X_i$, (i) ESCS is independent of potential outcomes and mediators, and (ii) the mediator is independent of potential outcomes given ESCS and $X_i$. Assumption (i) is what any regression of achievement on ESCS assumes; assumption (ii) is the one specific to mediation, and it fails if an unmeasured variable — most plausibly prior achievement — drives both the skill and the outcome. It is not testable, which is why the sensitivity analysis below is part of the estimand, not an afterthought.
+
+## Estimation
+
+With a continuous mediator and outcome, and $T_i$ the ESCS percentile rank (in tens of points), ACME and ADE are estimated from a mediator model $M_i = \alpha_0 + \alpha_1 T_i + X_i'\alpha_2 + e_{1i}$ and an outcome model $Y_i = \beta_0 + \beta_1 T_i + \beta_2 M_i + X_i'\beta_3 + e_{2i}$, giving $\delta = \alpha_1 \beta_2$ and $\zeta = \beta_1$ per unit of ESCS. We use the `mediation` package [@tingley2014]: both models are fitted by weighted least squares — a weighted probit for the binary growth-mindset mediator — and uncertainty is obtained by the quasi-Bayesian Monte Carlo procedure of @imai2010psych (500 draws). Every model is estimated separately for each of the `r n_econ` systems, with its own controls, weights and sensitivity analysis; no coefficient is constrained to be equal across systems and no pooled or group model is estimated. The tables report every system and summarise the `r n_econ` estimates by their median with the interquartile range [p25, p75]. The median is preferred to the mean because the proportion mediated is a ratio whose denominator — the system's total ESCS effect — is close to zero in one system (Bulgaria, within-school specification), which makes that system's share, and any mean that includes it, meaningless; the median is unaffected. The interquartile range describes the dispersion of the estimates across systems, which is the quantity of interest for the third part of the research question; system-level standard errors are given in the system tables. The linear specification assumes no ESCS × skill interaction; auxiliary models in which the return to each skill was allowed to vary across ESCS deciles (available in the replication scripts) show the returns to be flat, so the assumption holds. For the deprivation exposure the same two equations are estimated with the deprivation count as $T_i$ and ESCS added to $X_i$.
+
+Students are not randomly allocated to schools, and unobserved family characteristics that drive the choice of school also drive achievement. The within-school specification addresses this with the Mundlak device: including the leave-one-out school mean of the exposure alongside the student's own value makes the coefficient on the student's value the *within-school* estimator — numerically the estimator a school fixed effect would deliver for that coefficient [@mundlak1978], so that everything a school-level unobservable contributes to the gradient is absorbed by the school mean. A random-intercept model would not achieve this: it assumes the school effect to be uncorrelated with the exposure, which is precisely the selection at issue. The price of the within-school specification is that the between-school component of the gradient is removed by construction, which is why the total specification is reported alongside it.
+
+For the joint effect of the seven dispositions as a block we report the difference between the ESCS coefficient in the outcome model without skills and with all seven, which is the sum of the single-mediator products $\alpha_{1k}\beta_{2k}$ when all skills are entered together and coincides with the decomposition of @gelbach2016; its standard error comes from the replication-weight procedure described below. Because the skills are correlated, the single-mediator ACMEs overlap and sum to more than the joint effect; we report them as pathway-specific effects and the joint block as the total mediated. The two treatments of the other skills are complementary and we use both. In the single-mediator models the other six dispositions enter neither equation, so the ACME for skill $k$ is the whole indirect path through $k$, including what $k$ shares with the skills correlated with it — the appropriate target when the mediators are causally independent given ESCS and the covariates, and a reason to treat the six as pathways rather than as a partition [@imai2013]. The @gelbach2016 decomposition allocates the joint block instead: the contribution of skill $k$ is $\gamma_k \pi_k$, where $\gamma_k$ is its return conditional on the other six dispositions and $\pi_k$ its ESCS gradient, and the seven contributions sum exactly to the joint block because all skills enter the outcome model simultaneously (the allocation is invariant to the order in which they are added). We report the Gelbach allocation as a sensitivity check on the composition of the mediated effect, not as the primary estimate, because its conditional returns are partial regression coefficients among correlated regressors: where two skills are strongly correlated (@tbl-corr), the return to one conditional on the other is imprecise and can change sign through suppression even when both pathways are positive on their own. The allocation therefore tells us which pathways survive conditioning and which are carrying variance shared with another skill; a negative allocation is read as "no independent contribution", not as a negative pathway. The single-mediator ACMEs, which do not condition on the other skills, are the estimates of record.
+
+## Sensitivity to unmeasured confounding
+
+Following @imai2010statsci, let $\rho$ be the correlation between the errors of the mediator and outcome models induced by an unmeasured confounder. The ACME as a function of $\rho$ is $\delta(\rho) = \alpha_1 \sigma_1 \sigma_2^{-1}\big[\tilde\rho - \rho\sqrt{(1 - \tilde\rho^2)/(1 - \rho^2)}\big]$, where $\tilde\rho$ is the observed residual correlation, and it equals zero at $\rho^* = \tilde\rho$. We report ρ* for each skill and system, computed with `medsens`, together with the equivalent threshold expressed as the product of the shares of the mediator and outcome residual variances that the confounder would have to explain, $\tilde R^2_M \tilde R^2_Y$. A ρ* of 0.2 means that a confounder whose correlations with the two residuals multiply to 0.2 — explaining, if equally related to both, about 20 per cent of each residual variance (a product of 4 per cent) — would eliminate the mediated effect. `medsens` handles one mediator at a time; for the joint block we apply the same result to the index mediator $M^* = \sum_k \gamma_k M_k$, with $\gamma_k$ the outcome-model coefficients of the seven dispositions, so that $\rho^*_{\text{joint}}$ is the weighted correlation between the residuals of $M^*$ and of the reduced-form outcome model, averaged over plausible values (`09b_joint_rho.R`).
+
+## Survey design, plausible values and weights
+
+All models use final student weights, rescaled to mean one within each system. Achievement enters through plausible values: the mediation models are estimated on five plausible values and point estimates and Monte Carlo variances are combined by Rubin's rules. For the joint block, sampling variance is estimated with Fay's balanced repeated replication using the 80 PISA replicate weights and imputation variance across all ten plausible values.
+
+# Results
+
+## The socio-economic gradient of skills is real but flat
+
+@tbl-gradients reports the mediator-model coefficient — the change in each disposition, in sample standard deviations (for growth mindset, in probability), per ten percentile points of ESCS — alongside the total ESCS gradient in reading. In the median system a move of ten percentile points up the ladder is associated with about a tenth of a standard deviation more curiosity, stress adaptability and goal setting and with about a fifth of a standard deviation more reading achievement. The skill gradients are therefore about half as steep as the achievement gradient in standardised units, and self-regulated learning is essentially unstratified. @fig-gradients shows the system-level estimates: the gradients are positive almost everywhere and tightly clustered, flattest in Viet Nam and Mongolia and steepest in B-S-J-Z, Romania and Bulgaria. The first condition for mediation — that skills are stratified — is met, but weakly.
+
+```{r tbl-gradients}
+#| label: tbl-gradients
+#| tbl-cap: "Socio-economic gradients of the dispositions and of reading: coefficient on the ESCS percentile rank (per 10 points) from weighted regressions with student controls (total specification), one model per system. Skills in sample SD units (growth mindset: probability); reading in PISA points. Median across systems with interquartile range, and the systems with the flattest and steepest gradient. Perseverance over the 17 systems that fielded it."
+kb(tbl_gradients("READ", "total"), NULL, font = 8)
+```
+
+![Socio-economic gradient of each disposition by education system: disposition (sample SD; growth mindset: probability) per 10 percentile points of ESCS, with student controls (95% CI); black = median of the 19 systems.](`r paste0(FIGP, "fig1_skill_gradients.png")`){#fig-gradients width="100%"}
+
+## How much of the gradient runs through skills
+
+@tbl-main gives the causal mediation estimates for reading as medians across the `r n_econ` systems, for the within-school and the total specification; @fig-acme plots every system's pathway-specific effects. Conditional on school composition, type and location, moving ten percentile points up the socio-economic ladder raises reading by `r Tt()` points in the median system (interquartile range `r Iq(what = "total")`) — about `r fmt(9 * as.numeric(mv("READ", "within", AL("READ"), "All skills (joint)", "total")), 0)` points from the median student of the bottom decile to the median student of the top decile. Of this, `r Ac()` points — `r Pm()` per cent, interquartile range `r Iq()` — run through the seven dispositions jointly and `r Ad()` points are direct. For that P10→P90 contrast the mediated part is `r Bc()` reading points.
+
+::: {.landscape}
+```{r tbl-main}
+#| label: tbl-main
+#| tbl-cap: "Causal mediation of the ESCS effect on reading: median across the 19 systems with interquartile range [p25, p75], within-school and total specifications. ACME = average causal mediation effect per 10 percentile points of ESCS (reading points); ADE = average direct effect; % mediated = ACME/total, computed within each system before taking the median. Single-mediator models per disposition (others not in the model) and the joint seven-disposition block. ACME for P10→P90 = ACME × difference in median rank between the bottom and top deciles. ρ* = residual correlation at which the ACME is zero (medsens; joint: closed form); R̃² threshold = product of residual-variance shares an unmeasured confounder would need to explain. System-level standard errors are in @tbl-econ."
+kb(tbl_mediation("READ"))
+```
+:::
+
+Against the total gradient the picture changes in denominator, not numerator. The total effect of ten percentile points without school controls is `r Tt(spec = "total")` points in the median system (interquartile range `r Iq(spec = "total", what = "total")`), of which the skills mediate `r Ac(spec = "total")` points, or `r Pm(spec = "total")` per cent (`r Iq(spec = "total")`). The absolute mediated effect is almost the same in the two specifications; what differs is that the total gradient contains a between-school component — the part of the ESCS effect that operates through which school a child attends — of about `r share_between()` per cent, which individual skills cannot carry because the skill gradients themselves are computed net of school composition. The two numbers answer two questions. Among classmates, the dispositions carry close to a fifth of the family gradient in the typical system; in the population, they carry about one-eighth of it, and sorting between schools carries most of the rest.
+
+
+![Average causal mediation effects of ESCS on reading through each skill (single-mediator models): one point per system, diamond = median of the 19 systems, for the within-school and total specifications.](`r paste0(FIGP, "fig3_acme_by_skill.png")`){#fig-acme width="100%"}
+
+## Which skills carry it
+
+Curiosity is the dominant channel. It is the largest single pathway in `r n_top_cur` of the `r n_econ` systems, and its single-mediator ACME in the within-school specification is `r Ac(mediator = "Curiosity")` points per ten percentile points in the median system — `r Pm(mediator = "Curiosity")` per cent of the total effect (interquartile range `r Iq(mediator = "Curiosity")`), against `r Pm()` per cent for the whole block. The other pathways are smaller and overlap with it: in the median system perseverance carries `r Pm(mediator = "Perseverance")` per cent, problem-solving enjoyment `r Pm(mediator = "Problem-solving enjoyment")`, stress adaptability `r Pm(mediator = "Stress adaptability")`, goal setting `r Pm(mediator = "Goal setting")` and self-regulated learning `r Pm(mediator = "Self-regulated learning")` per cent. Because the single-mediator effects share variance (the seven sum to well over the joint share), they measure how much each pathway would carry on its own, not additive contributions.
+
+Perseverance is the pathway whose weight varies most across systems (interquartile range `r Iq(mediator = "Perseverance")` per cent). Its ACME is significant in `r n_sig_pers` of the 17 systems that fielded it, and largest — between an eighth and a quarter of the within-school gradient — in Kosovo (`r Pm(unit = "Kosovo", mediator = "Perseverance")` per cent), Georgia (`r Pm(unit = "Georgia", mediator = "Perseverance")`), Azerbaijan (`r Pm(unit = "Azerbaijan", mediator = "Perseverance")`) and Moldova (`r Pm(unit = "Moldova", mediator = "Perseverance")`); it is nil in B-S-J-Z (China) (`r Pm(unit = "B-S-J-Z (China)", mediator = "Perseverance")` per cent) and small in Hong Kong, Croatia and Viet Nam (`r Pm(unit = "Hong Kong", mediator = "Perseverance")`, `r Pm(unit = "Croatia", mediator = "Perseverance")` and `r Pm(unit = "Viet Nam", mediator = "Perseverance")` per cent). In the Chinese cities reported effort has no conditional return once the other five skills are held constant. Self-regulated learning is the mirror image: it carries `r Pm(mediator = "Self-regulated learning")` per cent in the median system and more than 5 per cent only in B-S-J-Z (China) (`r Pm(unit = "B-S-J-Z (China)", mediator = "Self-regulated learning")` per cent), Azerbaijan and Kazakhstan — systems where it is among the more productive skills but, as everywhere, only weakly stratified by family background, so that it has little advantage to transmit.
+
+Growth mindset behaves differently from the six scales. It carries `r Pm(mediator = "Growth mindset")` per cent of the within-school gradient in the median system (interquartile range `r Iq(mediator = "Growth mindset")`), most in Albania (`r Pm(unit = "Albania", mediator = "Growth mindset")` per cent), Kazakhstan, Bulgaria and Viet Nam (`r Pm(unit = "Viet Nam", mediator = "Growth mindset")`), where it is the largest pathway of all; it is individually significant in `r n_sig_growth` of the `r n_econ` systems. Its distinctive feature is independence: because it is nearly uncorrelated with the six scales (@tbl-corr), its single-mediator share and its Gelbach contribution coincide (`r Gb(mediator = "Growth mindset")` per cent), so the whole of it is added to the block rather than shared with curiosity. Adding it raises the joint mediated share by about four percentage points.
+
+@tbl-pathways sets the single-mediator shares beside the Gelbach allocation of the joint block, in which each disposition's return is conditional on the other six. The allocation sharpens the picture. Curiosity keeps `r Gb(mediator = "Curiosity")` of the joint `r Gb()` per cent in the median system — well over half of it — so most of its single-mediator effect is its own. Enjoyment of problem-solving and goal setting, which carry `r Pm(mediator = "Problem-solving enjoyment")` and `r Pm(mediator = "Goal setting")` per cent as single mediators, contribute `r Gb(mediator = "Problem-solving enjoyment")` and `r Gb(mediator = "Goal setting")` per cent once the other skills are held constant. The reversal of sign is what collinearity produces: enjoyment of problem-solving is the skill most correlated with curiosity (`r Cr("Problem-solving enjoyment", "Curiosity")`; @tbl-corr) and goal setting is correlated at `r Cr("Goal setting", "Curiosity")`–`r Cr("Goal setting", "Perseverance")` with curiosity, problem-solving enjoyment and perseverance, so their conditional returns are partial coefficients estimated against skills that measure much of the same disposition, and a small negative allocation means no independent contribution rather than a negative pathway. This is the reason the single-mediator estimates are the estimates of record: they do not ask the data to separate pathways that the measurement does not separate. What the allocation does establish is that the two skills add nothing beyond curiosity — they proxy for it rather than opening a channel of their own. Perseverance, growth mindset and stress adaptability retain conditional contributions of `r Gb(mediator = "Perseverance")`, `r Gb(mediator = "Growth mindset")` and `r Gb(mediator = "Stress adaptability")` per cent in the median system, and the cross-system pattern for perseverance survives the conditioning. The two estimators therefore agree on the ranking of the pathways and differ only in how much of the shared variance among the open-mindedness skills is credited to each; the conclusions below rest on the part they agree on.
+
+```{r tbl-pathways}
+#| label: tbl-pathways
+#| tbl-colwidths: [34, 33, 33]
+#| tbl-cap: "Pathway shares of the ESCS effect on reading (%), within-school specification: median across the 19 systems with interquartile range. Single-mediator ACME (mediate; other skills not in the model) and Gelbach allocation of the joint block (return to each skill conditional on the other five, times its ESCS gradient), each computed within system. The single-mediator shares overlap and exceed the joint block; the Gelbach contributions sum to it within each system (medians need not). The joint block in the Gelbach column is the replication-weight estimate over ten plausible values, hence the small difference from @tbl-main."
+kb(tbl_pathways("READ", "within"))
+```
+
+The pattern only partly matches the correspondence principle. The disposition that carries most of the transmitted advantage is not diligence — the trait that most resembles labour discipline — but intellectual curiosity, the trait closest to cultural capital in Bourdieu's sense: a taste for knowing how things work, acquired where knowing things is valued. Curiosity is at once one of the most class-stratified dispositions among the seven and the one with the largest conditional return to achievement, and the product of the two is what the mediation effect measures. Diligence does transmit advantage, but only in the systems where it is still rewarded — chiefly in the Caucasus, Moldova and the Balkans — and only as a second channel.
+
+## Where it runs most
+
+@fig-econ and @tbl-econ give the system-level estimates, which are the paper's unit of analysis. Among systems whose within-school gradient exceeds four points, the joint mediated share ranges from `r pct(as.numeric(er["lo"]))` per cent in `r er["lo_u"]` to `r pct(as.numeric(er["hi"]))` per cent in `r er["hi_u"]`; Bulgaria's within-school gradient is only `r bgr_total()` points, so its share is not meaningful, although its mediated effect in points (`r Ac(unit = "Bulgaria")`) is among the largest. Four systems form a clear upper group, each with about a third of the within-school gradient running through the dispositions: Kazakhstan (`r Pm(unit = "Kazakhstan")` per cent), Kosovo (`r Pm(unit = "Kosovo")`), Georgia (`r Pm(unit = "Georgia")`) and Azerbaijan (`r Pm(unit = "Azerbaijan")`). Moldova and Albania follow (`r Pm(unit = "Moldova")` and `r Pm(unit = "Albania")` per cent). A broad middle of eleven systems lies between 12 and 18 per cent — the three Chinese cities, Mongolia, the remaining Balkan systems, Kyrgyzstan and Armenia — and Croatia (`r Pm(unit = "Croatia")`) and Viet Nam (`r Pm(unit = "Viet Nam")` per cent) close the list. Against the total gradient the ranking is similar (Spearman ρ = `r fmt(rank_cor, 2)` across the two specifications): Kosovo, Kazakhstan, Georgia and Azerbaijan again head the list with `r Pm(spec = "total", unit = "Kosovo")`–`r Pm(spec = "total", unit = "Azerbaijan")` per cent, followed by Bulgaria and Albania, while Mongolia, Hong Kong, Croatia and Viet Nam close it with `r Pm(spec = "total", unit = "Mongolia")`–`r Pm(spec = "total", unit = "Viet Nam")` per cent.
+
+The ranking is informative, and it does not follow the three groups. What the four systems at the top share is a flat achievement gradient — Kazakhstan's within-school gradient is only `r Tt(unit = "Kazakhstan")` points per ten percentile points, Kosovo's `r Tt(unit = "Kosovo")` — combined with skill gradients and returns to curiosity and perseverance that are as steep as anywhere: where the school has lost the resources to compensate for family background but still rewards the dispositions families instil, those dispositions are a large part of what remains of the gradient. What the systems at the bottom share is a school that still does the cultivating. Viet Nam and Mongolia, whose comprehensive structure is least changed, have the flattest skill gradients in the sample and, with Hong Kong and Croatia, the smallest mediated shares against the total gradient (6–8 per cent); in Viet Nam the six scales carry almost nothing and what is mediated runs through growth mindset. B-S-J-Z (China) sits in the middle for a different reason: its skill gradients are among the steepest, but the return to curiosity is the lowest of the `r n_econ` systems and the return to reported perseverance is negative once the other skills are held constant — where effort is universal and examinations reward strategic self-regulation, the dispositions that families transmit buy less achievement. Hong Kong and Macao, the other two Chinese-heritage systems, sit apart from each other: Macao is in the upper half against the total gradient (`r Pm(spec = "total", unit = "Macao")` per cent), Hong Kong near the bottom (`r Pm(spec = "total", unit = "Hong Kong")`). The institutional argument therefore survives as a statement about systems — about the strength of the school and what it rewards — rather than as a statement about blocs.
+
+![Share of the ESCS effect on reading mediated by the seven dispositions, by education system, for the within-school and total specifications (joint block; 95% CI from BRR + PV); black = median of the 19 systems with interquartile range. Systems whose within-school gradient is below four points (Bulgaria) are omitted from the left panel because the share is not identified when the gradient is close to zero.](`r paste0(FIGP, "fig2_prop_mediated_by_economy.png")`){#fig-econ width="100%"}
+
+::: {.landscape}
+```{r tbl-econ}
+#| label: tbl-econ
+#| tbl-cap: "Causal mediation of the ESCS effect on reading by education system, within-school specification, with the median across systems. Joint block and curiosity as single mediator. EA = East Asia, PS = post-Soviet, PCE = post-communist Europe (regional labels only). ρ* = residual correlation at which the mediated effect is zero."
+kb(tbl_mediation_econ("READ", "within"), NULL, font = 7, landscape = TRUE, group = "Bloc")
+```
+:::
+
+## Mathematics and science
+
+@tbl-domains and @fig-domains repeat the joint decomposition for mathematics and science. In the median system the skills mediate `r Pm("MATH")` per cent of the within-school gradient in mathematics and `r Pm("SCIE")` per cent in science, against `r Pm()` per cent in reading (`r Pm("MATH", "total")`, `r Pm("SCIE", "total")` and `r Pm(spec = "total")` per cent of the total gradient): somewhat lower for mathematics, close to reading for science, with interquartile ranges that overlap almost entirely. The ranking of systems is similar across domains (Spearman ρ between the reading and the mathematics or science shares of 0.76–0.86): Kazakhstan is in the top four for all three outcomes and Kosovo and Azerbaijan in two of the three, while Viet Nam and Croatia are in the bottom three for all three; B-S-J-Z (China) rises into the top four for mathematics and science, where every pathway — goal setting and self-regulated learning above all — carries about twice what it carries in reading. @tbl-skills shows that the composition is also stable: curiosity is the largest single pathway in `r n_top_cur` systems for reading, `r n_top_cur_m` for mathematics and `r n_top_cur_s` for science and carries the largest median share in all three (`r Pm(mediator = "Curiosity")`, `r Pm("MATH", mediator = "Curiosity")` and `r Pm("SCIE", mediator = "Curiosity")` per cent); perseverance is the second pathway everywhere; self-regulated learning carries almost nothing in any domain; and the distance between curiosity and the other pathways is narrowest in mathematics, where enjoyment of problem-solving (`r Pm("MATH", mediator = "Problem-solving enjoyment")` per cent) comes closest to it. Reading is the outcome most sensitive to the disposition that families transmit; nothing in the argument depends on the choice of domain.
+
+```{r tbl-domains}
+#| label: tbl-domains
+#| tbl-cap: "Joint mediation of the ESCS effect by outcome domain and specification (seven-disposition block): median across systems with interquartile range of the total ESCS effect (points), the joint ACME (points) and the share mediated (%), one model per system. Science includes Uzbekistan (20 systems); reading and mathematics 19."
+kb(tbl_domains(), NULL, font = 7, landscape = TRUE)
+```
+
+```{r tbl-skills}
+#| label: tbl-skills
+#| tbl-cap: "Pathway-specific mediation by skill and outcome domain, within-school specification: median across systems of the ACME per 10 percentile points of ESCS, of the % of the total effect mediated (with interquartile range) and of ρ*."
+kb(tbl_skills_domains("within"), NULL, font = 7, landscape = TRUE)
+```
+
+![Share of the ESCS effect mediated by the seven dispositions, by outcome domain and specification: one point per system, diamond = median. Bulgaria (within-school gradient below four points) omitted from the left panel.](`r paste0(FIGP, "fig5_domains.png")`){#fig-domains width="100%"}
+
+## A second exposure: material deprivation
+
+@tbl-exposures places the deprivation exposure beside the two ESCS metrics. Each additional item the family cannot afford lowers reading by `r fmt(abs(as.numeric(mv("READ", "within", AL("READ"), "All skills (joint)", "total", "dep"))), 1)` points in the median system at a given position on the ESCS ladder (interquartile range `r dep_iqr`), and `r Pm(treat = "dep")` per cent of that penalty (`r Iq(treat = "dep")`) runs through the seven dispositions — `r Pm(treat = "dep", spec = "total")` per cent against the total specification. The size of the channel is the same; its composition is not. For the deprivation penalty perseverance is the largest pathway (`r Pm(treat = "dep", mediator = "Perseverance")` per cent), with growth mindset (`r Pm(treat = "dep", mediator = "Growth mindset")`) and curiosity (`r Pm(treat = "dep", mediator = "Curiosity")` per cent) behind it, whereas for the status gradient curiosity carries `r Pm(mediator = "Curiosity")` per cent and perseverance `r Pm(mediator = "Perseverance")` (@tbl-econ-dep). Two faces of disadvantage, then, reach achievement through different dispositions: a family's position on the ladder is transmitted as a relation to knowledge, its inability to afford things as a deficit of effort and of belief in one's own capacity to improve — the dispositions that hardship wears down. The mediated share is nevertheless of the same order for both, so the channel does not depend on which face of disadvantage is measured. The ESCS index in its own units gives the same picture as the percentile rank (`r Pm(treat = "escs")` against `r Pm()` per cent within school), so nothing in the results depends on the metric of the ladder.
+
+::: {.landscape}
+```{r tbl-exposures}
+#| label: tbl-exposures
+#| tbl-cap: "Three exposures compared, reading, medians across systems with interquartile range: ESCS percentile rank (headline), ESCS index units (check) and the material-deprivation count (conditional on ESCS). Joint block and the three largest pathways. Deprivation models drop the few students with an incomplete deprivation module."
+kb(tbl_exposures("READ"))
+```
+:::
+
+::: {.landscape}
+```{r tbl-econ-dep}
+#| label: tbl-econ-dep
+#| tbl-cap: "Causal mediation of the material-deprivation penalty in reading by education system, within-school specification, at given ESCS. Items = number of deprivation items fielded in the system (four ST488 items everywhere; ST401 items are national options). Joint block and curiosity as single mediator."
+kb(tbl_mediation_econ_dep("READ", "within"))
+```
+:::
+
+## How robust is the mediation to unmeasured confounding?
+
+The sensitivity parameters in @tbl-main and @fig-sens answer the question that the informal shrinkage comparison cannot. For curiosity in the within-school specification, the ACME in the median system falls to zero if an unmeasured confounder induces a residual correlation of `r Rh()` between curiosity and reading — equivalently, if it explains a product of `r R2()` of the residual variances of the two equations, about `r pct(sqrt(as.numeric(mv("READ","within",AL("READ"),"Curiosity","R2tilde_thresh"))), 0)` per cent of each. For the joint block the median threshold is `r rho_joint()`. Across systems ρ* for curiosity ranges from 0.05 in B-S-J-Z (China) and 0.10 in Mongolia to 0.30 in Bulgaria, with most systems between 0.15 and 0.25 (@fig-sens).
+
+These are moderate thresholds. A confounder of the required strength is not exotic: prior achievement, which makes students both more curious and higher-scoring, could plausibly account for a residual correlation of 0.2. The mediated shares reported here should therefore be read as upper bounds on the causal contribution of skills to the transmission of advantage. That reading bounds the size of the channel from above without removing it — a confounder of that strength would have to be present in every system — and leaves the conclusions about composition and the ranking of systems intact, since a common confounder would scale all pathways together rather than reorder them.
+
+![Sensitivity parameter ρ* — the residual correlation between the mediator and outcome equations at which the mediated effect is zero — by education system, for curiosity (medsens, evaluated on a 0.05 grid) and the joint seven-disposition block (closed form), reading, within-school specification.](`r paste0(FIGP, "fig4_sensitivity_rho.png")`){#fig-sens width="90%"}
+
+## Robustness
+
+@tbl-robust repeats the joint decomposition for reading, system by system, under two changes to the sample: restricting it to students in the modal grade, so that neither the skill gradients nor the achievement gradient carries grade composition, and re-weighting the analytic sample to the full sample on the inverse probability of completing the skill items (estimated within system from achievement, sex, grade and age). The median mediated share moves by less than two percentage points, the curiosity contribution by about two, and the interquartile range is essentially unchanged. The selective non-response documented in Section 3 does not drive the result. Standardising the skills within each system rather than on the OECD scale is immaterial with one model per system, since the mediated share is invariant to a linear rescaling of the mediators.
+
+```{r tbl-robust}
+#| label: tbl-robust
+#| tbl-colwidths: [30, 9, 19, 17, 15, 10]
+#| tbl-cap: "Robustness of the joint mediated share for reading, within-school specification: modal-grade sample and re-weighting for item non-response. Median across the 19 systems with interquartile range, one Gelbach decomposition per system. % via curiosity = median Gelbach contribution of curiosity conditional on the other five skills."
+kb(tbl_robustness("READ", "within"))
+```
+
+# Discussion
+
+## A substantial channel, and not the expected one
+
+The paper set out to test, as a mediation claim, the proposition that socio-emotional skills convert family advantage into achievement. The claim survives, with a size attached to it. Skills mediate a substantial part of the socio-economic gradient — close to a fifth of the gradient among classmates in the typical system, about an eighth of the gradient in the population — and the mediated part is statistically secure in `r n_sig_joint` of the `r n_econ` systems (the exceptions are Hong Kong, Armenia and Serbia). Close to a fifth of the gradient among classmates is not a small quantity for seven self-reported dispositions measured at fifteen — in a quarter of the systems the share exceeds a quarter, and in Moldova, Georgia and Azerbaijan the mediated part of the bottom-to-top decile contrast reaches eight to nine reading points. The data also reveal the other channel: sorting between schools of different socio-economic composition carries about `r share_between()` per cent of the total gradient. Schooling reproduces class through both — through where children go to school and through who they have become by fifteen — and the second is the one that individual-level policy can reach.
+
+The composition of the mediated effect is the paper's sharpest result, and it qualifies the correspondence principle. Bowles and Gintis located the mechanism of reproduction in disciplinary traits — the dispositions that make a compliant worker — and predicted that schools reward them because employers demand them. In `r n_econ` systems that inherited a school explicitly devoted to cultivating such traits, the disposition that carries most of the transmitted advantage is curiosity — the wish to know how things work — followed at a distance by growth mindset, a belief about intelligence that is independent of the six scales, while self-regulated learning and goal setting mediate little anywhere, and perseverance mediates a secondary share only where it is still rewarded — in the Caucasus, Moldova and the Balkans — and none in the examination systems of the Chinese cities. This is closer to Bourdieu than to Bowles and Gintis: what advantaged families transmit and schools reward is first a relation to knowledge and only second a relation to work. It is also closer to the psychometric literature, in which openness rather than conscientiousness predicts standardised test performance [@poropat2009]. The deprivation exposure adds a qualification that fits the same reading: where disadvantage takes the form of a shortage of resources rather than of status, it is diligence and the belief that ability can grow that carry it — the dispositions that material hardship erodes — so that the correspondence principle describes the poor better than it describes the gradient. The policy implication is direct: socio-emotional learning programmes that target self-regulation and goal setting, whatever their other merits, are not acting on the channel through which class inequality flows, and programmes that target perseverance act on it only in some systems.
+
+## The strength of the school, not the bloc
+
+The width of the channel varies across systems by a factor of five, and the variation does not sort by bloc. The four systems in which skills carry the largest share — Georgia, Kazakhstan, Azerbaijan and Kosovo — are post-Soviet and Balkan systems with the flattest achievement gradients in the sample: where the school has lost the resources that once compensated for family background, family-transmitted dispositions become a larger part of what remains of the gradient. Among the systems in which skills carry the least are Viet Nam and Mongolia — the two least changed from the socialist comprehensive model, with the flattest skill gradients in the sample: a school that still does the cultivating leaves less for the family to transmit. The three Chinese cities do not behave as a group: B-S-J-Z (China) has steep skill gradients but the lowest return to curiosity and no return to reported effort, Hong Kong a modest share, Macao a large one. Grouping these systems as an "East Asian" bloc and averaging over them would have manufactured an intermediate number that describes none of them, which is why the paper reports systems rather than groups. What the system-level pattern points to is institutional — the resources of the school and what it rewards — rather than cultural. These are observations on `r n_econ` systems, not a test; a test would require measures of school resources and reward structures that PISA supplies only partially.
+
+## Continuity with earlier work
+
+The result reproduces, on nationally representative samples and with a causal framework, what @avanesian2025ncs found informally in the SSES: adding skills to a model of achievement shrinks the socio-economic disadvantage by a consistent amount; the causal decomposition here shows that amount to be a seventh of the within-school gradient in the typical system. It also puts a number on the alternative that @avanesian2025epf identified: peer composition, which that paper found worth one to three years of schooling per standard deviation in the same East Asian territories, is here the dominant component of the gradient and the one skills cannot touch.
+
+## Limitations
+
+Four limitations bound the claims. First, sequential ignorability is not testable and prior achievement is a plausible violator; the sensitivity analysis quantifies the exposure and the mediated shares should be read as upper bounds. Second, the skills are self-reported; cross-system comparisons of skill levels are subject to reference bias, and the analysis therefore rests on within-system gradients and returns, and the mediated share is invariant to the within-system scaling of the skills. Third, two SSES domains are not measured, so the conclusions concern task performance, open-mindedness and one facet of emotional regulation. Fourth, item non-response on the skill scales is selective in several Balkan and Caucasus systems; the re-weighted estimates are close to the main ones, but Armenia's pertain to a fifth of its students.
+
+# Conclusion
+
+Using the first PISA cycle to measure socio-emotional skills on the SSES taxonomy and `r n_econ` education systems with a socialist or Chinese-heritage tradition of character-forming schooling, we asked how much of the socio-economic gradient in achievement runs through those skills, through which, and how much the answer varies across systems, estimating every model separately for each system. In the median system seven dispositions jointly mediate `r Pm()` per cent of the within-school gradient in reading and `r Pm(spec = "total")` per cent of the total gradient, with the same ranking of pathways for mathematics and science; curiosity carries most of it, perseverance a secondary share that varies widely across systems, growth mindset a stable and independent few per cent, and self-regulated learning almost none; the penalty of material deprivation at a given position is mediated to the same degree but through perseverance first; the share ranges from 7 per cent in Viet Nam to about a third in Kazakhstan, Azerbaijan, Kosovo and Georgia, following the strength of the school rather than the bloc; and the effects are robust to moderate but not to strong unmeasured confounding. Socio-emotional skills are a substantial conduit of family advantage — an intellectual rather than a disciplinary one, and one whose width is set by institutions. The other channel of reproduction in these systems is the sorting of children into schools; an equity policy has to act on both, and the dispositional channel is the one that reaches the child directly.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+# Appendix {.appendix}
+
+## Uzbekistan and science
+
+Uzbekistan's public-use file carries science but not reading or mathematics plausible values. It is included in the science analyses reported in @tbl-domains and in the science tables of the replication archive. Its total ESCS gradient in science is unusually flat, which inflates the mediated share (about one-third) without a correspondingly large absolute mediated effect.
+
+## ESCS in index units
+
+@tbl-main-escs repeats the headline table with ESCS entered in the units of the index rather than as a percentile rank. The mediated shares are close to those of the rank specification and the ranking of pathways is identical.
+
+::: {.landscape}
+```{r tbl-main-escs}
+#| label: tbl-main-escs
+#| tbl-cap: "Causal mediation of the ESCS effect on reading with ESCS in index units (per unit of the index; contrast B10→T10 = difference in median ESCS between the bottom and top deciles): median across systems with interquartile range."
+kb(tbl_mediation("READ", treat = "escs"))
+```
+:::
+
+## Replication
+
+All results are produced by numbered scripts in `02_scripts/paperA/`: `01_build_dataset.py` (extraction and construction from the PISA 2025 public-use files), `02_prepare.R` (analytic sample, standardisation, ESCS groups and deciles), `03_descriptives.R`, `04_h1_gelbach.R` (joint block with BRR inference and the Gelbach allocation across skills), `07_robustness.R` (sample checks, one model per system), `09_causal_mediation.R` (`mediate`/`medsens`, one model per system), `09b_joint_rho.R` (closed-form ρ* for the joint block), `11_figures_paper.R` and `12_paper_tables.R` (tables and inline numbers for this document). Each script is run per outcome domain by setting `PISA_DOMAIN`.

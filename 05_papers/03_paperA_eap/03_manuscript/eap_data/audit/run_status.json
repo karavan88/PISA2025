@@ -1,0 +1,804 @@
+{
+  "started": "2026-09-27 12:50:25",
+  "jobs": [
+    {
+      "id": "descriptives_READ_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/03_descriptives.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/t1_sample.csv"
+    },
+    {
+      "id": "mediation_READ_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "complete",
+      "fast": "0",
+      "country_workers": 1,
+      "elapsed_seconds": 2.1,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:50:27"
+    },
+    {
+      "id": "descriptives_MATH_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/03_descriptives.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/MATH/tables/t1_sample.csv"
+    },
+    {
+      "id": "descriptives_SCIE_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/03_descriptives.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/SCIE/tables/t1_sample.csv"
+    },
+    {
+      "id": "gelbach_READ_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/h1_gelbach_long_pct.csv"
+    },
+    {
+      "id": "joint_rho_READ_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/h1_joint_rho_pct.csv"
+    },
+    {
+      "id": "robustness_READ_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/rob_gelbach_long_pct.csv"
+    },
+    {
+      "id": "gelbach_READ_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/h1_gelbach_long_pct_total.csv"
+    },
+    {
+      "id": "joint_rho_READ_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/h1_joint_rho_pct_total.csv"
+    },
+    {
+      "id": "robustness_READ_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/READ/tables/rob_gelbach_long_pct_total.csv"
+    },
+    {
+      "id": "gelbach_MATH_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "reused completed EAP run",
+      "target": "03_outputs/paperA/MATH/tables/h1_gelbach_long_pct.csv"
+    },
+    {
+      "id": "joint_rho_MATH_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:25",
+      "status": "complete",
+      "elapsed_seconds": 2.3,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:50:27"
+    },
+    {
+      "id": "mediation_READ_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:27",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 33.6,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:51:00"
+    },
+    {
+      "id": "gelbach_MATH_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:27",
+      "status": "complete",
+      "elapsed_seconds": 13.2,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:50:40"
+    },
+    {
+      "id": "joint_rho_MATH_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:50:40",
+      "status": "complete",
+      "elapsed_seconds": 1.8,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:50:42"
+    },
+    {
+      "id": "gelbach_SCIE_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:50:42",
+      "status": "complete",
+      "elapsed_seconds": 18.8,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:51:01"
+    },
+    {
+      "id": "mediation_MATH_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:51:00",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 43.5,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:51:44"
+    },
+    {
+      "id": "joint_rho_SCIE_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:51:01",
+      "status": "complete",
+      "elapsed_seconds": 2.2,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:51:03"
+    },
+    {
+      "id": "gelbach_SCIE_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:51:03",
+      "status": "complete",
+      "elapsed_seconds": 12.7,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:51:16"
+    },
+    {
+      "id": "joint_rho_SCIE_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:51:16",
+      "status": "complete",
+      "elapsed_seconds": 1.8,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:51:18"
+    },
+    {
+      "id": "gelbach_READ_DEP_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:51:18",
+      "status": "complete",
+      "elapsed_seconds": 21.3,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:51:39"
+    },
+    {
+      "id": "joint_rho_READ_DEP_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:51:39",
+      "status": "complete",
+      "elapsed_seconds": 2.3,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:51:41"
+    },
+    {
+      "id": "robustness_READ_DEP_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:51:41",
+      "status": "complete",
+      "elapsed_seconds": 36.9,
+      "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+      "finished": "2026-09-27 12:52:18"
+    },
+    {
+      "id": "mediation_MATH_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:51:44",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 33.2,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:52:17"
+    },
+    {
+      "id": "mediation_SCIE_ESCS_PCT_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:52:17",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 50.9,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:53:08"
+    },
+    {
+      "id": "gelbach_READ_DEP_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:52:18",
+      "status": "complete",
+      "elapsed_seconds": 17.7,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:52:36"
+    },
+    {
+      "id": "joint_rho_READ_DEP_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:52:36",
+      "status": "complete",
+      "elapsed_seconds": 2.0,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:52:38"
+    },
+    {
+      "id": "robustness_READ_DEP_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:52:38",
+      "status": "complete",
+      "elapsed_seconds": 24.5,
+      "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+      "finished": "2026-09-27 12:53:02"
+    },
+    {
+      "id": "gelbach_READ_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:53:02",
+      "status": "complete",
+      "elapsed_seconds": 19.6,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:53:22"
+    },
+    {
+      "id": "mediation_SCIE_ESCS_PCT_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS_PCT",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:53:08",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 35.2,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:53:43"
+    },
+    {
+      "id": "joint_rho_READ_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:53:22",
+      "status": "complete",
+      "elapsed_seconds": 2.4,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:53:24"
+    },
+    {
+      "id": "robustness_READ_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:53:24",
+      "status": "complete",
+      "elapsed_seconds": 34.2,
+      "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+      "finished": "2026-09-27 12:53:59"
+    },
+    {
+      "id": "mediation_READ_DEP_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:53:43",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 48.7,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:54:32"
+    },
+    {
+      "id": "gelbach_READ_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:53:59",
+      "status": "complete",
+      "elapsed_seconds": 13.0,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:54:12"
+    },
+    {
+      "id": "joint_rho_READ_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:54:12",
+      "status": "complete",
+      "elapsed_seconds": 2.0,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:54:14"
+    },
+    {
+      "id": "robustness_READ_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/07_robustness.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:54:14",
+      "status": "complete",
+      "elapsed_seconds": 23.1,
+      "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+      "finished": "2026-09-27 12:54:37"
+    },
+    {
+      "id": "mediation_READ_DEP_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "DEP",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:54:32",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 34.5,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:55:07"
+    },
+    {
+      "id": "gelbach_MATH_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:54:37",
+      "status": "complete",
+      "elapsed_seconds": 19.2,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:54:56"
+    },
+    {
+      "id": "joint_rho_MATH_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:54:56",
+      "status": "complete",
+      "elapsed_seconds": 2.3,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:54:58"
+    },
+    {
+      "id": "gelbach_MATH_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:54:58",
+      "status": "complete",
+      "elapsed_seconds": 13.0,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:55:11"
+    },
+    {
+      "id": "mediation_READ_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:55:07",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 1,
+      "elapsed_seconds": 45.1,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:55:52"
+    },
+    {
+      "id": "joint_rho_MATH_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:55:11",
+      "status": "complete",
+      "elapsed_seconds": 2.0,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:55:13"
+    },
+    {
+      "id": "gelbach_SCIE_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:55:13",
+      "status": "complete",
+      "elapsed_seconds": 19.6,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:55:33"
+    },
+    {
+      "id": "joint_rho_SCIE_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:55:33",
+      "status": "complete",
+      "elapsed_seconds": 2.4,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:55:35"
+    },
+    {
+      "id": "gelbach_SCIE_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/04_h1_gelbach.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:55:35",
+      "status": "complete",
+      "elapsed_seconds": 12.7,
+      "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+      "finished": "2026-09-27 12:55:48"
+    },
+    {
+      "id": "joint_rho_SCIE_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09b_joint_rho.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:55:48",
+      "status": "complete",
+      "elapsed_seconds": 2.0,
+      "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+      "finished": "2026-09-27 12:55:50"
+    },
+    {
+      "id": "mediation_READ_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "READ",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:55:52",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 2,
+      "elapsed_seconds": 19.7,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:56:11"
+    },
+    {
+      "id": "mediation_MATH_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:56:11",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 2,
+      "elapsed_seconds": 25.3,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:56:37"
+    },
+    {
+      "id": "mediation_MATH_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "MATH",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:56:37",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 2,
+      "elapsed_seconds": 19.6,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:56:56"
+    },
+    {
+      "id": "mediation_SCIE_ESCS_school",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "school-adjusted",
+      "started": "2026-09-27 12:56:56",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 2,
+      "elapsed_seconds": 25.1,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:57:21"
+    },
+    {
+      "id": "mediation_SCIE_ESCS_total",
+      "command": [
+        "Rscript",
+        "02_scripts/paperA/09_causal_mediation.R",
+        "--total"
+      ],
+      "domain": "SCIE",
+      "exposure": "ESCS",
+      "specification": "student-adjusted",
+      "started": "2026-09-27 12:57:21",
+      "status": "complete",
+      "fast": "1",
+      "country_workers": 2,
+      "elapsed_seconds": 20.0,
+      "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+      "finished": "2026-09-27 12:57:41"
+    }
+  ],
+  "status": "complete",
+  "finished": "2026-09-27 12:57:41"
+}

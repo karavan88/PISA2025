@@ -1,0 +1,133 @@
+{
+  "purpose": "Reporting-only snapshot; no estimation was run.",
+  "countries": {
+    "Armenia": "READ",
+    "Azerbaijan": "READ",
+    "Georgia": "READ",
+    "Kazakhstan": "READ",
+    "Kyrgyzstan": "READ",
+    "Moldova": "READ",
+    "Uzbekistan": "SCIE"
+  },
+  "source_root": "/Users/karavan88/Documents/GitHub/PISA2025",
+  "sources": [
+    {
+      "source": "03_outputs/paperA/READ/tables/t1_sample.csv",
+      "source_sha256": "41a62e8de8c2dbd37fb60ca18cabb0af0a973ef12107df58711f7486c7b252f2",
+      "snapshot": "ijed_data/READ_t1_sample.csv",
+      "snapshot_sha256": "1841773cadc2efe69a4184c8bb798ab1d5fc13cef4bff73bbbd624007cb83b1b",
+      "rows": 6
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_mediation_pkg_pct.csv",
+      "source_sha256": "b3b463aa6e2dc49c1a507aac9b02b8f766e8e861c468006333f0ad65fba31ef6",
+      "snapshot": "ijed_data/READ_h1_mediation_pkg_pct.csv",
+      "snapshot_sha256": "bb91b328c66959b03babf0d731118d63ff2aaf8ed43bbe184e2ef83f266ee090",
+      "rows": 47
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_mediation_pkg_pct_total.csv",
+      "source_sha256": "032304305e0395f0b53255f3919285112a6440f5c3c47a7b45a9b51f1347e22c",
+      "snapshot": "ijed_data/READ_h1_mediation_pkg_pct_total.csv",
+      "snapshot_sha256": "6a9a7bf45aa8100471bb31bba3e1efcb3eeb71d4cf56ac6b74d8f06c239c0651",
+      "rows": 47
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_gelbach_long_pct.csv",
+      "source_sha256": "537459926bcf3b91da1793508344564b5036bc962bd406ab1ff35cf4b4b92735",
+      "snapshot": "ijed_data/READ_h1_gelbach_long_pct.csv",
+      "snapshot_sha256": "18f76f3205715aafede8fa0a5c8cb6f149ee09ca6a396c96719ba15ae868407f",
+      "rows": 188
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_gelbach_long_pct_total.csv",
+      "source_sha256": "bd6293c75364938846ed590d9309494b8046514c877796b39a28b9b552b0fad4",
+      "snapshot": "ijed_data/READ_h1_gelbach_long_pct_total.csv",
+      "snapshot_sha256": "9667f9367909ae432fc8d135ca499f1884990d985b05728ebf198ba0a99ca97e",
+      "rows": 188
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_joint_rho_pct.csv",
+      "source_sha256": "f90ebfd52caf3e1734ea495800a8ecd446f3a9f97eb40e06d1bab76c80422ff1",
+      "snapshot": "ijed_data/READ_h1_joint_rho_pct.csv",
+      "snapshot_sha256": "8f6cb103bdb611ffab9baed85431938d63d65db261dd06c7b2079c12899abf44",
+      "rows": 6
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_mediation_pkg_dep.csv",
+      "source_sha256": "af4cb7f8745b0e2f492b2cac7a97249e980c963a1ecd66fd3daea1a0852ecbd8",
+      "snapshot": "ijed_data/READ_h1_mediation_pkg_dep.csv",
+      "snapshot_sha256": "dcfa5b2fff2603d761d8fed89b065121a2bffb106c20193d0cd238a0f3c98001",
+      "rows": 47
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_mediation_pkg_dep_total.csv",
+      "source_sha256": "405c0007127d423c657f5c2922cfb40517327c8a73c5d16ff751bef515f45a63",
+      "snapshot": "ijed_data/READ_h1_mediation_pkg_dep_total.csv",
+      "snapshot_sha256": "bada7c4f5dc011b876ce443005fbdc67fee45f8704f4a14db3cf21308eb1e48e",
+      "rows": 47
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/h1_gelbach_long_dep.csv",
+      "source_sha256": "25f66b24580287466e2448bbb183eff78a0701874ea705490d1fbf0b511426e3",
+      "snapshot": "ijed_data/READ_h1_gelbach_long_dep.csv",
+      "snapshot_sha256": "7dd876711e0d6c76f71682cf7ff85e7ce89b105d781c21b1262039164da89e93",
+      "rows": 188
+    },
+    {
+      "source": "03_outputs/paperA/READ/tables/rob_gelbach_long_pct.csv",
+      "source_sha256": "46d9eb23d521e61d58c2cb82d8aac602cd05d7be9e446038e173b2e37807a587",
+      "snapshot": "ijed_data/READ_rob_gelbach_long_pct.csv",
+      "snapshot_sha256": "c15fcb8cc20e37df423795f2c8074afcaad679caa766c043287125af1d6347b8",
+      "rows": 72
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/t1_sample.csv",
+      "source_sha256": "379b29017d7b86f32f397b64422ff0e106e7ec6042df6dd86fd018cf444fbaad",
+      "snapshot": "ijed_data/SCIE_t1_sample.csv",
+      "snapshot_sha256": "2ff509374d89024c28db668a24253a4d53812263640742d5b19d546179a0a540",
+      "rows": 1
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/h1_mediation_pkg_pct.csv",
+      "source_sha256": "65351227b966eef79f5f3d6798d98c96cf49585ae19c3d64fbad5ac18f29b025",
+      "snapshot": "ijed_data/SCIE_h1_mediation_pkg_pct.csv",
+      "snapshot_sha256": "c3cc9a172dc1e4449f3a7d0f9b1e66739b4d7b8c707f4981b7351013f8deaed3",
+      "rows": 8
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/h1_mediation_pkg_pct_total.csv",
+      "source_sha256": "a8aaa2716807a6d32b7440c03a83714a0bbfcc84613e61ec59f9416f98ed1bf7",
+      "snapshot": "ijed_data/SCIE_h1_mediation_pkg_pct_total.csv",
+      "snapshot_sha256": "aa72b54f9500d4933d1919f68f535e450fae876ac98d41171375f91433fa6c24",
+      "rows": 8
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/h1_gelbach_long_pct.csv",
+      "source_sha256": "3cba43ce82158f90d8d01e4a069629bb34ad40f0ef243543916d03c74d80b997",
+      "snapshot": "ijed_data/SCIE_h1_gelbach_long_pct.csv",
+      "snapshot_sha256": "2edf231e655e4aff0724b02ef943e1cb9278698ce982a9a07e41192f14240158",
+      "rows": 32
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/h1_gelbach_long_pct_total.csv",
+      "source_sha256": "21b9ce6a30251d5edb0a7fbb65d89a7cd74a53bc356dfd55887587f91854a2e9",
+      "snapshot": "ijed_data/SCIE_h1_gelbach_long_pct_total.csv",
+      "snapshot_sha256": "cba7c6a5b861916304246c9a8468c652ab4b0731f4bd7f5880e50400bb353a54",
+      "rows": 32
+    },
+    {
+      "source": "03_outputs/paperA/SCIE/tables/h1_joint_rho_pct.csv",
+      "source_sha256": "42cb7046ab06bd5567afcf13e04aa8088610207453ffe496c2c5ed03498ac1a2",
+      "snapshot": "ijed_data/SCIE_h1_joint_rho_pct.csv",
+      "snapshot_sha256": "8baff6fae77b1e3558800163113e0e4c9623a054e32542b5a7bdaf4bd1bdf1d8",
+      "rows": 1
+    }
+  ],
+  "notes": [
+    "Original CSV labels within-school are displayed as school-adjusted in the manuscript.",
+    "COGABIL is labelled cognitive adaptability in the manuscript; source labels are preserved here.",
+    "Continuous scales retain the original fixed reference standardisation.",
+    "No science deprivation or science modal-grade/nonresponse robustness estimates are available."
+  ]
+}

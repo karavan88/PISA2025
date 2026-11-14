@@ -1,0 +1,430 @@
+---
+title: "Family background, socio-emotional skills and learning in East Asia and the Pacific"
+subtitle: "A system-level mediation analysis of PISA 2025"
+author: Garen Avanesian
+date: 2026-09-27
+abstract: |
+  This paper examines how socio-emotional skills account for socio-economic differences in achievement in selected East Asian and Pacific education systems. It analyses 94,815 students in 13 systems using country-specific weighted regressions, single-mediator models and a joint coefficient decomposition. Reading is the main outcome, with mathematics and science analysed in parallel. With measured school characteristics controlled, the joint share of the reading gradient ranges from 7% in Viet Nam to 34% in Thailand. The leading individual pathway also differs: curiosity, goal setting, problem-solving enjoyment, cognitive adaptability, self-regulated learning and growth mindset each lead in at least one system. Material deprivation and alternative specifications provide further comparisons. These cross-sectional decompositions describe candidate pathways; sensitivity analysis does not establish causal identification. The findings support examining specific skills within education systems rather than treating socio-emotional skills as a uniform explanation of educational inequality.
+keywords: [educational inequality, socio-emotional skills, socioeconomic status, PISA 2025, East Asia and Pacific, mediation]
+bibliography: eap_references.bib
+csl: elsevier-harvard.csl
+link-citations: true
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+  pdf:
+    pdf-engine: xelatex
+    documentclass: article
+    papersize: a4
+    geometry: margin=23mm
+    fontsize: 11pt
+    mainfont: PT Serif
+    linestretch: 1.1
+    number-sections: true
+    colorlinks: true
+    fig-pos: "H"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{longtable}
+        \usepackage{pdflscape}
+        \usepackage{float}
+        \usepackage{caption}
+        \captionsetup{font=small}
+        \usepackage{etoolbox}
+        \AtBeginEnvironment{longtable}{\scriptsize\renewcommand{\arraystretch}{0.95}}
+        \setlength{\LTpre}{4pt}\setlength{\LTpost}{4pt}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| include: false
+invisible(Sys.setlocale("LC_CTYPE","en_US.UTF-8"))
+options(encoding="UTF-8")
+root <- if(file.exists("../../03_outputs/paperA/audit/requested_countries.json")) normalizePath("../..") else getwd()
+knitr::opts_knit$set(root.dir=root)
+```
+
+```{r}
+#| include: false
+source(if(file.exists("02_scripts/paperA/12_paper_tables.R")) "02_scripts/paperA/12_paper_tables.R" else "eap_reporting.R")
+FIGP <- if(REPO) "../../03_outputs/paperA/figures_paper/" else "eap_data/figures/"
+lead <- med("READ","within")[n_sys==1 & mediator!="All skills (joint)",.(leading=as.character(mediator[which.max(acme)])),by=unit]
+G <- function(unit,term,digits=3) {z<-as.data.frame(gel_raw("READ","total"));fmt(z$est[z$unit==unit & z$term==term][1],digits)}
+CG <- function(unit,mediator,digits=1) {z<-as.data.frame(gelbach_shares());fmt(100*z$share[z$unit==unit & as.character(z$mediator)==mediator][1],digits)}
+COR <- function(x,y) {z<-fread(tp("READ","t_skill_intercorr.csv"));fmt(z[skill==x][[y]][1],2)}
+```
+
+# Introduction
+
+Socio-emotional skills are often proposed as one route through which family resources shape educational achievement. This proposition has two empirical requirements: family background must predict the skill, and the skill must predict achievement after family background is taken into account. Neither requirement establishes that changing the skill would reduce inequality. Students' earlier learning, school experiences and family circumstances may jointly influence their reported dispositions and current achievement.
+
+This paper examines these relationships separately in 13 East Asian and Pacific education systems using PISA 2025. It combines weighted regressions for socio-economic gradients, single-mediator models, a joint decomposition across the available skills, sensitivity analysis, and checks across achievement domains, exposure measures and sample definitions. The objective is to compare candidate pathways across systems without imposing a common regional coefficient.
+
+In the specification controlling measured school characteristics, the available skills jointly account for `r V("Viet Nam")`% of the socio-economic reading gradient in Viet Nam, `r V("Korea")`% in Korea and `r V("Thailand")`% in Thailand. A larger percentage does not necessarily indicate a larger achievement difference. The corresponding joint changes in the reading coefficient are `r V("Viet Nam","acme",digits=2)`, `r V("Korea","acme",digits=2)` and `r V("Thailand","acme",digits=2)` points per ten percentile points of socioeconomic status. Both quantities are therefore reported for each system.
+
+There is also no single dominant skill throughout the sample. Curiosity is the largest individual pathway in `r lead[leading=="Curiosity",.N]` of the 13 systems. Goal setting leads in Korea, Malaysia and Chinese Taipei; problem-solving enjoyment leads in Japan; self-regulated learning in B-S-J-Z (China); cognitive adaptability in Macao; and growth mindset in Singapore and Viet Nam. These are comparisons of point estimates, not tests establishing that the leading pathway is statistically larger than every alternative.
+
+The analysis connects research on the contribution of personality and learning dispositions to educational outcomes [@almlund2011; @borghans2008; @poropat2009] with work on social stratification [@farkas2003; @lundberg2013]. Its contribution is a common, explicitly documented set of decompositions across the selected systems. The analysis does not identify the effect of an intervention on skills or establish that schools cause the differences between systems.
+
+# Skills, family background and educational inequality
+
+## What would constitute a skill pathway?
+
+The economics of skill formation treats cognitive and non-cognitive capabilities as products of investments and earlier capabilities [@cunha2007; @heckman2012]. Family resources may support activities that develop curiosity, persistence or confidence in learning. Those dispositions may, in turn, influence engagement with schoolwork. This account motivates a mediation model, but the direction of influence is not settled by a survey administered alongside an achievement assessment. Students may report greater curiosity because earlier academic success made learning more rewarding.
+
+Sociological accounts place these relationships within institutions. The correspondence argument of @bowles1976 emphasises the dispositions rewarded by schooling and employment, while @bourdieu1977 explain how family-acquired dispositions can become educational advantage. These accounts motivate attention to the composition of the association: is it concentrated in persistence and self-regulation, or in curiosity and enjoyment of demanding intellectual activity? The size of a coefficient decomposition alone cannot adjudicate between these theories.
+
+The distinction matters because the measured skills overlap. A student may describe herself as both curious and persistent when answering questions about enjoyable schoolwork. A separate mediation model for curiosity can therefore capture variation also associated with persistence. A model entering all skills jointly asks a different question: which associations remain when the other reported dispositions are held constant? The paper presents both estimands and does not add the separate mediation shares together.
+
+Growth mindset is analysed alongside the six continuous scales. It records a belief about whether intelligence can change, rather than another facet of the same scale battery. Previous work links this belief to achievement and socioeconomic disadvantage [@claro2016]. Here it is a binary response to one item; it should not be interpreted as a comprehensive assessment of mindset or as evidence about the effectiveness of a mindset intervention.
+
+## Why compare these systems?
+
+The sample covers the 14 systems selected for this study: Japan, Korea, Thailand, Cambodia, B-S-J-Z (China), Hong Kong, Macao, Indonesia, Malaysia, Mongolia, the Philippines, Singapore, Chinese Taipei and Viet Nam. B-S-J-Z (China) represents Beijing, Shanghai, Jiangsu and Zhejiang, not all of mainland China. The sample is a selected regional comparison, not an exhaustive sample of East Asia and the Pacific. Cambodia remains in the availability audit but cannot enter the full mediation analysis because the six continuous skill scales are unavailable.
+
+The selected systems differ in their achievement distributions, socioeconomic gradients and the measured organisation of schooling. These differences make it inappropriate to assume that a skill has the same association with achievement everywhere. All substantive regressions are estimated separately by system. The cross-system medians are descriptive summaries of these estimates; they are not regional population estimates or coefficients from pooled regressions.
+
+Three questions organise the analysis. How strongly is each disposition associated with socioeconomic position? How much does the achievement gradient change when the available dispositions are included? Which individual and conditional pathways account for that change, and how sensitive are they to specification and unmeasured confounding? The analysis does not impose a numerical threshold defining a substantively important share.
+
+# Data and measures
+
+## Sample and coverage
+
+The student and school public-use files for PISA 2025 provide achievement plausible values, background variables, skill measures, final student weights and 80 replicate weights [@oecd2026]. The 14 requested systems contain 109,415 sampled students. Requiring the skill measures, socioeconomic index, available student controls, an achievement plausible value and a final weight leaves 94,815 students in 13 systems. All 13 have reading, mathematics and science outcomes. The sample is the same across the three outcome domains.
+
+Four availability differences affect interpretation. Indonesia lacks perseverance, so its joint block contains six dispositions. Japan lacks the grade-repetition variable; that control is omitted to retain Japan, while the other available controls are used. Japan also lacks the deprivation module and is absent from the deprivation models. Macao lacks usable school identifiers and school controls, so its two specifications coincide apart from simulation variation in the single-mediator outputs. No artificial school identifiers are counted as observed schools. @tbl-availability reports every requested system, including Cambodia.
+
+```{r}
+#| label: tbl-sample
+#| tbl-cap: "Analytic sample and achievement by system. N and school counts are unweighted; female shares and achievement means use final student weights. Achievement means average the ten plausible values. These are means for the analytic sample, not official population estimates. Macao school count is unavailable."
+kb(tbl_sample_compact())
+```
+
+## Outcomes and socioeconomic exposures
+
+Reading is the primary outcome. Mathematics and science are analysed in parallel. Plausible values represent uncertainty about proficiency and are combined across model estimates; a student's average plausible value is not used as the dependent variable in the regressions. Averaged plausible values are used only for the descriptive correlation matrix.
+
+The main exposure is the PISA index of economic, social and cultural status (ESCS), converted to a weighted percentile position within each system before complete-case selection. Dividing that rank by ten makes a one-unit contrast equal to ten percentile points. The same contrast denotes a relative position within each system; it does not imply the same difference in household resources. An alternative analysis enters ESCS in its original index units.
+
+A larger contrast compares the median exposure among analytic-sample students in the bottom and top ESCS deciles. It is labelled **the decile-median contrast**, not a P10-to-P90 contrast: the medians generally lie near the fifth and ninety-fifth percentiles. Its exact value is calculated separately for each system. The figures and primary country tables use the simpler ten-percentile-point unit.
+
+Material deprivation is a second exposure for reading. It counts responses indicating that the family cannot afford an item among the candidate ST488 and ST401 items available in that system. An item is included when at least 90% of students answering any deprivation item answered it; students missing an included item have a missing count. The count covers four items in Mongolia and six in the other included systems. Japan has no usable module. Deprivation models additionally control individual ESCS and therefore describe conditional associations; the exposure is not an observed resource shock. Differences in the item sets limit direct comparison of a one-item increment across systems.
+
+## Dispositions and controls
+
+@tbl-scales defines the seven dispositions. The six continuous scales are standardised on the new analytic sample using the original country-normalised weights. These weights give each system the same total before complete-case selection; retained weight totals can differ. One unit is a common analytic-sample standard deviation. Rescaling a mediator changes the separate path coefficients but not their product or the joint coefficient change. Growth mindset equals one for disagreement with the statement that intelligence cannot be changed and zero for agreement; it is modelled with a linear probability mediator equation.
+
+```{r}
+#| label: tbl-scales
+#| tbl-cap: "Disposition measures. Continuous scale labels follow the supplied PISA file; COGABIL denotes cognitive adaptability. All six continuous scales use a common analytic-sample standardisation. Growth mindset remains binary. Indonesia has no perseverance scale."
+sc<-data.table(Disposition=unname(skill_lab),Variable=c('PERSEV','SELFREG','GOALSET','CURIO','ENPROBS','COGABIL','ST420Q01DA'),
+              Measure=c('Persistence in working on tasks','Regulation of learning strategies','Setting learning goals','Interest in learning and understanding','Enjoyment of demanding problems','Adaptation to unfamiliar or difficult situations','Disagreement that intelligence cannot change'),
+              Unit=c(rep('Sample SD',6),'Probability'))
+kb(sc)
+```
+
+Student controls are sex, age, grade relative to the system's modal grade, grade repetition, immigrant background and a home language different from the test language. Japan has no repetition control, and controls constant within a system are omitted. The school-adjusted specification adds the leave-one-out school mean of the exposure, private ownership and community-size categories. Deprivation models add school means of both deprivation and ESCS. School means are computed before complete-case selection. Means of rank and deprivation use the unweighted leave-one-out construction; means of the ESCS index use student weights. Missing school ownership is set to public and missing community size to the original reference category; these substitutions do not recover missing school information.
+
+The **student-adjusted** specification uses the student controls. The **school-adjusted** specification adds the measured school controls. Both are ordinary weighted linear regressions fitted separately by system. Neither is a school fixed-effects model, and neither includes a random school intercept in the main analysis. A school mean and a few school characteristics cannot absorb every school-specific factor. Differences between the two specifications therefore measure sensitivity to those controls, not an identified causal contribution of school sorting.
+
+# Estimation and interpretation
+
+## Which estimator produces which result?
+
+@tbl-model-map distinguishes the estimators before the results are presented. The baseline socioeconomic slope is the exposure coefficient in an achievement regression containing the stated controls and no skills. The full slope is the same coefficient after adding all available skills. The joint change is baseline minus full; the joint percentage share divides that change by the baseline slope within each plausible value and then averages the shares.
+
+```{r}
+#| label: tbl-model-map
+#| tbl-cap: "Guide to the estimators. Every substantive regression is fitted separately by education system. PV = achievement plausible value. SE = standard error. Neither Student nor School denotes a fixed-effects model."
+kb(data.table(Result=c('Skill gradient','Joint change and share','Single-mediator indirect effect','Conditional skill contribution','Confounding sensitivity'),
+              Model=c('Skill on exposure and controls','Achievement on exposure and controls, without/with all skills','One skill equation and one achievement equation containing that skill','Joint achievement equation plus each skill equation','Single-mediator equations; separate constructed-index check for joint block'),
+              Inference=c('80 Fay replicate weights','10 PVs; 80 Fay weights on PV1 plus PV variance','5 PVs/500 draws for main reading; 2 PVs/200 draws otherwise; model-based SE','10 PVs; Fay replication plus PV variance','PV1 rho grid for single skills; closed-form index threshold averaged over 10 PVs')))
+```
+
+## Individual and joint pathways
+
+For skill $k$, system-specific weighted models are
+
+$$M_{ik}=\alpha_{0k}+\alpha_{1k}T_i+X_i'\alpha_{2k}+e_{ik},$$
+
+$$Y_i=\beta_{0k}+\beta_{1k}T_i+\beta_{2k}M_{ik}+X_i'\beta_{3k}+u_{ik},$$
+
+where $T_i$ is the exposure and $X_i$ contains the controls for the stated specification. The linear indirect effect is $\alpha_{1k}\beta_{2k}$ per unit of exposure, the direct coefficient is $\beta_{1k}$, and their sum is the total in this single-mediator model. The other dispositions are absent from both equations. Growth mindset uses the same linear formulation, with a binary dependent variable in its mediator equation.
+
+Under the assumptions of causal mediation analysis, the product corresponds to an average causal mediation effect (ACME) [@imai2010psych; @imai2010statsci]. Here those assumptions are not established. They require adequate control for confounding of exposure, mediator and outcome, an appropriate temporal ordering, and no exposure-induced mediator-outcome confounder. School characteristics and grade history may themselves reflect family background, complicating their interpretation as controls. The paper therefore uses *indirect association* when interpreting the estimates, while retaining ACME in tables to identify the original estimator.
+
+The joint decomposition uses the change in the exposure coefficient after all available skills enter simultaneously. Its allocation to individual skills follows @gelbach2016: each contribution is the skill's coefficient in the joint achievement equation multiplied by its exposure coefficient in the skill equation. These contributions sum to the joint change within each system and plausible value. The single-mediator effects generally do not sum to this total. A negative conditional contribution is retained as a negative statistical allocation; it is not reclassified as zero and does not by itself identify a harmful causal effect.
+
+All main models use an additive specification, with no exposure-by-skill interaction. This is a modelling restriction, not a fact established by a small interaction estimate. An auxiliary random-slope check is reported separately in the replication materials and is not used to convert these observational estimates into causal claims.
+
+## Weights, plausible values and uncertainty
+
+Regressions use final student weights within each system. Joint decompositions, conditional allocations and skill gradients use Fay balanced repeated replication: the 80 replicate-weight estimates on the first plausible value provide sampling variance with Fay coefficient 0.5. Joint and conditional point estimates average ten plausible values, adding $(1+1/10)$ times their between-value variance to sampling variance. The skill equation does not depend on the achievement plausible value. Sampling variance is therefore approximated using PV1 rather than averaged across all plausible values.
+
+Single-mediator models use the quasi-Bayesian coefficient-draw procedure implemented by the mediation package [@tingley2014]. The main reading/rank/school-adjusted analysis uses PVs 1, 3, 5, 7 and 9 and 500 draws per model. Other outcome, exposure and specification combinations use PVs 1 and 6 and 200 draws. Estimates and variances are combined across the selected plausible values using Rubin's rules [@rubin1987]. These are conventional model-based SEs, not survey-replicate or school-clustered SEs; they must not be read as equivalent to the joint-model SEs. Ratio estimates can be especially unstable when a baseline slope is small.
+
+The manuscript's joint rows consistently use the ten-PV estimates and their corresponding replicate-weight SEs. The five/two-PV joint estimates also produced by the mediation script remain in the replication archive, labelled by source, but are not paired with ten-PV SEs. Cross-system interquartile ranges describe heterogeneity in point estimates, not uncertainty about a regional parameter. Indonesia contributes to joint results using its six available dispositions; perseverance summaries contain 12 systems.
+
+## Sensitivity to unmeasured confounding
+
+The single-mediator sensitivity analysis varies the assumed correlation $\rho$ between errors in the mediator and achievement equations [@imai2010statsci]. It reports the grid value $\rho^*$ at which the indirect effect is closest to zero. The main reading specification uses a 0.05 grid; secondary specifications use a 0.10 grid, all evaluated on PV1. The reported threshold therefore has finite grid precision.
+
+Two variance measures must be distinguished. The product of the confounder's shares of **residual** variance is $R^{2*}_M R^{2*}_Y=(\rho^*)^2$. The corresponding product relative to **total** variance is $\widetilde R^2_M\widetilde R^2_Y=(\rho^*)^2(1-R^2_M)(1-R^2_Y)$, which is smaller when observed predictors explain part of either variable. The tables report the latter as the total-variance product. Neither quantity is a percentage of the achievement gradient.
+
+The joint sensitivity check forms a skill index using coefficients from the full achievement model and computes its residual association with the reduced-form outcome, averaged across ten plausible values. This is a sensitivity diagnostic for a fitted composite index, not a general sensitivity analysis for seven interacting causal mediators [@imai2013]. None of these checks establishes that the estimates are upper bounds: omitted confounding could bias them in either direction.
+
+# Results
+
+## Socioeconomic gradients differ across skills and systems
+
+The disposition gradients are predominantly positive, but calling them uniformly flat would obscure meaningful differences. In the student-adjusted regressions, the goal-setting gradient is `r G("Korea","pi_GOALSET")` sample SD per ten ESCS percentile points in Korea and `r G("Viet Nam","pi_GOALSET")` in Viet Nam. Across an 80-percentile-point contrast, those fitted differences are `r fmt(8*as.numeric(G("Korea","pi_GOALSET",6)),2)` and `r fmt(8*as.numeric(G("Viet Nam","pi_GOALSET",6)),2)` SD. Curiosity's corresponding ten-point gradients are `r G("Philippines","pi_CURIO")` in the Philippines and `r G("Viet Nam","pi_CURIO")` in Viet Nam. These are associations conditional on student characteristics; they do not measure a change caused by moving a family up the socioeconomic distribution.
+
+Growth mindset has a different unit. Its exposure coefficient is a probability change, so a coefficient of 0.02 means two percentage points per ten ESCS percentile points. It cannot be compared directly with a coefficient in standard deviations. Likewise, reading slopes are in PISA points. @fig-gradients shows each system's estimates and survey-based intervals; @tbl-gradients summarises their distribution. Comparing units explicitly avoids treating small numerical coefficients as evidence of small substantive differences.
+
+![Disposition gradients by education system, from separate weighted regressions with student controls. Six scales are in sample SD; growth mindset is a probability. Bars show 95% intervals from Fay replication. Diamonds show cross-system medians. Indonesia has no perseverance estimate.](`r paste0(FIGP,"fig1_skill_gradients.png")`){#fig-gradients width="100%"}
+
+## Joint contribution to the reading gradient
+
+@tbl-econ reports the baseline and full socioeconomic coefficients, their difference and its percentage share for both specifications. Every entry is based on ten plausible values, with the joint-model uncertainty procedure described above. The country rows are the primary results.
+
+The school-adjusted baseline reading slope ranges from `r V("Hong Kong","total",digits=2)` points per ten ESCS percentile points in Hong Kong to `r V("Philippines","total",digits=2)` in the Philippines. Adding the skill block changes these coefficients by `r V("Hong Kong","acme",digits=2)` and `r V("Philippines","acme",digits=2)` points respectively. Their percentage changes are `r V("Hong Kong")`% and `r V("Philippines")`%. The percentage in Hong Kong is comparatively imprecise: its SE is `r fmt(100*J("Hong Kong")$prop_se,1)` percentage points.
+
+Thailand has the largest joint percentage in this specification (`r V("Thailand")`%), yet Korea and the Philippines have larger joint changes in achievement points: `r V("Korea","acme",digits=2)` and `r V("Philippines","acme",digits=2)` against Thailand's `r V("Thailand","acme",digits=2)`. The ranking of percentages partly reflects the denominator. In Viet Nam, both the percentage (`r V("Viet Nam")`%) and the coefficient change (`r V("Viet Nam","acme",digits=2)` points) are relatively small. Indonesia's `r V("Indonesia")`% concerns a six-disposition block and is not a seven-scale estimate.
+
+::: {.landscape}
+```{r}
+#| label: tbl-econ
+#| tbl-cap: "Reading gradient and joint skill contribution by system, per ten ESCS percentile points. Student = student controls; School = student plus available measured school controls. Baseline = exposure coefficient without skills; After skills = coefficient with all available skills; Change = baseline minus after-skills coefficient. Share = mean within-PV percentage change. Parentheses contain SEs from 80 Fay weights on PV1 plus variance across ten PVs. Japan omits repetition; Indonesia omits perseverance; Macao has no usable school adjustment."
+kb(tbl_country_joint())
+```
+:::
+
+School adjustment changes the comparison being made. For Japan, the baseline slope declines from `r V("Japan","total",sp="total",digits=2)` to `r V("Japan","total",digits=2)` points when the measured school controls are added; for Viet Nam, it declines from `r V("Viet Nam","total",sp="total",digits=2)` to `r V("Viet Nam","total",digits=2)`. These differences indicate that exposure to schools with different observed characteristics is associated with the unadjusted school component of the gradient. They do not identify how much school assignment causes inequality. Macao provides no such comparison because the school variables are unavailable.
+
+![Joint percentage change in the reading gradient, by system and specification. Country bars are 95% intervals using matching ten-PV estimates and Fay/PV SEs; the black summary bar is an interquartile range. All 13 systems are shown, including systems with small baseline slopes.](`r paste0(FIGP,"fig2_prop_mediated_by_economy.png")`){#fig-econ width="100%"}
+
+## The leading pathway is system-specific
+
+@tbl-country-paths reports every single-mediator share for reading. Curiosity has the largest indirect association in Thailand, Hong Kong, Indonesia, Mongolia and the Philippines. Its estimated share is `r SP("Indonesia","Curiosity")`% in Indonesia and `r SP("Philippines","Curiosity")`% in the Philippines. In contrast, goal setting leads in Korea (`r SP("Korea","Goal setting")`%), Malaysia (`r SP("Malaysia","Goal setting")`%) and Chinese Taipei (`r SP("Chinese Taipei","Goal setting")`%).
+
+Japan's largest single-mediator share is problem-solving enjoyment (`r SP("Japan","Problem-solving enjoyment")`%). In B-S-J-Z (China), self-regulated learning leads (`r SP("B-S-J-Z (China)","Self-regulated learning")`%), while cognitive adaptability leads in Macao (`r SP("Macao","Cognitive adaptability")`%). Growth mindset leads in Singapore (`r SP("Singapore","Growth mindset")`%) and Viet Nam (`r SP("Viet Nam","Growth mindset")`%). Curiosity is therefore a frequent, but not universal, leading pathway. The estimates also do not support dismissing self-regulated learning throughout the region.
+
+::: {.landscape}
+```{r}
+#| label: tbl-country-paths
+#| tbl-cap: "Reading: single-mediator percentage shares by system, school-adjusted specification. Each skill column comes from its own two-equation model, with five PVs and 500 draws; other skills are absent. Joint uses the ten-PV coefficient decomposition. Individual columns overlap and must not be added. Persev. = perseverance; Self-reg. = self-regulated learning; Goal set. = goal setting; Prob.-solv. = problem-solving enjoyment; Cogn. adapt. = cognitive adaptability; Growth = growth mindset. Country-specific SEs for every individual estimate are supplied in the accompanying result files."
+kb(tbl_country_paths())
+```
+:::
+
+![Individual indirect associations with reading, per ten ESCS percentile points. Each point is a system estimate; diamonds are medians. The two panels use different covariate sets. These are separate single-mediator models, not an additive partition of the joint change.](`r paste0(FIGP,"fig3_acme_by_skill.png")`){#fig-acme width="100%"}
+
+Conditional allocations refine this comparison but do not replace it. For Korea, the single-mediator curiosity share is `r SP("Korea","Curiosity")`%, whereas its Gelbach allocation conditional on the other dispositions is `r CG("Korea","Curiosity")`%. In Japan, problem-solving enjoyment retains `r CG("Japan","Problem-solving enjoyment")`%, but goal setting and cognitive adaptability have negative allocations. In Hong Kong, the curiosity allocation (`r CG("Hong Kong","Curiosity")`%) exceeds the joint percentage (`r V("Hong Kong")`%) because other conditional contributions offset it. These are consequences of the joint covariance structure; an allocation exceeding the total is possible when other allocations are negative.
+
+@tbl-country-gelbach gives the complete conditional allocation. @tbl-pathways in the appendix compares the distributions of single and conditional shares. The results cannot establish that one correlated scale is merely a proxy for another or that a negative conditional coefficient represents no independent association.
+
+::: {.landscape}
+```{r}
+#| label: tbl-country-gelbach
+#| tbl-cap: "Reading: conditional Gelbach contributions as percentages of the baseline slope, school-adjusted specification. All available skills enter the achievement equation jointly. Contributions sum to Joint within each system before rounding. Values average within-PV ratios over ten PVs. Negative allocations are retained. Abbreviations match the single-mediator table."
+kb(tbl_country_paths(conditional=TRUE))
+```
+:::
+
+## Mathematics and science
+
+@tbl-country-domains repeats the joint decomposition for all three achievement domains and both specifications. Each comparison uses the same 13 systems and the same analytic students. In Korea, the school-adjusted joint percentage is `r V("Korea",dom="READ")`% in reading, `r V("Korea",dom="MATH")`% in mathematics and `r V("Korea",dom="SCIE")`% in science. In Viet Nam the corresponding percentages are `r V("Viet Nam",dom="READ")`, `r V("Viet Nam",dom="MATH")` and `r V("Viet Nam",dom="SCIE")`; in Thailand they are `r V("Thailand",dom="READ")`, `r V("Thailand",dom="MATH")` and `r V("Thailand",dom="SCIE")`.
+
+The country estimates allow domain comparisons without inferring equivalence from overlapping cross-system interquartile ranges. Their common sample removes changes in country membership as an explanation for differences. It does not remove differences in measurement precision or in the meaning of a point on each achievement scale. Domain summaries and the skill-by-domain table appear in the appendix, while all country-specific individual pathway outputs accompany the paper.
+
+::: {.landscape}
+```{r}
+#| label: tbl-country-domains
+#| tbl-cap: "Joint percentage change in the socioeconomic gradient by system, domain and specification. Student and School identify the two control sets; parentheses are Fay/PV SEs in percentage points. Every cell uses ten plausible values. This table reports ratios; corresponding point changes and baseline slopes are available in the domain result files."
+kb(tbl_country_domains())
+```
+:::
+
+![Joint percentage change across reading, mathematics and science. Each point is a system; diamonds are medians. No system is removed on the basis of its baseline gradient.](`r paste0(FIGP,"fig5_domains.png")`){#fig-domains width="100%"}
+
+## Material deprivation is a distinct and less uniform association
+
+The deprivation analysis covers 12 systems and controls ESCS. @tbl-econ-dep presents the number of measured items, the baseline reading slope per additional unaffordable item, the joint change and the curiosity pathway. Unlike the rank gradient, the deprivation slope is not clearly negative in every system. Korea's estimate is `r V("Korea","total",tr="dep",digits=2)` points with an SE of `r fmt(J("Korea",tr="dep")$total_se,2)`. Its percentage decomposition is extremely unstable because some replicate or plausible-value baseline estimates are near zero. It is not interpreted as a meaningful percentage mediated.
+
+In the Philippines, one additional unaffordable item is associated with `r V("Philippines","total",tr="dep",digits=2)` reading points before skills enter; the joint change is `r V("Philippines","acme",tr="dep",digits=2)` points, or `r V("Philippines",tr="dep")`% of that slope. Mongolia's corresponding values are `r V("Mongolia","total",tr="dep",digits=2)`, `r V("Mongolia","acme",tr="dep",digits=2)` and `r V("Mongolia",tr="dep")`%. Macao has a larger negative baseline slope (`r V("Macao","total",tr="dep",digits=2)` points) but a small joint percentage (`r V("Macao",tr="dep")`%). A sizeable deprivation association therefore need not be accompanied by a large measured skill contribution.
+
+Thailand and Indonesia have negative joint percentage estimates in this specification: adding skills makes their negative deprivation slopes slightly more negative. This is statistical suppression, not evidence that skills transmit a fixed positive proportion of hardship. The selected sample consequently does not support a general claim that deprivation works mainly through perseverance or that its skill share matches the socioeconomic rank share. The three-exposure summary is provided in @tbl-exposures, with the different country coverage made explicit.
+
+::: {.landscape}
+```{r}
+#| label: tbl-econ-dep
+#| tbl-cap: "Reading and deprivation by system, school-adjusted specification, conditional on individual ESCS. Items = number of included deprivation items. Baseline and joint estimates use ten PVs with Fay/PV SEs; curiosity uses two PVs and 200 draws with model-based SEs. Japan has no usable deprivation module. Joint ratios in Korea and B-S-J-Z (China) are highly unstable; their SEs are retained and percentages should not receive substantive interpretation. Median rows describe the observed point estimates only."
+k<-tbl_mediation_econ_dep();setnames(k,c('ACME, all dispositions'),c('Joint change'),skip_absent=TRUE);kb(k)
+```
+:::
+
+## Sensitivity and sample checks
+
+For the curiosity model, the school-adjusted reading threshold is `r SP("B-S-J-Z (China)","Curiosity","rho_star",digits=2)` in B-S-J-Z (China), `r SP("Indonesia","Curiosity","rho_star",digits=2)` in Indonesia and `r SP("Philippines","Curiosity","rho_star",digits=2)` in the Philippines. These thresholds describe how the fitted indirect association changes under the assumed error-correlation model. They do not show that such confounding is absent, and they provide no empirical benchmark for the strength of prior achievement as an omitted variable. Differences of one grid step should not be overinterpreted.
+
+![Sensitivity thresholds for curiosity and the fitted joint skill index, reading with measured school controls. Curiosity uses the original medsens procedure on PV1 with a 0.05 rho grid. The joint index uses a separate closed-form diagnostic averaged over ten PVs; the two markers are not identical estimands.](`r paste0(FIGP,"fig4_sensitivity_rho.png")`){#fig-sens width="90%"}
+
+Two checks examine sensitivity to sample definition. The first retains students in the system's modal grade. The second estimates the probability of entering the analytic sample within each system using PV1 achievement, sex, grade and age, then divides final and replicate weights by that probability. Constant predictors are omitted, including grade in Japan. The response model does not correct for selection on unobserved characteristics, and uncertainty from estimating the response probabilities is not added.
+
+@tbl-country-robust shows these checks by system; @tbl-robust summarises the distributions with medians and IQRs. The country-level comparison is needed because a stable median can coexist with changes in individual systems. The check table follows the original robustness script's ratio of PV-averaged point changes to PV-averaged baseline coefficients. It can differ slightly from the main table, which averages within-PV ratios. This distinction is preserved and documented rather than hidden by rounding.
+
+```{r}
+#| label: tbl-country-robust
+#| tbl-cap: "Reading: joint share under alternative sample definitions, school-adjusted rank specification. Entries are percentages from country-specific Gelbach decompositions. Main, modal grade and nonresponse-weighted results use the ratio of ten-PV average coefficient changes to ten-PV average baseline slopes, matching the original robustness script."
+kb(tbl_country_robustness())
+```
+
+# Discussion
+
+## A regional comparison requires country-specific conclusions
+
+The country-level estimates resist a single regional account. Curiosity is not the largest individual pathway in Japan, Korea, B-S-J-Z (China), Macao, Malaysia, Singapore, Chinese Taipei and Viet Nam when each disposition is estimated separately. The estimates also do not support describing the socioeconomic skill gradient as uniformly flat. Its substantive size depends on the skill, the system and the socioeconomic contrast.
+
+These differences are not a ranking of national character or of the effectiveness of education systems. The skill measures are self-reports, and response standards may vary across contexts [@west2016]. The joint block also differs in Indonesia. Differences in selection, measurement, covariate distributions and unobserved prior learning can contribute to the observed pattern. Establishing that school institutions account for the variation would require a separate design and measures of those institutions.
+
+For educational development, the findings distinguish a diagnostic question from an intervention question. The diagnostic question is which reported dispositions covary with socioeconomic advantage and achievement in a particular system. The intervention question is whether changing the conditions that support those dispositions would improve learning or narrow inequality. The present analysis addresses the first. A programme selected solely because its target skill has the largest observed mediation share would bypass the evidence required for the second.
+
+## Limits and next analytical steps
+
+The main limitation is temporal and causal identification. Dispositions and achievement are measured together, socioeconomic status is not assigned, and prior achievement is not controlled directly. The sensitivity analysis makes one form of confounding explicit but cannot solve the wider identification problem. The results therefore remain conditional decompositions rather than identified mechanisms or upper bounds on mechanisms.
+
+A second limitation is inference. Joint estimates use survey replicate weights, whereas individual mediation SEs are model-based. The reduced plausible-value and draw settings for secondary mediation models also introduce additional approximation. Comparisons of point estimates across systems should not be treated as formal tests of differences between pathways. Replacing the individual-model uncertainty procedure with survey-aware resampling would be a substantive analysis revision beyond this replication.
+
+Third, the measured school controls do not eliminate school-level unobservables. Japan's missing repetition control and Macao's missing school information further limit comparability of the adjusted specifications. A school fixed-effects analysis could answer a more specific within-school question, but would be a different estimator and would require an explicit treatment of Macao. Similarly, alternative definitions of deprivation and direct exposure-by-skill interactions would test assumptions rather than merely relabel the current estimates.
+
+Finally, complete-case selection can change the population represented by the estimates. The response-weight check addresses selection on four observed variables only. Cambodia's missing scale battery cannot be repaired through this weighting, and its exclusion from the full models limits the regional scope of the findings. These limitations identify concrete next analyses without replacing the present country-level evidence with a regional generalisation.
+
+# Conclusion
+
+The relationship between family background, socio-emotional skills and achievement differs across the selected East Asian and Pacific systems. In reading, the joint percentage associated with the available skills ranges from about 7% in Viet Nam to 34% in Thailand after measured school characteristics are controlled. The largest individual pathway varies across six of the seven measured dispositions. A common model therefore yields different substantive accounts across systems.
+
+The material-deprivation analysis adds a further distinction. A substantial negative deprivation slope can coexist with a small skill contribution, while weak baseline slopes can make percentage decompositions uninformative. Reporting the baseline association, the point change and its uncertainty is essential. These findings support further investigation of specific pathways within systems, while leaving the causal effect of skill interventions open.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+# Supplementary results {.appendix}
+
+## Sample availability and background characteristics
+
+```{r}
+#| label: tbl-availability
+#| tbl-cap: "Availability audit for all 14 requested systems. Requested = students in the supplied file; Analytic = main estimation sample; Deprivation = usable deprivation sample within it; Skills = dispositions in the joint block. Cambodia has growth-mindset responses but lacks all six continuous scales, preventing the full Paper A specification."
+kb(tbl_availability())
+```
+
+```{r}
+#| label: tbl-controls
+#| tbl-cap: "Additional sample characteristics. Percentages are weighted with final student weights and rounded to the displayed precision. Core deprivation refers to the four ST488 items and differs from the full deprivation count used in the models. Japan repetition and deprivation measures are unavailable."
+kb(tbl_controls())
+```
+
+## Scale correlations and gradient summaries
+
+The descriptive correlation matrix is calculated as follows: continuous measures are standardised within each system and then combined using country-normalised weights. It covers the 12 systems with perseverance, excluding Indonesia. It is the one pooled descriptive matrix, not a pooled regression. The accompanying country files contain each skill's within-system correlations with ESCS and achievement. Curiosity and problem-solving enjoyment correlate at `r COR("Curiosity","Problem-solving enjoyment")` in this matrix; such overlap explains why separate and conditional pathway estimates answer different questions.
+
+::: {.landscape}
+```{r}
+#| label: tbl-corr
+#| tbl-cap: "Descriptive correlation matrix for the 12 systems with perseverance, using the same weighting convention as the other pooled descriptives. Continuous variables are standardised within system; growth mindset remains binary. Achievement uses the mean of ten PVs only for this descriptive calculation. No mediation model is estimated on pooled data."
+kb(tbl_corr())
+```
+:::
+
+```{r}
+#| label: tbl-gradients
+#| tbl-cap: "Distribution of system-specific exposure coefficients in the disposition and reading regressions, student-adjusted rank specification. Unit = ten ESCS percentile points. Dispositions use sample SD, growth mindset probability and reading PISA points. The IQR is cross-system dispersion, not a confidence interval. Perseverance covers 12 systems; other rows cover 13."
+kb(tbl_gradients())
+```
+
+## Mediation and decomposition summaries
+
+These tables summarise the distributions of country estimates reported in the main text and accompanying files. ACME and ADE identify the single-mediator estimators; for the joint row the corresponding columns contain coefficient change and the full-model exposure coefficient. The joint row uses matching ten-PV estimates throughout. A decile-median contrast multiplies the point change by the observed difference between the two decile medians.
+
+::: {.landscape}
+```{r}
+#| label: tbl-main
+#| tbl-cap: "Reading mediation summaries for the ESCS-rank exposure: medians and IQRs across system estimates. ACME = individual indirect estimate; ADE = direct estimate; Total = their sum. Joint row = coefficient decomposition. Single models use five PVs/500 draws for School and two PVs/200 draws for Student; joint models use ten PVs. R-squared threshold is the product of total-variance shares, not residual-variance shares. Systems gives the count contributing to each row."
+kb(tbl_mediation())
+```
+:::
+
+```{r}
+#| label: tbl-pathways
+#| tbl-cap: "Reading pathway shares: distributions of individual and conditional contributions, school-adjusted rank specification. Single-mediator columns use separate models and overlap; Gelbach columns allocate the joint block and sum within systems before aggregation. Medians need not sum. Joint rows use the same ten-PV estimator."
+kb(tbl_pathways())
+```
+
+::: {.landscape}
+```{r}
+#| label: tbl-domains
+#| tbl-cap: "Joint coefficient decompositions across domains and specifications: medians and IQRs of country estimates. All six rows cover the same 13 systems and use ten PVs. ACME in the joint block denotes the baseline-minus-full coefficient change; the rho threshold concerns a fitted skill index."
+kb(tbl_domains())
+```
+
+```{r}
+#| label: tbl-skills
+#| tbl-cap: "Individual skill estimates by outcome, school-adjusted rank specification: medians of indirect effects, shares with IQRs and sensitivity thresholds. Reading uses five PVs/500 draws; mathematics and science two PVs/200 draws. Joint rows use ten-PV decompositions. Perseverance has 12 systems, other dispositions 13."
+kb(tbl_skills_domains())
+```
+:::
+
+## Alternative exposures and sample checks
+
+::: {.landscape}
+```{r}
+#| label: tbl-exposures
+#| tbl-cap: "Reading estimates for rank, index-unit ESCS and deprivation: medians and IQRs across systems. Rank/index models cover 13 systems; deprivation covers 12, without Japan. Perseverance additionally excludes Indonesia. Deprivation controls ESCS, uses different item counts in Mongolia and the other systems, and includes unstable ratios, especially in Korea and B-S-J-Z (China). The displayed pathways permit the same cross-exposure comparison and are not necessarily the four largest."
+kb(tbl_exposures())
+```
+:::
+
+```{r}
+#| label: tbl-robust
+#| tbl-cap: "Robustness summary for reading and ESCS rank, school-adjusted specification. Medians and IQRs across 13 country-specific decompositions under each sample definition. Shares use ratios of PV-averaged point estimates, matching the original robustness script; this differs slightly from averaging within-PV ratios in the headline table."
+kb(tbl_robustness())
+```
+
+::: {.landscape}
+```{r}
+#| label: tbl-main-escs
+#| tbl-cap: "Reading mediation summaries with ESCS in index units. Country-specific models, two PVs/200 draws for individual pathways and ten PVs for joint rows. Decile contrast uses the difference in median ESCS between bottom and top deciles. R-squared threshold is a total-variance product. This metric check changes the functional form of the exposure; equivalence to rank is not imposed."
+kb(tbl_mediation(treat="escs"))
+```
+:::
+
+## Auxiliary variation in skill coefficients
+
+The auxiliary model allows reading coefficients on each disposition to vary across within-system ESCS deciles. It includes the ESCS index, all available dispositions and controls as fixed coefficients, a school intercept where identifiers exist, and uncorrelated skill slopes across deciles. Macao omits the school intercept. Student weights, rescaled to mean one, act as precision weights rather than a complete survey-design correction. Models are fitted separately by system using all ten reading plausible values.
+
+@tbl-random-slopes reports the mean estimated standard deviation of each random slope across plausible values. These are descriptive measures of the modelled variation, in reading points per scale SD (per binary change for growth mindset). Zero or small values can reflect shrinkage or boundary estimates; they do not prove that an interaction is absent. The accompanying files provide the fixed slopes, decile-specific predictions and their original uncertainty calculations. The likelihood-ratio diagnostics from the original script are preserved as diagnostics only: variance-component boundary conditions, precision weights and the different Macao baseline prevent interpreting the conventional p-values as definitive tests.
+
+::: {.landscape}
+```{r}
+#| label: tbl-random-slopes
+#| tbl-cap: "Auxiliary mixed model: estimated SD of skill coefficients across ESCS deciles, averaged over ten reading PVs. All skills and the ESCS index enter jointly; school intercepts vary where school IDs exist. Values describe random-slope dispersion, not sampling SEs. Indonesia lacks perseverance; Japan lacks repetition; Macao lacks the school intercept."
+kb(tbl_random_slopes())
+```
+:::
+
+## Replication record
+
+The replication archive contains the requested-system audit, modified copies of the original analysis scripts, all country results for every outcome/exposure/specification combination, the auxiliary random-slope outputs, deterministic seeds, execution logs, and computational validation results. Original Paper A and the earlier IJED draft are preserved separately. The new manuscript reads saved results; rendering it does not rerun estimation.
+
+The underlying substantive estimators match Paper A. Documented adaptations retain Japan without its unavailable repetition control, drop constant predictors in the response model, use the new sample for scale standardisation, and identify unavailable modules explicitly. An algebraic acceleration evaluates the same additive linear mediation draws and the same sensitivity normal equations. Validation against the installed mediation package on complete system samples confirms matching coefficient draws, random-number states and sensitivity results to numerical precision. Simulation settings and plausible-value selections are retained.
+
+Reporting corrections distinguish school adjustment from school fixed effects, retain negative allocations, distinguish total- from residual-variance sensitivity thresholds, remove the old figure cutoff that discarded small socioeconomic gradients, and pair joint estimates with their own uncertainty calculations. They also use the source-file label cognitive adaptability and distinguish a decile-median contrast from a P10-to-P90 contrast. All citations and the reference list are generated from the accompanying BibTeX file.

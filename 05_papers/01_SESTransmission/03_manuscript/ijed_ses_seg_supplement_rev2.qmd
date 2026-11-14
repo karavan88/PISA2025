@@ -1,0 +1,313 @@
+---
+title: "Do socio-emotional skills transmit socio-economic (dis)advantage?"
+author: Garen Avanesian
+subtitle: "Appendix: Supplementary Tables and Figures"
+lang: en-US
+bibliography: references_rev2.bib
+csl: elsevier-harvard.csl
+link-citations: true
+tbl-cap-location: top
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.5cm
+    mainfont: PT Serif
+    fontsize: 11pt
+    linestretch: 1.15
+    number-sections: false
+    toc: false
+    toc-depth: 1
+    keep-tex: true
+    colorlinks: true
+    linkcolor: blue
+    citecolor: blue
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox}
+        \newcommand{\tblsize}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
+        \renewcommand{\thetable}{A\arabic{table}}
+        \renewcommand{\thefigure}{A\arabic{figure}}
+        \floatplacement{figure}{H}
+        \setlength{\emergencystretch}{3em}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source('../01_code/reporting_rev2.R')
+source('../01_code/13_counterfactual_robustness_reporting.R')
+source('../01_code/25_within_between_reporting_rev2.R')
+```
+
+```{r}
+#| results: asis
+inference <- data.table(
+ Item=c('Sample and units','Intervals','Plausible-value pooling','Multiplicity','System means','Validation'),
+ Specification=c(
+ '67 SES systems; 62 deprivation systems; all 6 skills. SES: reading points per 10 national percentile-rank points. Deprivation: points per additional unaffordable item, controlling parental education and occupation at pupil and school levels.',
+ '499 whole-school bootstrap draws and 10 reading plausible values; individual 95 percent intervals. The cluster bootstrap approximates the survey design and does not implement the full stratified 2-stage BRR procedure.',
+ 'Pooled variance = mean within-plausible-value bootstrap variance + 1.1 times the variance of the 10 point estimates. Rank and skill standardization remain fixed at their prepared values.',
+ 'Benjamini-Hochberg false discovery rate target: 5 percent. Separate families by exposure: within/between skill gradients; individual skill contributions; joint pathway plus sorting increment; counterfactual gap reductions. Reading coefficients have no adjusted q-values.',
+ 'Equal-weight averages of country estimates. Mean variance is the sum of country variances divided by the squared number of systems, conditional on the retained system set.',
+ 'Custom R estimates checked against WeMix 4.0.3. Maximum fixed-coefficient discrepancy in 10 additional deprivation cases: 0.00000432. The matched-control comparison produced 499 valid paired draws per country; counterfactual prediction discrepancies were below 0.000001.'))
+tbl(inference,'Estimation and reporting conventions for the appendix. These conventions apply unless a caption specifies otherwise.',8,widths=c('3cm','12cm'))
+```
+
+\clearpage
+
+```{r}
+#| results: asis
+c <- merge(A[exposure=='SES' & status=='Eligible',.(CNT,economy,N,schools,skills,complete_share)],
+           A[exposure=='DEP',.(CNT,depN=ifelse(status=='Eligible',N,NA_integer_),items)],by='CNT',all.x=TRUE)
+c <- c[order(economy)]
+x <- c[,.(Code=CNT,System=economy,Skills=skills,`SES N`=num(N),Schools=num(schools),
+           `Complete %`=fmt(100*complete_share,1),`DEP N`=ifelse(is.na(depN),'—',num(depN)),Items=ifelse(is.na(depN),'—',items))]
+tbl(x,'Country coverage. Eligibility requires at least 100 complete pupils and 30 schools. All models within an exposure use identical pupils. Complete percent is the SES analytic share of the source pupil count; DEP N is its complete-deprivation subset. Schools refers to the SES sample.',7.2,widths=c(NA,'3.5cm',NA,NA,NA,NA,NA,NA))
+```
+
+```{r}
+#| results: asis
+x<-A[exposure=='DEP' & status=='Eligible',.(Systems=.N,`6-skill systems`=sum(skills==6)),by=.(Items=items)][order(Items)]
+tbl(x,'Deprivation coverage by number of retained items. Items count only when unavailable because the family cannot afford them. Items require valid responses from at least 90 percent of respondents answering any candidate; pupils must answer every retained item. Equal item counts may represent different sets. The supplementary deprivation sample has 13 distinct item sets.',9)
+```
+
+```{r}
+#| results: asis
+measures <- data.table(
+ Index=c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG'),
+ Content=c('Persistence through difficulty or boredom; task completion.','Interest in discovery and learning.','Enjoying challenging problems and sustained problem engagement.','Coping with unfamiliar situations, pressure, cultures, and interpersonal difficulty.','Planning study, checking understanding, and adapting strategy.','Seeking help from classmates or teachers, including after own effort.'),
+ Items=c('ST307: Q01, Q02, Q03, Q07, Q09, Q10 (JA); p. 74','ST301: Q01, Q04, Q06, Q08, Q10 (JA); p. 75','ST435: Q01, Q03, Q04, Q05 (DA); p. 76','ST216: Q01, Q03, Q04, Q05 (HA); p. 77','ST432: Q02, Q03, Q04, Q06 (DA); p. 78','ST434: Q01, Q02, Q04, Q06 (DA); p. 79'),
+ Responses=c('5 agreement categories; Q07 and Q10 worded negatively.','5 agreement categories; Q08 worded negatively.','4 agreement categories.','5 self-description categories, from very much to not at all like me.','4 frequency categories, from never/almost never to very often.','4 agreement categories, listed from strongly agree to strongly disagree.'))
+tbl(measures,'Scale content, questionnaire identifiers, and response formats. Source: OECD PISA 2025 student questionnaire, pp. 74-79, and student codebook. Released weighted-likelihood scores are standardized within the SES sample and retained on that scale for deprivation; missing indices are not imputed. Codes in parentheses complete each item identifier; for example ST307Q01JA.',7.5,widths=c('1.5cm','4.5cm','4.7cm','4.5cm'))
+```
+
+```{r}
+#| results: asis
+cv<-fread(file.path(OUT,'tables/coverage_stages.csv'))
+tbl(cv[,.(System=economy,Stage=gsub('All six','All 6',gsub('Ten reading','10 reading',step,fixed=TRUE),fixed=TRUE),Remaining=num(remaining),`Excluded at stage`=num(excluded_at_step))],
+    'Sequential sample construction in the 2 lowest-coverage systems. All stages use the saved source preparation; no regression is estimated.',8,widths=c('2.2cm','7.3cm','2.5cm','3cm'))
+```
+
+```{r}
+#| results: asis
+cvd<-fread(file.path(OUT,'tables/coverage_comparison.csv'))
+tbl(cvd[,.(System=economy,Group=group,Measure=variable,`Observed N`=num(N_available),`Weighted mean`=fmt(weighted_mean,2))],
+    'Retained and excluded pupils where the comparison variable is observed. Reading averages the 10 plausible values. Means use final student weights; no missing outcomes or SES values are imputed.',8)
+```
+
+```{r}
+#| results: asis
+ids<-A[exposure=='SES' & status=='Eligible'][order(economy),CNT]
+xx<-rbindlist(lapply(ids,function(cc) {
+ f<-function(v,ex='SES') {z<-DS[CNT==cc & variable==v & exposure==ex];if(nrow(z)) paste0(fmt(z$mean,2),' (',fmt(z$SD,2),')') else '—'}
+ data.table(Code=cc,System=G[CNT==cc,economy],Reading=f('Reading'),Rank=f('SES_rank'),ESCS=f('ESCS'),Deprivation=f('DEP','DEP'))
+}))
+tbl(xx,'Country means (standard deviations), weighted by final student weights. Deprivation uses its own analytic sample.',7.5,widths=c(NA,'3.5cm',NA,NA,NA,NA))
+```
+
+```{r}
+#| results: asis
+x<-rbindlist(lapply(A[exposure=='DEP'][order(economy),CNT],function(cc){
+ f<-function(v){z<-DS[CNT==cc&exposure=='DEP'&variable==v];paste0(fmt(z$mean,2),' (',fmt(z$SD,2),')')}
+ data.table(System=G[CNT==cc,economy],Reading=f('Reading'),PAREDINT=f('PAREDINT'),HISEI=f('HISEI'),ESCS=f('ESCS'))
+}))
+tbl(x,'Matched deprivation sample: weighted means (SD). PAREDINT is parental education in years; HISEI is occupational status. ESCS is used only in the robustness specification.',8,widths=c('3.5cm','3cm','3cm','3cm','2.5cm'))
+```
+
+```{r}
+#| results: asis
+xx<-rbindlist(lapply(c('DNK','KOR','MYS'),function(cc) {
+ rbindlist(lapply(c('aW_CURIO','aB_CURIO','bW_CURIO','bB_CURIO','indS_CURIO'),function(tt)
+ data.table(System=G[CNT==cc,economy],Quantity=c(aW_CURIO='$a_{W,k}$',aB_CURIO='$a_{B,k}$',bW_CURIO='$b_{W,k}$',bB_CURIO='$b_{B,k}$',indS_CURIO='$I_{S,k}$')[[tt]],`Estimate [95% CI]`=ci(cc,tt,digits=3))))
+}))
+tbl(xx,'Curiosity: linking M1, M2, and the sorting profile. M1 supplies the a coefficients; M2 supplies the b coefficients with all 6 skills included. SES exposure; 3 illustrative systems with all 6 skills.',9,escape=FALSE)
+```
+
+```{r}
+#| results: asis
+index<-data.table(Prefix=c('aW_','aB_','bW_','bB_'),Symbol=c('$a_{W,k}$','$a_{B,k}$','$b_{W,k}$','$b_{B,k}$'),
+ Meaning=c('Exposure-to-skill gradient among classmates','Exposure-to-skill gradient between school means','Skill-to-reading coefficient among classmates, all skills included','Skill-to-reading coefficient between school means, all skills included'))
+# Raw prefixes are explicitly code-dictionary entries; the model notation is typeset separately.
+index[,Prefix:=gsub('_','\\_',Prefix,fixed=TRUE)]
+tbl(index,'Country coefficient index. M1 estimates exposure-to-skill gradients; M2 includes all 6 skills jointly in reading. No adjusted q-values are supplied for reading coefficients. Skill suffixes are PERSEV, CURIO, ENPROBS, COGABIL, GOALSET, and SELFREG.',8,widths=c('2cm','2cm','11cm'),escape=FALSE)
+```
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) data.table(Code=cc,System=G[CNT==cc,economy],
+   K=A[CNT==cc & exposure==ex,skills],IW=ci(cc,'skills_same_school',ex),
+   IS=ci(cc,'skills_sorting',ex),Addition=ci(cc,'sorting_increment',ex))))
+ setnames(xx,c('IW','IS','Addition'),c('$I_W$','$I_S$','$\\Delta_S$'))
+ print(tbl(xx,paste0(if(ex=='SES')'Socio-economic rank' else 'Material deprivation',': joint skills pathways in every estimable system. The within-school pathway holds school setting fixed; the sorting-inclusive pathway incorporates observed composition; the increment is their difference. All entries are reading points with 95 percent intervals. K = 6 in every reported system.'),7.2,
+   widths=c(NA,'3.0cm',NA,'3.0cm','3.0cm','3.0cm'),escape=FALSE))
+}
+```
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) data.table(Code=cc,System=G[CNT==cc,economy],
+    Total=ci(cc,'total',ex),Remaining=ci(cc,'remaining',ex),
+    `Skills share %`=if(share_displayable(cc,ex))ci(cc,'share',ex,1) else 'Withheld')))
+ print(tbl(xx,paste0(ex,': model-implied total, remaining component, and admissible skills share.'),7.4,
+    widths=c(NA,'3.4cm','3.4cm','3.4cm','3.4cm')))
+}
+```
+
+```{r}
+#| results: asis
+ids_wb<-A[exposure=='SES'][order(economy),CNT]
+xx<-rbindlist(lapply(ids_wb,function(cc) data.table(System=G[CNT==cc,economy],
+ Total=wbci(cc,'total_gradient'),Within=wbci(cc,'total_within'),Between=wbci(cc,'total_between'))))
+tbl(xx,'SES gradient allocation: total, within-school, and between-school contributions. Reading points per 10 national SES rank points; estimates [95 percent CI].',8,
+ widths=c('3.4cm','3.6cm','3.6cm','3.6cm'))
+```
+
+```{r}
+#| results: asis
+xx<-rbindlist(lapply(ids_wb,function(cc) data.table(System=G[CNT==cc,economy],
+ `Skills: within`=wbci(cc,'skills_within'),`Skills: between`=wbci(cc,'skills_between'),
+ `Remaining: within`=wbci(cc,'remaining_within'),`Remaining: between`=wbci(cc,'remaining_between'))))
+tbl(xx,'Skills-mediated and remaining contributions at each school level. Reading points per 10 national SES rank points; estimates [95 percent CI]. Negative components are retained.',7.2,
+ widths=c('2.8cm','3.0cm','3.0cm','3.0cm','3.0cm'))
+```
+
+```{r}
+#| results: asis
+xx<-rbindlist(lapply(ids_wb,function(cc) data.table(System=G[CNT==cc,economy],
+ `Total: B minus W`=wbci(cc,'total_between_minus_within'),
+ `Total q`=fmt(WB[CNT==cc&term=='total_between_minus_within',q_contrast],3),
+ `Skills: B minus W`=wbci(cc,'skills_between_minus_within'),
+ `Skills q`=fmt(WB[CNT==cc&term=='skills_between_minus_within',q_contrast],3))))
+tbl(xx,'Direct tests of between-minus-within allocated contributions. Estimates [95 percent CI]; q-values adjust jointly across the 134 new tests. A positive difference means a larger between-school contribution.',7.6,
+ widths=c('3.2cm','3.6cm','1.1cm','3.6cm','1.1cm'))
+```
+
+```{r}
+#| results: asis
+xx<-rbindlist(lapply(ids_wb,function(cc) data.table(System=G[CNT==cc,economy],
+ `Between share: total (%)`=wbshare(cc,'between_share_total'),
+ `Between share: skills (%)`=wbshare(cc,'between_share_skills'))))
+tbl(xx,'Between-school shares of the total gradient and skills pathway. Percentages [95 percent CI]; unstable or non-compositional ratios are withheld.',8,
+ widths=c('4.0cm','4.5cm','4.5cm'))
+```
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) {
+   z<-data.table(System=G[CNT==cc,economy])
+   for(k in names(sklab)) z[,(k):=if(nrow(E[CNT==cc & exposure==ex & term==paste0('indS_',k)]))ci(cc,paste0('indS_',k),ex,1) else '—']
+   z
+ }))
+ setnames(xx,names(sklab),c('Perseverance','Curiosity','Problem solving','Adaptability','Goal setting','Help seeking'))
+ print(tbl(xx,paste0(ex,': individual skill contributions, including observed school composition. Headings repeat on continuation pages; all entries are reading points with 95 percent intervals.'),6.8,
+      widths=c('3cm',rep('2cm',6))))
+}
+```
+
+![Between-school skill gradients and reading relationships in all 67 6-skill systems. Dashed curves mark products of 1, 3, and 5 reading points, from lower to higher curves. Equal products can arise from different combinations of the 2 links. Black diamonds show equal-weight means of the 2 links. Their product is not the mean pathway. These are point estimates, not tests of cross-country differences.](../04_output/rev2/figures/ses_gap_link_b.pdf){width=100% fig-pos='H'}
+
+```{r}
+#| results: asis
+s <- rbind(cbind(Exposure='SES',summary_h()),cbind(Exposure='Deprivation',summary_h('DEP')))
+s<-rbind(s,CE[term=='gap_reduction',.(Quantity='Equalization: gap reduction',Supports=sum(lower>0),Opposite=sum(upper<0),Uncertain=sum(lower<=0 & upper>=0),`BH support`=sum(lower>0&q_gap<.05),Systems=.N),by=.(Exposure=ifelse(exposure=='SES','SES','Deprivation'))],use.names=TRUE)
+tbl(s,'Directional country evidence. Support denotes a positive rank pathway, negative deprivation pathway, or positive equalization gap reduction. BH adjustments use the retained country sample and the specified test families.',size=7.2,widths=c('1.6cm','4.5cm',NA,NA,NA,NA,NA))
+```
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ z<-H[scope=='Six-skill systems only' & exposure==ex & grepl('^a[WB]_',term)]
+ zz<-z[,.(Support=sum(classification=='Supports'),Opposite=sum(classification=='Opposite'),
+       Uncertain=sum(classification=='Inconclusive'),`BH support`=sum(adjusted_support)),by=term]
+ zz[,Level:=ifelse(grepl('^aW_',term),'Within','Between')]
+ zz[,Skill:=unname(sklab[sub('^a[WB]_','',term)])]
+ print(tbl(zz[order(Skill,Level),.(Skill,Level,Support,Opposite,Uncertain,`BH support`)],
+     paste0(ex,': evidence for the social gradient in each skill.'),8))
+}
+```
+
+```{r}
+#| results: asis
+x<-CE[term=='gap_reduction',.(Systems=.N,`Positive CI`=sum(lower>0),`Negative CI`=sum(upper<0),
+ `Uncertain`=sum(lower<=0 & upper>=0),`BH positive`=sum(lower>0&q_gap<.05)),by=exposure]
+tbl(x,'Directional evidence for the new gap-reduction contrast. These are separate estimands and testing families from the original mediation pathway.',8)
+```
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-CE[exposure==ex & term=='gap_reduction'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc)data.table(System=G[CNT==cc,economy],
+  `Observed gap`=fmt(cfest(cc,'baseline_gap',ex)),
+  `Recipient change`=fmt(cfest(cc,'recipient_change',ex)),
+  `Reference change`=fmt(cfest(cc,'reference_change',ex)),
+  `Gap reduction [95% CI]`=cfci(cc,'gap_reduction',ex))))
+ print(tbl(xx,paste0(ex,if(ex=='SES') ': bottom-quartile recipients receive the skill distribution of top-quartile donors. ' else ': deprived recipients receive the skill distribution of non-deprived donors. ', 'School membership, exposure, and controls remain fixed; school skill means update. Joint-profile replacement in reading points. Gap reduction is recipient change minus reference change. The projected gap equals the observed gap minus the reduction. Full intervals for each quantity are in the downloadable equalization table.'),7.5,widths=c('3.1cm','2.2cm','2.3cm','2.3cm','4.8cm')))
+ yy<-rbindlist(lapply(ids,function(cc)data.table(System=G[CNT==cc,economy],
+  `Within component`=fmt(cfest(cc,'within_component',ex)),
+  `Between component`=fmt(cfest(cc,'between_component',ex)),
+  `Gap reduction percent [95% CI]`=cfshare(cc,ex))))
+ print(tbl(yy,paste0(ex,': components of the gap reduction and its share of the observed group gap. Components use the same recipient assignment; they are not separate interventions. Percentages with an unstable denominator or very broad interval are withheld.'),7.5,widths=c('3.1cm','2.5cm','2.5cm','6.6cm')))
+}
+```
+
+![Deprivation-group gap reduction after replacing recipients' skill profiles with the joint empirical distribution among non-deprived pupils. All 62 full-6-skill systems are shown. Parental education and occupation remain fixed at both levels; the donor distribution is not matched on these controls.](../04_output/rev2/figures/dep_equalization.pdf){width=100% fig-pos='H'}
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ xx<-merge(CD[exposure==ex],G[,.(CNT,economy)],by='CNT')[order(economy)]
+ print(tbl(xx[,.(System=economy,`Recipients N`=num(recipient_N),`Reference N`=num(reference_N),
+  `Recipient weight %`=fmt(100*recipient_weight_share,1),
+  `Reference weight %`=fmt(100*reference_weight_share,1),
+  `Recipients sharing school %`=fmt(100*recipient_share_in_school_with_reference,1))],
+  paste0(ex,': target groups and school coverage. Sharing-school percent is the weighted share of recipients with at least one reference pupil in their analytic school sample. It does not establish conditional support.'),7.2,
+  widths=c('3.1cm','2cm','2cm','2.3cm','2.3cm','3cm')))
+}
+```
+
+![Country-specific joint deprivation pathways in the 62 full-6-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. Mean rows use equal country weights. Bars are individual 95% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
+
+![Skill-specific contributions to the deprivation pathway. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level.](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
+
+```{r}
+#| results: asis
+x<-PCOV[order(economy),.(System=economy,`Earlier DEP N`=num(original_N),`Matched N`=num(matched_N),`Retained %`=fmt(100*retained_share,1),Schools=num(schools))]
+tbl(x,'Country sample change for the parental-controls comparison. Preferred controls are PAREDINT and HISEI at pupil and school levels; the comparator uses ESCS at both levels. Matched pupils are used in both the preferred parental model and the ESCS robustness model.',8,widths=c('4cm','2.5cm','2.5cm','2.5cm','2cm'))
+```
+
+![Matched-pupil comparison of deprivation models. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
+
+```{r}
+#| results: asis
+for(tt in c('skills_sorting','gap_reduction')) {
+ x<-PCOMP[term==tt][order(economy)]
+ bound<-function(v)ifelse(abs(v)>0&abs(v)<.005,fmt(v,4),fmt(v))
+ f<-function(a,l,u)paste0(fmt(a),' [',bound(l),', ',bound(u),']')
+ y<-x[,.(System=economy,`ESCS: same pupils`=f(escs,escs_lower,escs_upper),`Parental: preferred`=f(parental,parental_lower,parental_upper),`Paired change`=f(change,change_lower,change_upper),`Change q`=fmt(change_q,4))]
+ print(tbl(y,paste0(if(tt=='skills_sorting')'Joint deprivation mediation' else 'Deprivation gap reduction',': reading points with 95 percent intervals. Change = parental minus ESCS on identical pupils; q uses the paired-change test family.'),7.3,widths=c('3cm','3.4cm','3.4cm','3.4cm','1.2cm')))
+}
+```
+
+![Socio-economic-rank counterfactual under 3 alternative specifications. Each point is a system. Colors compare individual interval status; they are not tests of differences between specifications.](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
+
+```{r}
+#| results: asis
+for(v in c('unscaled_weights','minimum_10','lmer_unweighted')) {
+ z<-CR[exposure=='SES'&variant==v&term=='gap_reduction'][order(economy)]
+ y<-z[,.(System=economy,`Main [95% CI]`=vapply(CNT,function(cc)cfci(cc,'gap_reduction'),character(1)),`Alternative [95% CI]`=paste0(fmt(estimate),' [',fmt(lower),', ',fmt(upper),']'))]
+ print(tbl(y,paste0('Socio-economic rank: ',cf_variant_names[v],'. Gap reduction in reading points.'),7.8,widths=c('4cm','5cm','5cm')))
+}
+```

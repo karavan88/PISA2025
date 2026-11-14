@@ -1,0 +1,366 @@
+{
+  "created": "2026-11-14",
+  "origin": "Imported saved aggregate results; migration did not re-estimate models.",
+  "files": [
+    {
+      "path": "input/audit.csv",
+      "sha256": "4354b91f46ef82fbcd0fa27c412fa0fda19e0e69a15d2c43cd9a37e8a5687af4",
+      "bytes": 22687
+    },
+    {
+      "path": "input/bootstrap_checks.csv",
+      "sha256": "2abfeb124da3f85e145490e32fc25ed2e245dec12e7177c5e392edaf103ab278",
+      "bytes": 9836
+    },
+    {
+      "path": "input/country_groups.csv",
+      "sha256": "cd6e0927aaea5ac0f2af435b09af2029bd246d0ecf6a235ccc92287e109ef9e7",
+      "bytes": 7023
+    },
+    {
+      "path": "input/deprivation_availability.csv",
+      "sha256": "88131af5879b1e244bba225684de22ca3454761dd883997a26d4dfe7d934a4ed",
+      "bytes": 8035
+    },
+    {
+      "path": "input/deprivation_item_audit.csv",
+      "sha256": "cb44b550648a3602e9de793c6c69236979419c79f2ec6d89b1f8ba5be93d50d3",
+      "bytes": 31472
+    },
+    {
+      "path": "input/deprivation_item_dictionary.csv",
+      "sha256": "ab59bddb7c4fd1d0bedacfaf98325da61dd6b53a64d2e23eeca3661a0483aadc",
+      "bytes": 1140
+    },
+    {
+      "path": "input/deprivation_item_sets.csv",
+      "sha256": "822885a7841e1b52139624a44b7820677cb6329a86abf0cd073a71684e25304e",
+      "bytes": 1014
+    },
+    {
+      "path": "input/eligibility.csv",
+      "sha256": "78382d39f067c92ced5a1d22a8f3849529519fa6775e7afa6e8cb59c00b277d9",
+      "bytes": 29253
+    },
+    {
+      "path": "input/estimates.csv",
+      "sha256": "486d2981a8e7491c6d323f7c81e4f0b0f4bd18e4569b955b28e060e87ff7a54c",
+      "bytes": 1690663
+    },
+    {
+      "path": "input/exposure_descriptives.csv",
+      "sha256": "0b94f430454b133923924106415bca0075c79e21cc045ced7ab545c42e6a5586",
+      "bytes": 11242
+    },
+    {
+      "path": "input/fresh_input_validation.csv",
+      "sha256": "7605736e819bf238ec3381264e631240a0163348c1b1fc7acd5d2accb615d759",
+      "bytes": 4802
+    },
+    {
+      "path": "input/fresh_sample_validation.csv",
+      "sha256": "1b8bb183ec15cf708c98a58c7ea144b3bdd571ed8d6e639f94a88404fa7e6831",
+      "bytes": 2344
+    },
+    {
+      "path": "input/hypothesis_country_classification.csv",
+      "sha256": "c766ae3da3d8a7c2772fd2d7c5c81ad700dc6cf970eee6cee81b05e0ab37fe2e",
+      "bytes": 1613764
+    },
+    {
+      "path": "input/hypothesis_summary.csv",
+      "sha256": "89e54cf7050d9e75e25915f104f1ae7053a4b3abc4d545c5010e69154199da95",
+      "bytes": 15464
+    },
+    {
+      "path": "input/lmer.csv",
+      "sha256": "b879477621b69aa29cf3eb1d8738308c79d7c379c36ce1573ea6c30aff485298",
+      "bytes": 44412
+    },
+    {
+      "path": "input/original_eligibility.csv",
+      "sha256": "8588354dfe48f3d0ac008da2d1e76a84df892aefac31c445231f6938527ec47c",
+      "bytes": 11185
+    },
+    {
+      "path": "input/package_versions.csv",
+      "sha256": "808e0bc511976d76a5acd9ca5cb7a0b878438b79e4a706a8e7e13240adb8faa5",
+      "bytes": 156
+    },
+    {
+      "path": "input/pilot_replication.csv",
+      "sha256": "1a564f1d48963df9b2b3cdac1c013b1514df54c3c4b54da16bb680226c051b28",
+      "bytes": 57
+    },
+    {
+      "path": "input/preflight_checks.csv",
+      "sha256": "c4638f09b30007bcad595231d480345d73f20afb124cd2b0f160a15d5890930d",
+      "bytes": 9311
+    },
+    {
+      "path": "input/ratio_audit.csv",
+      "sha256": "a1d8fb529ec9dccc68851f397f47141176904a153b9ee963ab06df2bfe7fbc02",
+      "bytes": 13504
+    },
+    {
+      "path": "input/sensitivity.csv",
+      "sha256": "960ae6ceb8d01c5115430a5000d0db537f08294659aa93cca7780be86e209c54",
+      "bytes": 227127
+    },
+    {
+      "path": "input/sensitivity_curves.csv",
+      "sha256": "540551719ae8984779e7e29abd9298811fe0bf37aaec04343c64d13f611f1254",
+      "bytes": 2191205
+    },
+    {
+      "path": "input/sensitivity_thresholds.csv",
+      "sha256": "deb0900158aad575e040af83b8a68c436ad26954e3f9e1c2000b3c568edc0b09",
+      "bytes": 16147
+    },
+    {
+      "path": "input/validation.csv",
+      "sha256": "483839894b3348c45d67c6ce2a6bca093b058bd0f223ba96af6256f67cbd610f",
+      "bytes": 780
+    },
+    {
+      "path": "rev2/tables/analysis_sample.csv",
+      "sha256": "1b26286846584d49ebd1e81e5fbca134c26365507ac0f8e1e671255561271135",
+      "bytes": 21589
+    },
+    {
+      "path": "rev2/tables/country_link_coefficients.csv",
+      "sha256": "7f8286c77c1ebbb5050d718d425e5efb7f4f0d51d011c6945f46f844b35fb3f1",
+      "bytes": 660240
+    },
+    {
+      "path": "rev2/tables/country_skill_gradients_main.csv",
+      "sha256": "f0d865f59cd592b91812db03930eecf1284a3571ab9d88a39961f6e0cee9a71b",
+      "bytes": 131454
+    },
+    {
+      "path": "rev2/tables/coverage_comparison.csv",
+      "sha256": "17b5fb0bc81a156d4d61690315ab6ae3e13c6594245e1903bc7bbe07a95af903",
+      "bytes": 646
+    },
+    {
+      "path": "rev2/tables/coverage_stages.csv",
+      "sha256": "9deb0c3457c08cb33bf9aa4ae2b3f6488b5a1258d39e0b7983d92ea985c43e8e",
+      "bytes": 603
+    },
+    {
+      "path": "rev2/tables/dep_robustness_data.csv",
+      "sha256": "572fe870e9caca8b83add490c29e5a25115d013b1a117434c9b58a4aff03b713",
+      "bytes": 21524
+    },
+    {
+      "path": "rev2/tables/descriptives.csv",
+      "sha256": "5c28d4c4933ae93c355ba89b1035a15770316169a85c1156d75ba099ebe20bdf",
+      "bytes": 147982
+    },
+    {
+      "path": "rev2/tables/equal_weight_system_means.csv",
+      "sha256": "573232bdb9d98ec0a41cf1e5a2623e7cae3b8bde3ce163dec733841e8489126c",
+      "bytes": 13746
+    },
+    {
+      "path": "rev2/tables/equalization_diagnostics.csv",
+      "sha256": "a7da350fddf1363316f399fc3d7f514b96726824f06c2862809fea68350e1629",
+      "bytes": 15498
+    },
+    {
+      "path": "rev2/tables/equalization_estimates.csv",
+      "sha256": "a72f0205c190d02493c384eca0e2d6febc574f3c54c19faf9f291396289b6441",
+      "bytes": 308976
+    },
+    {
+      "path": "rev2/tables/equalization_figure_data.csv",
+      "sha256": "ba8f1c09833e0a69a86f9dfe301c66cfc2f2ca643c2ac3eeccd8921c3907bccc",
+      "bytes": 301342
+    },
+    {
+      "path": "rev2/tables/equalization_robustness_comparison.csv",
+      "sha256": "2d8631364683b7159d571b18d8b06bee007f34649ac45a55307e138e02fde541",
+      "bytes": 209386
+    },
+    {
+      "path": "rev2/tables/equalization_robustness_estimates.csv",
+      "sha256": "ca234918c7487260996a250bce597150e29ef289628b539a34a97861d17668f8",
+      "bytes": 1893478
+    },
+    {
+      "path": "rev2/tables/equalization_robustness_summary.csv",
+      "sha256": "c24f97fef772501e0013e960216676a4ba3e3b0c45b6d8bdfb1fa4ecfa9279f4",
+      "bytes": 914
+    },
+    {
+      "path": "rev2/tables/equalization_skill_means.csv",
+      "sha256": "63de0d3fcd50dc8a24579a42aba44676699509ce6a42d310a92afee22ae814f2",
+      "bytes": 42279
+    },
+    {
+      "path": "rev2/tables/figure_data.csv",
+      "sha256": "070bc4ae63ebcce65b77e73aebb34bdde92d68e1b7141b38cc4215797fe41699",
+      "bytes": 197616
+    },
+    {
+      "path": "rev2/tables/hypothesis_counts_six_skills.csv",
+      "sha256": "33766d721f2c3aaa3b1ee6b1e17ddf2b82d12a01bf64a45165a381ddfc0f5908",
+      "bytes": 638
+    },
+    {
+      "path": "rev2/tables/manuscript_descriptives.csv",
+      "sha256": "9e5ecd09026f4710102cb9047a577ed4c7154eeaeb31dd8ee887e033ce4dc67f",
+      "bytes": 133177
+    },
+    {
+      "path": "rev2/tables/manuscript_equalization_estimates.csv",
+      "sha256": "ba8f1c09833e0a69a86f9dfe301c66cfc2f2ca643c2ac3eeccd8921c3907bccc",
+      "bytes": 301342
+    },
+    {
+      "path": "rev2/tables/manuscript_equalization_robustness_estimates.csv",
+      "sha256": "57bc186c13f7b2db07aa56295e9c49566dacfad2e6b6d2b8f81ca33ae19c3020",
+      "bytes": 1852285
+    },
+    {
+      "path": "rev2/tables/manuscript_estimates.csv",
+      "sha256": "e983c5c831635ea9d044a03a16e496df33f5cb073b5e0c30b856785a41808dc3",
+      "bytes": 1426525
+    },
+    {
+      "path": "rev2/tables/manuscript_hypothesis_classification.csv",
+      "sha256": "67b01c4ae992b0e6938ca34c31743290c5b74315363a209f5ae11f5e0f5e6801",
+      "bytes": 797423
+    },
+    {
+      "path": "rev2/tables/manuscript_share_display_audit.csv",
+      "sha256": "2d6ae671eda6447f7d33b341d3ff313dae63c92db6abf4ae516dc37062e78bdb",
+      "bytes": 11227
+    },
+    {
+      "path": "rev2/tables/manuscript_sorting_calibration.csv",
+      "sha256": "3524ede248c52890d0d55331a47bf1f079451180e7acdcd8d93dc6171a1b7075",
+      "bytes": 4876
+    },
+    {
+      "path": "rev2/tables/parental_cfok.csv",
+      "sha256": "208400fce3e1a22bf72bafde633e325757801272d3dac3ff9eb585cf606f0e0d",
+      "bytes": 587
+    },
+    {
+      "path": "rev2/tables/parental_descriptives.csv",
+      "sha256": "4729ab4dedf427d61eeadd6fcb6d0ea1a504fabae1db5ef7c7e01f77ed875aa4",
+      "bytes": 69999
+    },
+    {
+      "path": "rev2/tables/parental_diagnostics.csv",
+      "sha256": "2b5d04c24ac33d22a8e82646ee64b900c9d078b907e0dd7cf085d0a0e1e0c5fa",
+      "bytes": 4454
+    },
+    {
+      "path": "rev2/tables/parental_main_results.csv",
+      "sha256": "93477788c1ea09ce1f1a983a425bb5ff5949228b043beec5dd7835c059e8c525",
+      "bytes": 986919
+    },
+    {
+      "path": "rev2/tables/parental_ratio.csv",
+      "sha256": "47b317e0b65213c65f03f52b3bec4b5f5f4efc752107362c72f8f4a6aa64e803",
+      "bytes": 5831
+    },
+    {
+      "path": "rev2/tables/ses_gap_link_b_data.csv",
+      "sha256": "08dd5cc2abaaf5d78580d95727d6c10ce02049aff359ffca8ac6bced6a8e66cf",
+      "bytes": 36498
+    },
+    {
+      "path": "rev2/tables/ses_gap_link_w_data.csv",
+      "sha256": "dd51b664382e5926d509af5024122229d797cd36acaef87ab0bcceb3770daf53",
+      "bytes": 36520
+    },
+    {
+      "path": "rev2/tables/ses_recipient_gap_korea.csv",
+      "sha256": "9ce2519e30101062f2450171147db1e1e63ad276ae7be3abda2827be1498fac2",
+      "bytes": 1287
+    },
+    {
+      "path": "rev2/tables/ses_robustness_data.csv",
+      "sha256": "00f2488c3a1a9b2b25d8ad2e13d589adcf6561a14e6661c45b23c4eebe2f7e39",
+      "bytes": 16920
+    },
+    {
+      "path": "rev2/tables/ses_sorting_increment_figure_data.csv",
+      "sha256": "4cc0761395d3fb81863ad6b8c38bc88bb1a018abc89986f2c7f0b47497ccf561",
+      "bytes": 15568
+    },
+    {
+      "path": "rev2/tables/share_display_audit.csv",
+      "sha256": "41c124476095f842535d5dc0d00d03135e4792219e4dd6b5f890776b98295156",
+      "bytes": 11460
+    },
+    {
+      "path": "rev2/tables/skill_availability_low_coverage.csv",
+      "sha256": "305c5e327681b1104410219c955abc41051dcabdeca6cb6ba5d29bb8c08e7558",
+      "bytes": 289
+    },
+    {
+      "path": "rev2/tables/sorting_calibration.csv",
+      "sha256": "3fae12bafb4ff1becc610be0341eb24e43cb3ec83f5c65543aa162afb2beb9ba",
+      "bytes": 11570
+    },
+    {
+      "path": "rev2/tables/within_between_decomposition.csv",
+      "sha256": "17fad6aef9fc1a8531aff44ae3ccb12817d1f73875aa4f0953a3f2ea0644689c",
+      "bytes": 105535
+    },
+    {
+      "path": "rev2/tables/within_between_figure_segments.csv",
+      "sha256": "c3c6bd1f748177a0c5c959aaf8099a1f7d1ddbf7dea08f1ae9b14bc9a778e107",
+      "bytes": 57520
+    },
+    {
+      "path": "parental_controls_comparison/tables/change_summary.csv",
+      "sha256": "4271efd453ddece963d53dd7a53a592f5ab615732e4186568c2ce7a3338df849",
+      "bytes": 356
+    },
+    {
+      "path": "parental_controls_comparison/tables/coverage.csv",
+      "sha256": "d1e1f14507eb2ff65bd59fa664da902fb7ab45a43524339772d224229bea032d",
+      "bytes": 3486
+    },
+    {
+      "path": "parental_controls_comparison/tables/differences.csv",
+      "sha256": "5996691612b245eb8a86cf96150456f394cbded4e893b926116804d3673e246d",
+      "bytes": 842101
+    },
+    {
+      "path": "parental_controls_comparison/tables/estimates.csv",
+      "sha256": "39c99f55f327760c3b12ba3783f418366f80a83be1f1ff126ca173176e68f2f3",
+      "bytes": 1837252
+    },
+    {
+      "path": "parental_controls_comparison/tables/estimates_adjusted.csv",
+      "sha256": "860416627dda2ccc6d9a3eee87f39a122bc751e86ba36501cdff6fda7a201e6a",
+      "bytes": 1945228
+    },
+    {
+      "path": "parental_controls_comparison/tables/headline_comparison.csv",
+      "sha256": "f84d49066db810257f301a53db89ff3454bd729cb9a0b570be0c6fa280ab9fe0",
+      "bytes": 44092
+    },
+    {
+      "path": "parental_controls_comparison/tables/paired_differences_adjusted.csv",
+      "sha256": "a79b9fc31bd1a45ed22aa24dd6d7b5990de5e7a222949e35d11d63348f4c9405",
+      "bytes": 896319
+    },
+    {
+      "path": "parental_controls_comparison/tables/support_summary.csv",
+      "sha256": "d317e5ae0b615c3685543e64435f9dd3527282b3cf141b0a8475b88030d8f7ae",
+      "bytes": 243
+    },
+    {
+      "path": "parental_controls_comparison/tables/validation.csv",
+      "sha256": "20927da4c3b29708f70bd19188afb76f9660381e5a103a6126e5c52f6c197f69",
+      "bytes": 8031
+    }
+  ]
+}

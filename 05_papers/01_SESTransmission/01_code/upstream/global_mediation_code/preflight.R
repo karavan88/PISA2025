@@ -1,0 +1,31 @@
+source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/engine.R');source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/functions.R')
+WORK<-Sys.getenv('GM_WORK','05_papers/01_SESTransmission/04_output/upstream');OUT<-'05_papers/01_SESTransmission/04_output/input'
+dir.create(file.path(WORK,'compressed'),showWarnings=FALSE)
+jobs<-fread(file.path(OUT,'jobs.csv'));ref<-fread(file.path(OUT,'global_reference_estimates.csv'))
+checks<-list();errors<-list()
+for(j in seq_len(nrow(jobs))) {
+  job<-jobs[j];id<-job$job_id;z<-readRDS(file.path('03_outputs/01_harmonized/input',paste0(id,'.rds')))
+  tryCatch({
+    s<-prepare_model(z);p<-evaluate_model(s)
+    core<-setdiff(rownames(p),c('share','bias_scale_W','bias_scale_B'))
+    stopifnot(all(is.finite(p[core,])))
+    pred<-prediction_check(s,p['delta',1])
+    err<-max(abs(pred['indirect',]-p['skills_sorting',]))
+    olderr<-NA_real_
+    if(job$exposure=='SES') {
+      r<-ref[CNT==job$CNT&term%in%rownames(p)]
+      olderr<-max(abs(rowMeans(p)[r$term]-r$estimate))
+      stopifnot(olderr<1e-5)
+    }
+    stopifnot(err<1e-8,p['delta',1]>=-1e-8,p['delta',1]<=1+1e-8)
+    saveRDS(list(s=s,point=p),file.path(WORK,'compressed',paste0(id,'.rds')))
+    checks[[id]]<-data.table(job_id=id,CNT=job$CNT,exposure=job$exposure,
+      prediction_error=err,previous_point_error=olderr,
+      within_rank=qr(matrix(colSums(s$full$xx*s$full$w2),s$full$p))$rank,
+      within_columns=s$full$p,between_rank=qr(s$full$B)$rank,between_columns=ncol(s$full$B))
+    cat(id,'validated\n')
+  },error=function(e){errors[[id]]<<-data.table(job_id=id,CNT=job$CNT,exposure=job$exposure,error=conditionMessage(e));cat(id,'ERROR',conditionMessage(e),'\n')})
+}
+fwrite(rbindlist(checks),file.path(OUT,'preflight_checks.csv'))
+if(length(errors))fwrite(rbindlist(errors),file.path(OUT,'preflight_errors.csv'))
+stopifnot(length(errors)==0)

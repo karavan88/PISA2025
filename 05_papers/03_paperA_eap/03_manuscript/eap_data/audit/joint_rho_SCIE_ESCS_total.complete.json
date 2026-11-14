@@ -1,0 +1,16 @@
+{
+  "id": "joint_rho_SCIE_ESCS_total",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/09b_joint_rho.R",
+    "--total"
+  ],
+  "domain": "SCIE",
+  "exposure": "ESCS",
+  "specification": "student-adjusted",
+  "started": "2026-09-27 12:55:48",
+  "status": "complete",
+  "elapsed_seconds": 2.0,
+  "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+  "finished": "2026-09-27 12:55:50"
+}

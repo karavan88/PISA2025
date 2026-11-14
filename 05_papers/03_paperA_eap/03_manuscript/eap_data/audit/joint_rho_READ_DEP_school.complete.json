@@ -1,0 +1,15 @@
+{
+  "id": "joint_rho_READ_DEP_school",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/09b_joint_rho.R"
+  ],
+  "domain": "READ",
+  "exposure": "DEP",
+  "specification": "school-adjusted",
+  "started": "2026-09-27 12:51:39",
+  "status": "complete",
+  "elapsed_seconds": 2.3,
+  "script_signature": "e641a92dfa70d953124722ad64843af5e931bab8aadf9525b5618b906a88bbd6",
+  "finished": "2026-09-27 12:51:41"
+}

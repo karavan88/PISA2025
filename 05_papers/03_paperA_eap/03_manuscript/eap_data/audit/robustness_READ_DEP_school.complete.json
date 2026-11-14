@@ -1,0 +1,15 @@
+{
+  "id": "robustness_READ_DEP_school",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/07_robustness.R"
+  ],
+  "domain": "READ",
+  "exposure": "DEP",
+  "specification": "school-adjusted",
+  "started": "2026-09-27 12:51:41",
+  "status": "complete",
+  "elapsed_seconds": 36.9,
+  "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+  "finished": "2026-09-27 12:52:18"
+}

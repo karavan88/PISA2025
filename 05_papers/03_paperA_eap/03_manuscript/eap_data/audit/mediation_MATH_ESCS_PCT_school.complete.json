@@ -1,0 +1,17 @@
+{
+  "id": "mediation_MATH_ESCS_PCT_school",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/09_causal_mediation.R"
+  ],
+  "domain": "MATH",
+  "exposure": "ESCS_PCT",
+  "specification": "school-adjusted",
+  "started": "2026-09-27 12:51:00",
+  "status": "complete",
+  "fast": "1",
+  "country_workers": 1,
+  "elapsed_seconds": 43.5,
+  "script_signature": "a28c4a60493460e19811b5dd7119d84368dc60ba759733c089d99f80a06c2047",
+  "finished": "2026-09-27 12:51:44"
+}

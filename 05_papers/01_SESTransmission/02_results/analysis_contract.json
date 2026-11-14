@@ -1,0 +1,29 @@
+{
+  "basis": "Imported results, with a migration baseline for central definitions and model code. This is not a claim of fresh fitting under this commit.",
+  "sha256": {
+    "02_scripts/01_harmonization/prepare.R": "b6e81537ab97a9355d5731969f5a905eb857ee386411d3fab8af9529f3bc2419",
+    "02_scripts/01_harmonization/extract_base.R": "3bfb645402e86086c59f82dea672ecf7aa1b003c3d8ec372114d672d2def4062",
+    "02_scripts/01_harmonization/audit_parental_covariates.R": "8443e696f68510eb4eded4dd9679441d4e0ecce218feff6eca44f474b1f5abf8",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/engine.R": "7063a066421e0247d25b9e4c7decfa2d280669edf51f79e195ae66905980e3fc",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/finish.R": "80fbdcca5d79d98fae2a1ea8a7663ce00e9d4723d123e48ad676aed56cefd357",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/preflight.R": "957a687d0d2ee7ede718e6daefab89460319d94cffa03f2bac67279db11f8992",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/functions.R": "50d86b3e11e536cf8396695c916ef8b4ec31c1f4a619c5a8750e5a7a23dafece",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/run.R": "5761d3ce673d8f8753d4154b2b8a24756cba5205fddc426f19f5d46ba31e1e60",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/diagnostics.R": "5eed65446d87e82ba9ab3645ddd6029561772235c86f1c93dce2810bdc7a7fdc",
+    "05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/RUN_ANALYSIS.R": "c054a8e7925b7581143deb250718a264e4fa9ae3a316f5699583267a9bf28ebd",
+    "05_papers/01_SESTransmission/01_code/06_equalization_rev2.R": "ca7846001313ba6d9f735da027a04530c906a6c8d4f9e7343470e8a406e2d6b8",
+    "05_papers/01_SESTransmission/01_code/09_counterfactual_robustness_functions.R": "8fb8bf1d94a736de2c01323fde5a86bcd32be64f75ee4be51f298f42ba81e199",
+    "05_papers/01_SESTransmission/01_code/10_run_counterfactual_robustness_rev2.R": "f98e742e73ce401f357bb14dfe3307633e915ea9a8ea0e08e02fcdaa3b4f2d78",
+    "05_papers/01_SESTransmission/01_code/16_parental_controls_comparison.R": "2cfc5059a3cd843679d16326099ab93a9a44d351af72674d55b25766fe1f9f45",
+    "05_papers/01_SESTransmission/01_code/20_prepare_parental_publication.R": "76b7adbcb17db6a42bbc39949e75619e6c99c65509722b8600541ee314bbcfb4",
+    "05_papers/01_SESTransmission/01_code/23_within_between_decomposition_rev2.R": "73d63586245b7e88ab5210621112df0b055a703d027f7698e6081a014f82da32",
+    "05_papers/01_SESTransmission/01_code/counterfactual_ml.cpp": "9666c4ec593d5a6c85fde757333d4149e50c718320ffef7e3dce00a8dd9d1533"
+  },
+  "shared_build_inputs": {
+    "01_data/CY09_MS_STU_PUF.sav": "6f6fa1e1ecce23d39183d44ec82ba05b245fe88a2416c8d8dc1b016d556fc379",
+    "01_data/CY09_MS_SCH_PUF.sav": "14fb8cccfaee2ab24aecc84da41ec97ee0ddee479cd5bf85e22beb3f3be98e27",
+    "02_scripts/01_harmonization/audit_parental_covariates.R": "8443e696f68510eb4eded4dd9679441d4e0ecce218feff6eca44f474b1f5abf8",
+    "02_scripts/01_harmonization/extract_base.R": "3bfb645402e86086c59f82dea672ecf7aa1b003c3d8ec372114d672d2def4062",
+    "02_scripts/01_harmonization/prepare.R": "b6e81537ab97a9355d5731969f5a905eb857ee386411d3fab8af9529f3bc2419"
+  }
+}

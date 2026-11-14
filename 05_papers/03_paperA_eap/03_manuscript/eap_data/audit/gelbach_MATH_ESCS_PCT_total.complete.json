@@ -1,0 +1,16 @@
+{
+  "id": "gelbach_MATH_ESCS_PCT_total",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/04_h1_gelbach.R",
+    "--total"
+  ],
+  "domain": "MATH",
+  "exposure": "ESCS_PCT",
+  "specification": "student-adjusted",
+  "started": "2026-09-27 12:50:27",
+  "status": "complete",
+  "elapsed_seconds": 13.2,
+  "script_signature": "d9b4ea2062ad4ecc9809aa59d40578d22ee0f93c946d37d24f83e8a3a637e2d9",
+  "finished": "2026-09-27 12:50:40"
+}

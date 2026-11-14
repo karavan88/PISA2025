@@ -1,0 +1,40 @@
+{
+  "requested_systems": 14,
+  "estimable_systems": 13,
+  "analytic_students": 94815,
+  "deprivation_systems": 12,
+  "main_estimation_jobs": 51,
+  "auxiliary_random_slope_systems": 13,
+  "original_tables_preserved": [
+    "tbl-sample",
+    "tbl-scales",
+    "tbl-corr",
+    "tbl-gradients",
+    "tbl-main",
+    "tbl-pathways",
+    "tbl-econ",
+    "tbl-domains",
+    "tbl-skills",
+    "tbl-exposures",
+    "tbl-econ-dep",
+    "tbl-robust",
+    "tbl-main-escs"
+  ],
+  "original_figures_preserved": [
+    "fig-gradients",
+    "fig-acme",
+    "fig-econ",
+    "fig-domains",
+    "fig-sens"
+  ],
+  "bibtex_entries": 18,
+  "country_results": "eap_data/reporting/all_country_estimates.csv",
+  "original_project_files_unchanged": 190,
+  "manuscript_tables": 21,
+  "manuscript_figures": 5,
+  "pdf_pages": 23,
+  "plausible_value_matrix_combinations": 14,
+  "system_combinations": 180,
+  "single_mediator_system_results": 1246,
+  "auxiliary_decile_returns": 900
+}

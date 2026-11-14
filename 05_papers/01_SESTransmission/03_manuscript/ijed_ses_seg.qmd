@@ -1,0 +1,333 @@
+---
+title: "Do socio-emotional skills transmit socioeconomic advantage? Evidence from PISA 2025 data"
+author:
+  - name: Karen Avanesian
+abstract: |
+  Socio-emotional skills may transmit family advantage into learning through both pupil differences and school sorting. Using PISA 2025, we estimate country-specific multilevel mediation models for 437,776 students in 69 systems measuring six skills. The joint skills pathway is positive with 95% intervals excluding zero in 53 systems; 48 retain support after adjustment for multiple testing. School sorting significantly enlarges the pathway in 27 systems. Curiosity carries a positive contribution in 48, while enjoyment of problem solving and goal setting are prominent in Korea. A second analysis of 63 systems identifies a negative skills pathway from material deprivation in 25, accounting for family and school socioeconomic status. An economic interpretation connects unequal investments in skills to unequal opportunities to use them. The findings motivate policies addressing household constraints and school environments together.
+keywords: [socio-emotional skills, socioeconomic inequality, education production, multilevel mediation, school sorting, material deprivation]
+thanks: "Manuscript draft for the International Journal of Educational Development."
+date: "8 November 2026"
+date-format: "D MMMM YYYY"
+lang: en
+bibliography: references.bib
+csl: elsevier-harvard.csl
+link-citations: true
+tbl-cap-location: top
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.5cm
+    mainfont: PT Serif
+    fontsize: 11pt
+    linestretch: 1.15
+    number-sections: true
+    toc: false
+    keep-tex: true
+    colorlinks: true
+    linkcolor: blue
+    citecolor: blue
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox}
+        \newcommand{\tblsize}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
+        \floatplacement{figure}{H}
+        \setlength{\emergencystretch}{3em}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source('../01_code/reporting.R')
+```
+
+
+
+# Introduction
+
+A pupil's curiosity can be a resource for learning. It can also reflect the books, conversations and opportunities that family circumstances have made available. If those circumstances help produce curiosity, and curiosity supports achievement, a skill that appears personal becomes one route through which economic advantage is transmitted. The same question applies to perseverance, enjoyment of problem solving and the ability to regulate learning. Explaining their relationship with achievement requires examining both where the skills come from and how they enter the learning process.
+
+The economics of skill formation provides a useful starting point. Families invest time and material resources in children; schools supply further inputs; and existing skills influence what children gain from subsequent investment [@cunha2007]. Yet pupils do not encounter a common school environment. Family circumstances are connected to the schools they attend, and school composition can concentrate both resources and learning-related dispositions. A model confined to differences among classmates leaves this part of the transmission process outside the comparison. Conversely, attributing all differences between schools to their socioeconomic composition conceals the skills through which some of those differences may operate.
+
+This paper asks whether socio-emotional skills transmit socioeconomic advantage into reading achievement. It addresses three questions. Are these skills socially stratified? How much of the reading gradient runs through the combined skills pathway when school sorting is included? Which skills account for that pathway? Material deprivation provides a second exposure: among pupils with similar measured socioeconomic status, do unaffordable goods and activities connect to lower achievement through skills?
+
+We use the student and school files from PISA 2025 and estimate each education system separately. The main comparison covers 69 systems that measure all six skills: perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, goal setting and self-regulated learning. Together they contribute 437,776 pupils in 19,336 schools. The deprivation analysis covers 63 of these systems. A supplementary analysis retains systems with smaller observed skill blocks, rather than treating unmeasured skills as absent pathways.
+
+The main result is a positive joint skills pathway in 53 of the 69 systems, with individual 95% intervals excluding zero; 48 retain support after correction for multiple testing. This is not a claim that the same mechanism has equal importance everywhere. In Denmark, a ten-percentile-point difference in family socioeconomic rank carries `r fmt(est('DNK','skills_sorting'))` reading points through skills. In Korea it carries `r fmt(est('KOR','skills_sorting'))` points, and in Malaysia `r fmt(est('MYS','skills_sorting'))`. Incorporating school sorting adds little to Denmark's estimate but substantially enlarges the pathway in Korea and Malaysia. Curiosity is the most widespread individual contributor. Korea illustrates why a common international skill ranking would nevertheless be misleading: its strongest positive contributions include enjoyment of problem solving and goal setting.
+
+Previous cross-country studies already connect psychological characteristics to socioeconomic achievement gaps [@hofer2024; @gruijters2024]. This paper extends that evidence by separating a joint six-skill pathway within schools from the pathway incorporating the school composition associated with family circumstances. This comparison keeps school allocation inside the account of transmission. A parallel deprivation analysis distinguishes relative socioeconomic position from the goods and activities a family cannot afford, at a given measured background. Both analyses report country-specific magnitudes and the individual skills contributing to them.
+
+This distinction matters for educational development. A policy of improving skills could narrow learning differences if it relaxes constraints on disadvantaged pupils. It could also leave substantial inequality intact if the opportunity to acquire and use those skills remains concentrated in advantaged schools. The country results identify where each part of this argument receives empirical support. They do not replace it with a pooled international average.
+
+# Previous evidence and research questions
+
+## Investment, resource constraints and skill inequalities
+
+The economics of skill formation treats skills as products of cumulative investment and as inputs into subsequent learning. Family resources influence the time, materials and experiences available to children; existing capabilities influence what children gain from later investment [@cunha2007]. Socio-emotional skills can enter this process through attention, persistence and engagement with difficult tasks. A pupil's capacity to organise study may therefore reflect past opportunities while also affecting the use of current educational inputs.
+
+Economic research emphasises that these capabilities are multidimensional and that their measurement depends on behaviour and context [@almlund2011]. We use “socio-emotional skills” for six questionnaire scales: perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, goal setting and self-regulated learning. Cognitive adaptability concerns adapting one's approach rather than performance on a cognitive test. Keeping the scales separate allows family advantage to have different relationships with each disposition.
+
+Evidence from a randomized intervention in Colombia connects parental investments to improvements in early development [@attanasio2020]. At school age, teachers affect outcomes beyond test scores that predict later educational attainment [@jackson2018]. These findings give families and schools a role in producing capabilities, although neither establishes the size of adolescent skill inequalities in the present sample. Cross-country evidence is more directly relevant: @gruijters2024 find socioeconomic differences in the psychological characteristics measured in PISA 2018, alongside substantial variation in their contribution to achievement inequality.
+
+The investment account suggests higher skill levels with greater socioeconomic resources, but relative position and immediate constraints need not capture the same process. Families with similar measured socioeconomic status can differ in their ability to afford clothes, leisure equipment or school participation. Such constraints may restrict exploration or make sustained engagement harder. We therefore examine both socioeconomic rank and material deprivation, separating differences among classmates from differences between school intakes.
+
+> *RQ1. How are the six socio-emotional skills distributed by socioeconomic rank and material deprivation, within and between schools?*
+
+## Skills as a transmission pathway, including school allocation
+
+A socially stratified skill contributes to the achievement gradient only if it also enters the learning relationship. Two links are required: circumstances must predict skills, and those skill differences must predict achievement when the other skills are included. @hofer2024 document joint and separate mediation through five self-perceptions in the socioeconomic reading relationship across 70 PISA 2018 countries. Using a different set of measures and a decomposition of the socioeconomic science gap, @gruijters2024 find a modest contribution from the measured skills. Their contrast between advantaged and disadvantaged groups differs from the ten-rank-point reading contrast used here; the reported shares do not have interchangeable denominators. Together these studies motivate estimating the magnitude of transmission, rather than inferring it from a skill's correlation with achievement.
+
+School allocation adds a further economic margin. Residential location, school choice and institutional rules affect the combination of peers, teaching and resources that pupils encounter. Evidence on school resources in Peru and on educational tracking across countries places these institutional differences within the explanation of achievement inequality [@leon2015; @hanushek2006]. The inheritance-of-inequality argument likewise identifies transmission routes beyond cognitive test performance [@bowles2002inheritance]. For this paper, the central issue is how the allocation of educational inputs changes the skills pathway into learning.
+
+If advantaged pupils attend schools with higher average skills and stronger between-school skill--achievement relationships, a comparison confined to classmates can omit an important part of transmission. Compensatory school allocation can instead reduce that contribution. We compare the joint pathway holding school setting fixed with a pathway incorporating the school composition accompanying family circumstances. The same comparison for deprivation asks whether hardship carries an additional skills penalty at a given family and school socioeconomic status.
+
+> *RQ2. How much of the reading gradient runs through the six skills jointly, and how does that pathway change when the school composition associated with socioeconomic rank or deprivation is included?*
+
+## Which skills account for transmission?
+
+The production account gives no reason to expect identical contributions from every skill. Curiosity and enjoyment of problem solving may encourage exploration; perseverance and self-regulation may sustain effort; goal setting may help direct it. Their contribution depends jointly on how unequally they are distributed and how closely each relates to reading after accounting for the others. A strong reading predictor can carry little socioeconomic advantage if its distribution scarcely varies with background. Conversely, a strongly stratified disposition can contribute little if it adds little to the joint achievement relationship.
+
+Prior work distinguishes accumulation of skill advantages from differences in their returns [@gruijters2024]. We examine the contributions of six skills within an additive model, allowing the within- and between-school relationships to differ and estimating each country separately. This identifies which dispositions account for the fitted pathway without requiring one skill to dominate everywhere. Deprivation may also involve a different mix from socioeconomic rank: restricted participation and difficulty sustaining effort are distinct possible consequences of a resource constraint.
+
+> *RQ3. Which socio-emotional skills contribute to the socioeconomic and deprivation pathways, and how does their composition differ across education systems?*
+
+# Data and empirical strategy
+
+## Sample, outcome and exposures
+
+The analysis uses the PISA 2025 public-use student and school files and accompanying questionnaire documentation [@oecd2026data]. The source snapshot contains 90 systems and 755,721 pupils. A system may be a country or a participating subnational population. We use the documented sample labels, rather than interpreting every estimate as nationally representative. Model eligibility requires valid reading values, socioeconomic status, an observed skill block, school identifiers and survey weights, together with at least 100 complete pupils and 30 schools.
+
+SES models can be estimated in 82 systems. The main analysis uses the 69 with all six skills, selected on measurement coverage. The remaining 13 appear in the supplement, with their observed skill counts. Deprivation models are available in 75 systems overall and 63 of the full-six-skill systems. The main samples contain 437,776 and 397,940 pupils, respectively. Table 1 describes the analytical coverage; the supplement lists every system, exclusions and descriptive statistics. We use reading throughout and do not substitute another achievement domain where reading is unavailable.
+
+```{r}
+#| results: asis
+cov <- A[status=='Eligible',.(Systems=.N,Students=sum(N),Schools=sum(schools)),by=.(Exposure=exposure,Block=ifelse(skills==6,'Six skills','Fewer skills'))]
+cov<-cov[order(match(Exposure,c('SES','DEP')),match(Block,c('Six skills','Fewer skills')))]
+cov[,Exposure:=ifelse(Exposure=='SES','Socioeconomic rank','Material deprivation')]
+cov[,Students:=num(Students)];cov[,Schools:=num(Schools)]
+tbl(cov,'Analytical coverage. Each system is estimated separately; students and schools are unweighted sample counts.',size=9)
+```
+
+Reading achievement is represented by ten plausible values, each analysed separately before combining estimates and uncertainty. Family SES is the PISA index of economic, social and cultural status (ESCS). We convert ESCS into a survey-weighted midpoint percentile rank within each system, using all pupils with valid ESCS and final student weights before complete-case selection. Dividing this rank by ten makes a unit a ten-percentile-point difference on the national socioeconomic ladder. It is neither an income percentage nor a common absolute resource difference across countries.
+
+The six skill indices are questionnaire-based scales. Each is standardized using the weighted mean and standard deviation in its country's SES analytic sample. The same transformation is retained for the deprivation sample. Consequently, a skill coefficient is expressed per country-specific standard deviation. Growth mindset is excluded because a belief about the malleability of ability is conceptually distinct from the six skills considered here.
+
+Deprivation counts items reported as unavailable because the family cannot afford them. “Yes” and “No, other reason” both contribute zero. Nine items are candidates. The four core possessions are properly fitting shoes, new clothes, outdoor leisure equipment and indoor games; five further items cover activities or participation. Within each system, an item is retained when at least 90% of respondents answering any candidate item provide a valid response to it. This operational rule identifies the observed item set; pupils missing any retained item are excluded from that exposure model. An absent module is treated as missing, not as no deprivation. The 63 main systems use three to nine items in 13 distinct combinations. A common-four-item sensitivity analysis separates the consequences of item selection from sample composition.
+
+## Regressions for the two links
+
+For pupil $i$ in school $j$, let $X_{ij}$ denote rank divided by ten, or the deprivation count. Define the weighted school mean $\bar X_j$, and $X^W_{ij}=X_{ij}-\bar X_j$. We make the same decomposition for every skill and control. Thus status is demeaned within schools, while its school mean remains explicitly in the model. This retains the between-school dimension relevant to inequality. The method follows the correlated-effects logic of including group means [@mundlak1978], with a random intercept for each school and fixed slopes within each system.
+
+The **skill equation (M1)** is fitted separately for each skill $k$:
+
+$$
+M_{kij}=\alpha_k+a_{Wk}X^W_{ij}+a_{Bk}\bar X_j+
+\gamma_{Wk}'C^W_{ij}+\gamma_{Bk}'\bar C_j+u_{kj}+e_{kij}.
+$$ {#eq-m1}
+
+Here $a_W$ is the within-school exposure-to-skill gradient, and $a_B$ the corresponding gradient between school means. The **achievement equation (M2)** includes all six skills jointly:
+
+$$
+\begin{split}
+Y_{ij}={}&\alpha+c'_WX^W_{ij}+c'_B\bar X_j+
+\sum_{k=1}^{6}\{b_{Wk}M^W_{kij}+b_{Bk}\bar M_{kj}\}\\
+&+\beta_W'C^W_{ij}+\beta_B'\bar C_j+v_j+\epsilon_{ij}.
+\end{split}
+$$ {#eq-m2}
+
+The $b$ coefficients are the second link: reading points per skill standard deviation, at the relevant level, with the other skills included. The $c'$ coefficients describe the exposure gradient remaining after skills enter. A baseline achievement model (M0) omits the skill terms and supplies the pre-skill reading gradients. It is not the denominator of the mediated share reported below.
+
+Controls are the recorded non-male gender indicator and age centred at 15, each entered as a within-school deviation and a school mean. Age is unavailable in Norway, which is in the supplementary partial-block sample. Every deprivation equation additionally includes raw ESCS and its school mean. All equations for an exposure use the same complete-case sample, and school means are recalculated for that sample.
+
+Including school means addresses the part of non-random allocation reflected in observed composition. It also prevents a single SES coefficient from mixing the family comparison within schools with the comparison across schools. We then measure the observed association between the two through a final-student-weighted **sorting projection (S)**:
+
+$$
+\bar X_j=\eta+\delta X_{ij}+\pi'C_{ij}+\omega'\bar C_j+r_{ij}.
+$$ {#eq-sort}
+
+The coefficient $\delta$ calibrates how much school-average exposure differs with a one-unit difference in individual exposure, holding the controls fixed. This is an auxiliary projection, not another random-intercept achievement regression. Table 2 maps each question to its estimation step.
+
+```{r}
+#| results: asis
+x <- data.table(Question=c('RQ1: Are skills stratified?','RQ2: How much runs through skills?','RQ2: What does school composition add?','RQ3: Which skills carry it?'),
+ Model=c('M1: one mixed model per skill','M1 + M2: joint mediation','M1 + M2 + S','Skill terms from M1 + M2 + S'),
+ Quantity=c('aW and aB: skill SD per exposure unit','IW and IS: reading points through all skills','IS - IW: added skills pathway','IS,k: reading points assigned to skill k'))
+tbl(x,'Research questions, models and reported quantities. Each row applies to socioeconomic rank and material deprivation. M2 contains all six skills; S supplies the sorting coefficient used in IS.',size=8,widths=c('3.4cm','4.5cm','6.4cm'),long=FALSE)
+```
+
+## Joint multilevel mediation
+
+The within-school joint pathway is $I_W=\sum_k a_{Wk}b_{Wk}$. The between-school pathway, per unit of school-average exposure, is $I_B=\sum_k a_{Bk}b_{Bk}$. They concern different comparisons and cannot simply be added [@preacher2010]. For an individual exposure difference of one unit, the sorting projection supplies a school-mean difference of $\delta$ and a within-school difference of $1-\delta$. The resulting joint contrast is
+
+$$
+I_S=(1-\delta)I_W+\delta I_B,\qquad
+\Delta_S=I_S-I_W=\delta(I_B-I_W).
+$$ {#eq-joint}
+
+To interpret $I_S$, consider two socioeconomic profiles ten rank points apart. Predict reading for the higher profile with the skill distribution accompanying that profile, then replace it with the skill distribution accompanying the lower profile. The expected reading difference is the joint skills pathway. All skills move together. School setting fixed uses $I_W$; allowing the school composition associated with family circumstances to differ uses $I_S$. For deprivation, the contrast is one additional unaffordable item at the same measured family and school ESCS.
+
+This is a joint distributional mediation calculation in an additive multilevel model. Under these linear specifications, integration over the fitted skill distributions reduces exactly to the products in @eq-joint. The products are therefore a way to compute the chosen contrast, rather than a substitute for defining mediation. The approach draws on counterfactual mediation and joint interventional contrasts [@imai2010; @vansteelandt2017]. It neither requires independent skill residuals for this additive mean contrast nor estimates an ordered chain among the six skills. We calculate it directly from the mixed models; we do not fit six separate single-mediator models with the `mediation` package.
+
+Each skill contributes $I_{S,k}=(1-\delta)a_{Wk}b_{Wk}+\delta a_{Bk}b_{Bk}$. These terms sum to $I_S$. The remaining component is $D=(1-\delta)c'_W+\delta c'_B$, and the coherent model-implied total is $T=D+I_S$. The mediated percentage is $100I_S/T$, calculated for each plausible value and then combined. We report it only when the total has a stable sign and the components support a proportional interpretation. Reading-point contrasts remain available when that condition fails. This rule admits shares in 68 of the 69 main SES models and 40 of the 63 deprivation models.
+
+## Computation and uncertainty
+
+All models are estimated in R 4.4.1. The main estimator uses the Gaussian two-level survey-weighted likelihood implemented by WeMix, with an optimized calculation from school-level sufficient statistics for the repeated bootstrap fits [@wemix; @rabe2006]. Conditional student weights are obtained by dividing final student weights by school weights and scaling them to the analytic pupil count within each school. School weights enter at the school level. The fitted regression specification is a random-intercept within--between model, not a random-slope model. The supplement provides the exact R formulas and validation results.
+
+Unweighted `lme4::lmer()` fits of the same formulas provide a sensitivity comparison [@bates2015]. We retain WeMix because `lmer()`'s weight argument concerns residual precision and does not implement the two survey-weight levels required here. In particular, changing the estimator should not silently change what the weights mean.
+
+Uncertainty is computed from 499 whole-school bootstrap draws per country and exposure. Each draw re-estimates the skill equations, reading equations and sorting projection, and recalculates the joint pathway. For ten reading plausible values, total variance is the mean bootstrap variance plus 1.1 times the variance of the ten point estimates. We show normal-approximation 95% intervals. Secondary tables retain Benjamini--Hochberg adjustments from the full estimable-system analysis, separately by exposure and test family [@benjamini1995]. Counts of directional evidence supplement country estimates; they are not estimates of an international average or tests of differences between countries.
+
+# Results
+
+## Social gradients are widespread, but do not establish transmission by themselves
+
+The first link is evident across much of the main sample. Within-school SES gradients are positive with intervals excluding zero in `r supported('aW_CURIO')` systems for curiosity, `r supported('aW_PERSEV')` for perseverance, `r supported('aW_ENPROBS')` for enjoyment of problem solving, `r supported('aW_COGABIL')` for cognitive adaptability, `r supported('aW_GOALSET')` for goal setting and `r supported('aW_SELFREG')` for self-regulated learning. The corresponding between-school counts are `r supported('aB_CURIO')`, `r supported('aB_PERSEV')`, `r supported('aB_ENPROBS')`, `r supported('aB_COGABIL')`, `r supported('aB_GOALSET')` and `r supported('aB_SELFREG')`. The supplement reports each gradient and its uncertainty.
+
+The gradients differ in magnitude across systems. In Denmark, ten SES rank points correspond to `r ci('DNK','aW_CURIO',digits=3)` standard deviations of curiosity within schools. Malaysia's estimate is `r ci('MYS','aW_CURIO',digits=3)`, and Korea's is `r ci('KOR','aW_CURIO',digits=3)`. The differences per ten rank points are modest fractions of a skill standard deviation, but that is a scale statement, not evidence that the socioeconomic gradient is absent or irrelevant to learning.
+
+The second link distinguishes stratification from transmission. Denmark's within-school curiosity coefficient in the reading equation is `r ci('DNK','bW_CURIO')` points per skill standard deviation. Korea's is `r ci('KOR','bW_CURIO')`. A positive social gradient in curiosity therefore does not imply the same reading pathway in these two systems. This is why the joint mediation estimates, rather than the social gradients alone, answer the central question.
+
+@fig-gap-link makes the two links visible for every system. Moving right means a larger socioeconomic skill difference among classmates; moving up means a stronger skill--reading relationship after including the other five skills. Their product is the within-school contribution of that skill. The dashed curves mark equal contributions, so a larger skill gap can offset a weaker reading relationship. This is a decomposition of the fitted pathway, not a cross-country regression. The companion figure in the supplement displays the between-school links; the joint contrast below combines both levels with the observed school composition.
+
+![Socioeconomic skill gaps and their reading relationships within schools. Each panel uses saved M1 and M2 point estimates for all 69 six-skill systems. Dashed curves mark products of 0.25, 0.5 and 1 reading point per ten rank points, from lower to higher curves. The three labelled systems are the worked examples in the text.](../04_output/figures/ses_gap_link_w.pdf){#fig-gap-link width=100% fig-pos='H'}
+
+## The combined skills pathway carries advantage in most systems
+
+@fig-ses displays all 69 country estimates, with and without the school component. The pathway allowing for sorting is positive with a 95% interval excluding zero in 53 systems and uncertain in 16; none has a negative interval excluding zero. After adjustment for multiple testing, 48 retain support. The result is broad evidence for a skills route, alongside meaningful variation in its magnitude and precision.
+
+The worked examples make the unit interpretable. Denmark's pathway is `r ci('DNK','skills_sorting')` reading points per ten rank points, accounting for `r fmt(est('DNK','share'),1)`% of its model-implied total gradient. Malaysia's pathway is `r ci('MYS','skills_sorting')` points and `r fmt(est('MYS','share'),1)`%. Korea's is `r ci('KOR','skills_sorting')` points and `r fmt(est('KOR','share'),1)`%. These percentages concern different national gradients. They do not imply that Korea has the largest overall SES gap or that its schools generate the largest causal return to a skills programme.
+
+Germany provides a useful counterpoint: its combined pathway is `r ci('DEU','skills_sorting')` points. Mongolia's is `r ci('MNG','skills_sorting')`. Both intervals include zero. A small or uncertain net pathway can arise from weak links or from offsetting skill contributions; it does not require every skill to be unrelated to achievement. We retain these estimates alongside the positive cases.
+
+\clearpage
+
+![Country-specific joint skills pathways for socioeconomic rank. Circles hold school setting fixed; diamonds incorporate observed sorting. Both are M1--M2 mediation contrasts, with S supplying the sorting profile. Bars are individual 95% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.](../04_output/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
+
+\clearpage
+
+## Which skills carry the pathway?
+
+Curiosity is the most widespread positive contributor: its individual pathway is positive with an interval excluding zero in 48 systems, compared with 24 for perseverance. The corresponding counts are eight for cognitive adaptability, seven each for enjoyment of problem solving and self-regulated learning, and four for goal setting. These counts concern contributions after all six skills enter together, rather than separate regressions giving each skill credit for shared variation.
+
+@fig-ses-skills shows the complete country pattern. Curiosity contributes `r ci('DNK','indS_CURIO')` reading points in Denmark and `r ci('MYS','indS_CURIO')` in Malaysia. Korea is different. Its curiosity contribution is `r ci('KOR','indS_CURIO')`, while enjoyment of problem solving contributes `r ci('KOR','indS_ENPROBS')` and goal setting `r ci('KOR','indS_GOALSET')`. The combined Korean pathway is strong even though curiosity does not carry it clearly.
+
+Goal setting illustrates another distinction. Its within-school social gradient is positive in 64 systems, yet its joint contribution to reading is positive in only four and negative in ten, with the remaining intervals including zero. The data therefore do not support treating a socially advantaged disposition as automatically productive for reading, conditional on the other skills. The pattern is compatible with differences in what the scale measures in practice, overlaps among dispositions, and the uses to which pupils put them. It does not imply that setting goals generally damages learning.
+
+![Skill-specific contributions to the socioeconomic pathway in every full-six-skill system. Colours show reading points, with zero at the centre. White dots indicate individual 95% intervals excluding zero. Each cell is part of the same joint model; cells sum across skills to the country pathway in @fig-ses.](../04_output/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
+
+## School sorting changes how much advantage runs through skills
+
+The sorting comparison matters most where the between-school skill pathway exceeds the within-school one and family rank is related to school rank. The addition $\Delta_S$ is positive with an interval excluding zero in 27 of the 69 systems, with 23 retaining support after adjustment. In 42 systems the addition is uncertain. No system has a negative addition established by its individual interval.
+
+Korea's pathway rises from `r ci('KOR','skills_same_school')` points with school setting fixed to `r ci('KOR','skills_sorting')` when sorting is included. The addition itself is `r ci('KOR','sorting_increment')` points. Malaysia's corresponding addition is `r ci('MYS','sorting_increment')`. These are intervals for the difference, recalculated within each bootstrap draw; the conclusion does not come from comparing the significance of two separate estimates.
+
+Denmark shows why sorting should be estimated rather than assumed to amplify the route. Its fixed-setting pathway is `r ci('DNK','skills_same_school')` and its sorting addition is `r ci('DNK','sorting_increment')`. The joint pathway is positive, but the school extension adds little. Differences among classmates account for most of the estimated skill route in that comparison.
+
+The economic implication is that a student-level account can miss an appreciable part of skill-mediated inequality in some systems. It does not follow that all school socioeconomic differences operate through the measured skills. The remaining component continues to contain other connections between resources, schools and reading. Nor is a positive sorting addition the effect of moving a pupil to a different school: it is the contribution of the observed school component to the specified profile contrast.
+
+## Material deprivation carries a skills penalty in a smaller set of systems
+
+The deprivation results address hardship after accounting for both family and school ESCS. The joint pathway is negative with an interval excluding zero in 25 of the 63 systems, positive in none and uncertain in 38. Eighteen retain support after multiple-testing adjustment. The sorting addition is negative in nine systems by the individual interval criterion, with four retaining adjusted support. @fig-dep retains the positive and imprecise point estimates as well as the negative results.
+
+Malaysia's deprivation pathway is `r ci('MYS','skills_sorting','DEP')` reading points per additional unaffordable item. Its model-implied total is `r ci('MYS','total','DEP')`, of which the skills route accounts for `r fmt(est('MYS','share','DEP'),1)`%. The result asks whether hardship matters among pupils with similar measured background, not whether ESCS has ceased to matter. Curiosity carries `r ci('MYS','indS_CURIO','DEP')` points of this penalty.
+
+Mongolia and the Philippines also show negative joint pathways: `r ci('MNG','skills_sorting','DEP')` and `r ci('PHL','skills_sorting','DEP')` points, respectively. Their exposure definitions differ: Mongolia retains four items, while the Philippines and Malaysia retain six. A one-item difference does not necessarily represent the same severity or type of deprivation. Denmark's and Korea's joint deprivation intervals include zero. In Korea, the model-implied total also has an unstable sign, so a mediated percentage would be misleading and is withheld.
+
+\clearpage
+
+![Country-specific joint deprivation pathways in the 63 full-six-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school ESCS. Brackets after system names give the retained item count; equal counts can still represent different item sets. Bars are individual 95% bootstrap/PV intervals.](../04_output/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
+
+\clearpage
+
+The skill composition also differs from the rank analysis. Curiosity and perseverance each carry negative contributions in 15 systems by the individual interval criterion; self-regulated learning does so in five, cognitive adaptability in four, goal setting in two and enjoyment of problem solving in one. Adjusted support is less widespread: eight for curiosity, three for perseverance and two for self-regulated learning. @fig-dep-skills shows the country estimates without forcing a common hardship mechanism onto every system.
+
+The first link is informative here. Greater deprivation predicts lower perseverance within schools in 38 systems, compared with 16 for curiosity. Yet both skills have negative joint reading contributions in 15 systems. Hardship can thus have a widespread gradient in a disposition without that disposition explaining the reading penalty everywhere. This reinforces the value of estimating the two links together.
+
+![Skill-specific contributions to the deprivation pathway. Values are reading points per additional unaffordable item, including the school sorting component. White dots mark individual 95% intervals excluding zero. The scale differs from @fig-ses-skills because the exposure and magnitude differ.](../04_output/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
+
+## Evidence across the research questions and sensitivity checks
+
+Table 3 summarises the country evidence. “Support” means the interval excludes zero in the direction suggested by the resource argument: positive for rank, negative for deprivation. “Opposite” uses the reverse direction; “uncertain” means the interval includes zero. The joint pathway and sorting rows address RQ2; skill-specific rows address RQ3. They describe the prevalence of each pattern, without requiring every skill to transmit advantage. RQ1 counts appear in the supplement. The country estimates remain the primary results.
+
+```{r}
+#| results: asis
+s <- rbind(cbind(Exposure='SES',summary_h()),cbind(Exposure='Deprivation',summary_h('DEP')))
+s[,Systems:=NULL]
+tbl(s,'Country evidence for the joint pathway, sorting addition and skill contributions. Denominators: 69 SES systems and 63 deprivation systems. BH support uses the retained full-analysis testing families.',size=7.6,widths=c('1.8cm','4.6cm',NA,NA,NA,NA))
+```
+
+Several checks clarify the scope of these findings. Unscaled conditional weights preserve the direction of the joint estimate in 68 of 69 main SES systems and all 63 deprivation systems. Restricting to schools with at least ten analytic pupils preserves it in 68 and 57 systems, respectively. These are point-estimate comparisons, not new interval-based tests. The common-four deprivation definition is available in 61 main systems and preserves the direction in 55. In Malaysia it changes the joint estimate from `r fmt(est('MYS','skills_sorting','DEP'))` to `r fmt(V[CNT=='MYS' & variant=='core_four_same_sample' & term=='skills_sorting',estimate])` points per item on the same pupils.
+
+Weighting can matter substantively. Malaysia's unweighted `lmer()` SES pathway is `r fmt(L[CNT=='MYS' & exposure=='SES' & term=='skills_sorting',lmer_unweighted])` points, compared with the weighted `r fmt(est('MYS','skills_sorting'))`; Korea's is `r fmt(L[CNT=='KOR' & exposure=='SES' & term=='skills_sorting',lmer_unweighted])`, compared with `r fmt(est('KOR','skills_sorting'))`. These comparisons support retaining a survey-weighted main specification, rather than treating the estimator choice as inconsequential. The supplement reports all countries, omitted-variable stress tests and the systems with incomplete skill blocks. The latter broaden coverage but do not estimate an unobserved six-skill pathway.
+
+@fig-robustness compares magnitudes directly. A country on the diagonal has the same joint pathway in the main and alternative specifications; departures show how much it changes. Each panel uses the same scale, and the three largest absolute changes are labelled. The supplement provides the equivalent deprivation comparison, including the common-four-item definition. These displays complement the direction counts by showing whether a similar sign conceals a substantial change in the estimated pathway.
+
+![Sensitivity of the joint socioeconomic skills pathway to weight scaling, minimum school sample size and the unweighted mixed-model estimator. Each panel retains all 69 six-skill systems. The diagonal denotes identical estimates. These are saved point-estimate comparisons; the alternatives have no new bootstrap intervals.](../04_output/figures/ses_robustness.pdf){#fig-robustness width=100% fig-pos='H'}
+
+# Discussion
+
+## Unequal skill formation and unequal opportunities to use skills
+
+The results support an economic transmission account with two distinct elements. First, socioeconomic position is connected to the distribution of skills. Second, part of the resulting skill difference enters the reading gradient. Curiosity provides the most consistent example of the full sequence. Its social gradient is widespread, and its joint reading contribution is positive in many systems even after accounting for the other five skills. The result places access to experiences that encourage inquiry inside the explanation of learning inequality.
+
+The economic interpretation is not that curiosity is a fixed endowment of affluent children. If families differ in time, security, learning materials and opportunities for exploration, they can differ in the inputs used to develop it. Schools may either compensate for these differences or reinforce them. A strong curiosity pathway is therefore consistent with cumulative investment producing a disposition that helps pupils engage with learning. That interpretation points towards the environments supporting the skill, rather than treating its distribution as an unexplained personal characteristic.
+
+The contrast between curiosity and goal setting sharpens the argument. Goal setting has a broad SES gradient, but often a weak or negative contribution after the other skills are included. Social advantage appears to shape more dispositions than those that consistently carry the reading gradient. An education production account must therefore specify what a disposition helps a pupil do, in a particular instructional setting. Accumulating a list of desirable traits is not an adequate model of learning.
+
+The pattern also cautions against equating a strong mediator with the best intervention target. A skill can account for a large observed gradient because it is unequally distributed, strongly related to achievement, or both. The cost and feasibility of changing it are separate questions. An intervention with a smaller estimated pathway might still produce larger gains per unit of expenditure if it is easier to deliver or reaches pupils facing tighter constraints. The present estimates identify economically relevant channels for further policy testing; they do not rank programme cost-effectiveness.
+
+## Why the school component matters for reproduction of inequality
+
+Korea and Malaysia show that the skill route can be substantially larger when the school differences accompanying family position are retained. This matters conceptually. Skills enter the model as individual characteristics, but their contribution need not be confined to individual circumstances. Pupils are clustered in settings with different average skills and backgrounds. Those settings may differ in instruction, expectations, peer engagement and opportunities to deploy a skill.
+
+The production interpretation is that the educational usefulness of a disposition depends partly on the surrounding inputs. Curiosity may be more productive where lessons reward questions and provide demanding material; persistence may sustain learning where pupils have tasks, feedback and support worth persisting with. The present additive model does not estimate these complementarities as interactions. It does, however, show where the school component is large enough that a purely individual account leaves much of the fitted pathway unexplained. These systems warrant investigation of the institutional inputs accompanying the between-school skill gradient.
+
+This is also where the inheritance-of-inequality interpretation becomes relevant. Families can transmit advantage both by supporting skills directly and by securing access to schools in which skills are concentrated or more closely connected to achievement. The Danish result indicates that the second element is not universally dominant. The comparison therefore gives the reproduction account content that can vary across institutions, rather than assuming that every positive SES coefficient confirms the same story.
+
+The models distinguish a within-school route from a route incorporating school allocation. They do not allocate the latter between skill formation after enrolment, selection of pupils who already differ, and school practices that help pupils use existing skills. Those are different economic mechanisms with different policy implications. The country pattern identifies where that distinction is most consequential: where including the school component changes the estimated pathway substantially.
+
+## Hardship, effort and the limits of a skills-only response
+
+The deprivation analysis brings current resource constraints into the explanation. Its negative pathway in Malaysia, Mongolia and the Philippines, among other systems, is consistent with hardship affecting the dispositions through which pupils engage with learning even among families of similar ESCS. The widespread first-link gradients in perseverance and self-regulation make an effort-related mechanism plausible. Curiosity's contribution indicates that restricted participation and exploration can matter as well.
+
+This evidence makes a skills-only policy response incomplete. Asking pupils to persist does not remove unaffordable participation costs or create an adequate learning environment. A resource intervention could support skills indirectly by reducing those constraints; a teaching intervention could help pupils use the skills they already possess. The relevant policy question is whether these inputs work together. Schools serving disadvantaged communities are natural sites for testing combined support because they reach pupils facing related constraints and can change the environment in which learning occurs.
+
+The less uniform deprivation evidence also deserves weight. Many intervals are wide, item definitions differ, and fewer systems retain support after adjustment. A resource interpretation should accommodate those results rather than infer an identical hardship mechanism everywhere. Country-specific item composition and the sizes of the two links provide a better basis for selecting further studies than an average international deprivation coefficient.
+
+## Research limitations
+
+A causal interpretation of the mediation contrast requires correct temporal ordering, adequate control of exposure--skill and skill--achievement confounding, overlap, and a sufficiently accurate model of the joint skill distribution and reading relationship. PISA measures background, skills and achievement at one occasion and does not supply prior achievement for this design. Reciprocal effects, unmeasured parental investments and school selection can therefore remain. The estimates are conditional model-based mediation contrasts; they support the proposed channels without by themselves establishing the effects of interventions on family resources, skills or school assignment. The residual-correlation stress tests in the supplement assess one form of omitted skill--outcome confounding, not all these identification conditions.
+
+The school means capture observed composition rather than latent school traits, and are measured with error, especially in small analytic school samples [@ludtke2008]. Including these means cannot remove selection on unobserved school quality. Jointly modelled skills may influence one another; their individual contributions are an additive allocation of the joint pathway, not separately identified ordered mechanisms. Self-report response styles, measurement differences between systems and within-country standardization further limit literal comparisons of skill levels. Deprivation's coverage rule and differing item sets restrict cross-country comparability of one-item contrasts.
+
+Complete-case analysis can change the represented population, and systems lacking the full skill block are particularly relevant to the limits of broad development claims. The main comparison is a common measured block, not a representative sample of the world's education systems. The school bootstrap incorporates clustering, re-estimation and plausible-value variation, but it is not the full PISA stratified two-stage replicate-weight procedure. Its intervals and multiple-testing counts should be read with that design limitation in mind. Finally, the specification uses additive fixed slopes: it does not test dynamic skill formation, nonlinear responses or complementarities directly. These distinctions constrain the mechanism and policy claims without changing the documented country patterns.
+
+# Conclusion
+
+Socio-emotional skills carry a measurable part of socioeconomic advantage in reading across much of the PISA 2025 sample. The common six-skill analysis identifies a positive joint pathway in 53 of 69 systems. Curiosity is the most widespread individual contributor, while Korea demonstrates that a strong pathway can involve a different skill composition. Material deprivation adds a distinct resource dimension, with a negative skills route in 25 of 63 systems after accounting for family and school socioeconomic status.
+
+School sorting changes the substantive interpretation. In 27 systems, incorporating the school component significantly enlarges the skills pathway. This makes it difficult to understand skill-mediated inequality solely as a difference between individual pupils. Family investments and access to learning environments belong in the same economic account.
+
+For educational development, the priority is to identify combinations of material support, teaching practices and school conditions that expand disadvantaged pupils' opportunities to acquire and use skills. The country estimates offer a basis for choosing where to investigate those combinations. They place socio-emotional development within the production of learning inequality, while keeping the institutions and resources that shape it in view.
+
+## Data and computation {.unnumbered}
+
+The public-use data are available from the OECD PISA database [@oecd2026data]. The accompanying `ijed_ses_seg` research bundle contains the editable manuscript, bibliography, figure code, country tables, saved estimate snapshot and provenance checks. Rendering the draft reads those saved results and does not re-estimate the models. The supplementary PDF gives the country estimates, measurement coverage, model specifications and sensitivity results. The original estimation scripts are preserved with the bundle for inspection.
+
+\clearpage
+
+# References {.unnumbered}
+
+\begingroup
+\small
+
+::: {#refs}
+:::
+
+\endgroup

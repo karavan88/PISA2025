@@ -1,0 +1,266 @@
+---
+title: "Socio-emotional skills and socio-economic inequalities in learning in post-Soviet countries"
+author:
+  - name: Garen Avanesian
+    affiliations:
+      - name: Southern Federal University, Future Skills Research Lab, Rostov-on-Don
+date: "2026-09-27"
+date-format: "D MMMM YYYY"
+abstract: |
+  Socio-emotional skills may help explain educational inequality, but their contribution need not be the same across countries. Using PISA 2025, I examine reading in Armenia, Azerbaijan, Georgia, Kazakhstan, Kyrgyzstan and Moldova, with Uzbekistan retained as a separate science case. Country-specific models relate socio-economic rank to achievement through reported learning dispositions. After adjustment for student characteristics and school composition, the joint skill block accounts for 35.1% of the reading gradient in Kazakhstan, 30.2% in Georgia, 29.7% in Azerbaijan, 22.6% in Moldova, 17.6% in Kyrgyzstan and 13.6% in Armenia. Uzbekistan's science estimate is 38.3%. Curiosity is prominent in Kazakhstan; perseverance matters alongside curiosity in Azerbaijan and Moldova. Armenia's estimate is sensitive to nonresponse adjustment. These cross-sectional decompositions identify country-specific associations, rather than the effects of skill interventions, and support a more differentiated account of socio-emotional skills and educational disadvantage.
+keywords: [educational inequality, socio-emotional skills, socio-economic status, post-Soviet countries, PISA 2025]
+bibliography: ijed_references.bib
+csl: elsevier-harvard.csl
+citeproc: true
+lang: en-GB
+number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+format:
+  pdf:
+    documentclass: article
+    papersize: a4
+    geometry: margin=24mm
+    fontsize: 11pt
+    pdf-engine: xelatex
+    mainfont: PT Serif
+    linestretch: 1.08
+    colorlinks: true
+    linkcolor: black
+    citecolor: black
+    urlcolor: black
+    toc: false
+    keep-tex: false
+    include-in-header:
+      text: |
+        \usepackage{etoolbox}
+        \AtBeginEnvironment{longtable}{\small}
+        \AtBeginEnvironment{table}{\small}
+        \setlength{\emergencystretch}{2em}
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    theme: cosmo
+    title-block-style: default
+---
+
+```{r}
+#| include: false
+source('ijed_reporting.R')
+```
+
+# Introduction
+
+Socio-economic differences in learning are associated with students' curiosity and perseverance, but these associations take different forms even among countries with a shared educational history. In Kazakhstan, curiosity alone accounts for `r mp('Kazakhstan','Curiosity')`% of the school-adjusted socio-economic gradient in reading. In Moldova, the corresponding shares for curiosity and perseverance are `r mp('Moldova','Curiosity')`% and `r mp('Moldova','Perseverance')`%. Treating socio-emotional skills as a single explanation for disadvantage would conceal this distinction. It would also obscure whether a large percentage reflects a strong skill-related association or a relatively small underlying achievement gradient.
+
+This paper examines how socio-emotional skills are associated with socio-economic inequalities in learning in seven post-Soviet countries. Reading is the outcome in Armenia, Azerbaijan, Georgia, Kazakhstan, Kyrgyzstan and Moldova. Uzbekistan is a separate science case because the existing public-use extract contains no reading plausible values for that country. All models are country-specific. The shared historical setting defines the scope of the comparison; it is not used to assume a common institutional mechanism or to construct a regional coefficient.
+
+The contribution is to distinguish three questions. How strongly are reported skills socially graded within each country? Which skills are associated with the country's socio-economic achievement gradient? Does the answer change when disadvantage is measured as material deprivation rather than relative socio-economic rank? These questions separate the social distribution of a disposition from its association with achievement. A skill can be socially graded yet account for little of the achievement gradient if it has a weak conditional relationship with test performance.
+
+The estimates show why both score points and shares matter. In Kazakhstan, the joint skill-related association is `r mf('Kazakhstan','acme')` reading points per ten percentile points of socio-economic rank, or `r mp('Kazakhstan')`% of the school-adjusted gradient. In Moldova it is larger in score points, at `r mf('Moldova','acme')`, but represents `r mp('Moldova')`% of a steeper gradient. Armenia provides a different warning: its positive baseline association does not survive the existing nonresponse reweighting exercise. A country comparison therefore requires attention to the denominator, the available skill measures and sample selection.
+
+Research on skill formation treats cognitive and socio-emotional development as interdependent processes shaped by family investments [@cunha2007; @almlund2011]. Research on educational stratification also considers how behaviour and dispositions connect family background to school outcomes [@farkas2003]. The present analysis brings these concerns together through country-specific decompositions of socio-economic gradients. It does not establish how much an intervention that changes a measured skill would reduce inequality. The cross-sectional design cannot separate the influence of dispositions on learning from the influence of prior learning and school experiences on reported dispositions.
+
+This distinction matters for educational development. A programme selected because a disposition predicts achievement may reach students whose learning difficulties have different origins. Country-specific evidence can guide the questions such a programme should test: whether a disposition is unequally distributed, whether its association with learning persists after measured contextual differences are considered, and whether the relationship is sufficiently stable to justify further investigation. It cannot substitute for evaluating the programme itself.
+
+# Dispositions, resources and educational inequality
+
+Socio-emotional skills encompass different capacities and beliefs. Curiosity and enjoyment of problem-solving concern engagement with ideas; perseverance, goal setting and self-regulated learning concern the organisation and continuation of effort. Cognitive adaptability concerns responses to changing demands. Growth mindset is a belief about the malleability of intelligence. The OECD framework helps distinguish these constructs [@chernyshenko2018], but grouping them under one heading does not imply that they have interchangeable relationships with disadvantage.
+
+Two accounts of social reproduction motivate attention to this distinction. @bourdieu1977 emphasise the relationship between family resources, dispositions and what schools recognise as legitimate competence. @bowles1976 place greater emphasis on the organisation of schooling and the dispositions associated with social and occupational hierarchies. These perspectives suggest different questions about engagement with knowledge and the regulation of effort. Neither supplies a numerical prediction for the PISA scales used here. A larger curiosity coefficient cannot, by itself, adjudicate between these broad accounts.
+
+Relative socio-economic position and material hardship may also capture different experiences. The PISA index of economic, social and cultural status (ESCS) combines information about family background and resources. A within-country percentile expresses a student's relative position on that index. A deprivation count instead records items the family reports being unable to afford. At a given ESCS, such hardship may be associated with study conditions, participation and students' expectations. The analysis treats this as a distinct association, not an exogenous resource shock.
+
+Evidence linking growth mindset, socio-economic background and achievement provides a reason to include beliefs alongside the continuous skill scales [@claro2016]. However, the relationship between a belief and achievement need not be independent of other dispositions. The empirical analysis therefore distinguishes models containing one skill at a time from the joint change in the socio-economic coefficient when all available skills are included.
+
+# Data and measures
+
+## Countries, outcomes and analytic samples
+
+The study uses the PISA 2025 student data [@oecd2026]. The target population is students around age 15 who are enrolled in education and meet PISA's eligibility criteria. The estimates do not describe all adolescents, including those outside the covered education system. @tbl-sample reports the retained sample for each country. Student and school counts are unweighted; achievement summaries use final student weights. Reading scores are used for the six reading cases. Uzbekistan's science scores are reported separately and do not enter a ranking of reading outcomes.
+
+```{r}
+#| label: tbl-sample
+#| tbl-cap: "Country-specific analytic samples and achievement. Outcome: reading except Uzbekistan (science)."
+#| tbl-colwidths: [35, 15, 15, 18, 17]
+#| results: asis
+print_table(table_samples())
+```
+
+The analytic sample requires nonmissing socio-economic status, the available skill measures, student controls, assessment values and student weights. Its size is therefore smaller than the participating sample. Armenia's `r count(M('Armenia','N'))` retained students make sample selection especially consequential; the sensitivity exercise below confirms that this is a substantive concern. Missing deprivation responses further reduce the samples for that extension. Final student weights address the survey's sampling design, but they do not automatically correct selection into the complete-case analytic sample.
+
+## Socio-economic rank and material deprivation
+
+ESCS is converted to a weighted percentile within each country, using students with observed ESCS before complete-case selection. The exposure is this percentile divided by ten. A coefficient therefore describes the association with a ten-percentile-point difference in national socio-economic position. It does not represent an equal difference in household income or resources across countries.
+
+The deprivation measure counts items the family cannot afford among those fielded in the country. It includes the four personal-item questions in the ST488 module and the applicable national options from ST401. The underlying item set is not identical across countries, so deprivation coefficients are interpreted within each country. These models also control for ESCS in index units. The available deprivation results cover the six reading countries; there is no corresponding saved science estimate for Uzbekistan.
+
+## Skills and controls
+
+The continuous measures are perseverance (PERSEV), curiosity (CURIO), enjoyment of problem-solving (ENPROBS), cognitive adaptability (COGABIL), goal setting (GOALSET) and self-regulated learning (SELFREG). These are questionnaire-based scales, rather than direct observations of behaviour. Growth mindset is a binary indicator for disagreeing that intelligence cannot change, based on ST420Q01DA. A coefficient for growth mindset is consequently a change in probability, not a change in standard deviations.
+
+The continuous scales retain the fixed standardisation used in the existing analysis: a common reference standard deviation calculated from the wider original analytic sample with equal country weights. They have not been standardised again for these seven countries. The measure therefore supports comparisons of slopes on a fixed scale, but it is not a country-specific standard deviation. Kazakhstan does not have a usable perseverance scale in the saved analysis. Its joint block contains six dispositions; the other countries' blocks contain seven.
+
+Student controls comprise sex, age, grade relative to the country's modal grade, grade repetition, immigrant background and language used at home. The school-adjusted specification additionally includes the leave-one-out school mean of socio-economic rank, school ownership and settlement category. For deprivation, the school-level controls contain the leave-one-out means of ESCS and deprivation. These adjustments describe conditional relationships; they do not absorb all differences among schools.
+
+# Analytical approach
+
+For each country, I compare a model with student controls to one that adds the school variables. Let $T_i$ denote socio-economic rank in ten-percentile-point units, $M_i$ a reported disposition and $Y_i$ achievement. The single-mediator specification is
+
+$$
+M_i = a_0 + a_1T_i + X_i'a_2 + u_i, \qquad
+Y_i = b_0 + b_1T_i + b_2M_i + X_i'b_3 + v_i.
+$$
+
+The product $a_1b_2$ measures the indirect association in this linear specification. $X_i$ contains the relevant student or student-and-school controls. The binary growth-mindset measure uses a linear probability model in the first equation. The model assumes an additive relationship and no exposure-by-mediator interaction. Country-specific student weights are used throughout.
+
+The causal mediation framework clarifies what would be required to interpret this product causally: adequate control of exposure-outcome, exposure-mediator and mediator-outcome confounding, as well as restrictions on confounders affected by the exposure [@imai2010statsci; @imai2010psych]. These conditions are demanding here. Prior achievement, family practices and earlier school experiences may affect both current dispositions and current achievement. I therefore refer to the estimates as indirect associations and use mediation terminology to describe the model, rather than to claim identified effects.
+
+For the joint block, the reported association is the difference between the socio-economic coefficient before and after adding all available dispositions. If these coefficients are $\tau$ and $\tau'$, the joint association is $\Delta=\tau-\tau'$ and its share is $100\Delta/\tau$. This is a conditional coefficient decomposition [@gelbach2016]. Single-mediator shares overlap because each model omits the other skills. They must not be summed, nor interpreted as each skill's unique contribution. Percentage shares are calculated within country and specification; no cross-country average is used.
+
+The student-adjusted and school-adjusted coefficients answer different conditional questions. The latter controls for measured school composition and characteristics. It is not a school fixed-effects estimator, and its coefficient should not be read as a comparison of otherwise equivalent classmates. Likewise, the difference between the two specifications does not identify a causal contribution of school sorting.
+
+The headline point estimates use the existing mediation and coefficient-difference outputs. The single-mediator calculations use the simulation procedure implemented in the mediation package [@tingley2014]. A separate decomposition over all ten plausible values supplies the survey-based uncertainty check in @tbl-inference. Its sampling variance uses the 80 Fay replicate weights on the first plausible value, combined with variation across plausible values using the existing implementation of Rubin's rules [@rubin1987]. Because the computations use different plausible-value settings, their point estimates can differ. I report them separately rather than attach the standard error from one estimator to another. Appendix A documents the remaining inference limitations.
+
+# Results
+
+## Socio-economic differences in skills
+
+The gradients in @tbl-gradients are expressed per ten percentile points of socio-economic rank. Their magnitude needs to be assessed over a stated social distance. Under the linear specification, the fitted difference between the 10th and 90th percentiles is eight times the reported coefficient. This is a model-implied contrast, not an observed difference between the mean scores of the top and bottom deciles.
+
+```{r}
+#| label: tbl-gradients
+#| tbl-cap: "Selected skill gradients per ten percentile points of socio-economic rank. Student-adjusted coefficients in fixed-reference SD units."
+#| tbl-colwidths: [31, 16, 18, 17, 18]
+#| results: asis
+print_table(table_gradients())
+```
+
+*Note:* The Uzbekistan (science) row uses the analytic sample for its science outcome. Perseverance is unavailable for Kazakhstan. These slopes come from the all-plausible-value decomposition; standardisation is described in Section 3.3.
+
+For curiosity, the implied 10th-to-90th-percentile difference is `r gf('Azerbaijan','pi_CURIO',8)` reference SD in Azerbaijan and `r gf('Kazakhstan','pi_CURIO',8)` in Kazakhstan. The corresponding differences are `r gf('Georgia','pi_CURIO',8)` in Georgia, `r gf('Moldova','pi_CURIO',8)` in Moldova, `r gf('Kyrgyzstan','pi_CURIO',8)` in Kyrgyzstan and `r gf('Armenia','pi_CURIO',8)` in Armenia. For Uzbekistan's science sample, the curiosity contrast is `r gf('Uzbekistan','pi_CURIO',8)` SD. In Azerbaijan and Kazakhstan, the fitted difference thus exceeds one-third of a reference standard deviation.
+
+The pattern is also skill-specific. Goal setting has a steeper gradient than curiosity in Georgia, Kazakhstan and Moldova. In the Uzbekistan science sample, its implied percentile contrast is `r gf('Uzbekistan','pi_GOALSET',8)` SD. Self-regulated learning has a much smaller positive gradient in Georgia, Kyrgyzstan and Moldova, while Armenia's estimate is negative. This variation already argues against describing an undifferentiated socio-emotional advantage.
+
+## The achievement gradient and the joint skill block
+
+@tbl-joint reports achievement gradients and joint shares separately. In Azerbaijan, the student-adjusted reading gradient is `r mf('Azerbaijan',spec='total')` points per ten percentile points of rank and the school-adjusted gradient is `r mf('Azerbaijan')`. In Georgia the corresponding values are `r mf('Georgia',spec='total')` and `r mf('Georgia')`; in Kyrgyzstan they are `r mf('Kyrgyzstan',spec='total')` and `r mf('Kyrgyzstan')`. These reductions show that measured school composition and characteristics matter for the conditional association. They do not reveal how much inequality would disappear if school allocation changed.
+
+```{r}
+#| label: tbl-joint
+#| tbl-cap: "Socio-economic achievement gradients and the joint skill association, by country. All score-point quantities are per ten percentile points of rank."
+#| tbl-colwidths: [29, 14, 14, 14, 14, 15]
+#| results: asis
+print_table(table_joint())
+```
+
+*Note:* Student adj. and School adj. are the achievement gradients before including skills. Joint pts is the coefficient reduction after all available skills are added to the school-adjusted model. Share S and Share H are joint shares (%) in the student-adjusted and school-adjusted specifications, respectively. Shares are averaged within country over plausible values, so may differ slightly from ratios of displayed coefficients. Kazakhstan's block omits perseverance. The remaining cases use seven dispositions. Survey-based uncertainty for the companion decomposition is in @tbl-inference.
+
+Kazakhstan and Moldova illustrate why a larger share is not necessarily a larger score-point association. Kazakhstan has a school-adjusted gradient of `r mf('Kazakhstan')` reading points, of which the skill block accounts for `r mf('Kazakhstan','acme')` points. Moldova's gradient is `r mf('Moldova')` points and its joint association is `r mf('Moldova','acme')` points. The resulting shares are `r mp('Kazakhstan')`% and `r mp('Moldova')`%. The difference in block composition further limits a direct ranking of these percentages.
+
+Armenia's school-adjusted joint association is `r mf('Armenia','acme')` reading points, or `r mp('Armenia')`%. This estimate warrants particular caution because its survey-based companion is imprecise and the sample-selection checks change its interpretation. Uzbekistan's science gradient is `r mf('Uzbekistan')` points after school adjustment, with a joint association of `r mf('Uzbekistan','acme')` points and a share of `r mp('Uzbekistan')`%. That result describes inequality in science within Uzbekistan; it does not establish that skills explain more reading inequality there than elsewhere.
+
+## The relevant dispositions differ across countries
+
+@tbl-pathways reports the single-mediator shares. These are overlapping descriptive pathways, not an allocation of the joint share. The table retains small and negative estimates, since omitting them would distort the country profiles.
+
+```{r}
+#| label: tbl-pathways
+#| tbl-cap: "Single-mediator shares (%) of the school-adjusted socio-economic gradient."
+#| tbl-colwidths: [30, 10, 10, 10, 10, 10, 10, 10]
+#| results: asis
+print_table(table_pathways())
+```
+
+*Note:* Pers. = perseverance; Cur. = curiosity; Problem = enjoyment of problem-solving; Adapt. = cognitive adaptability; Goals = goal setting; Self-reg. = self-regulated learning; Growth = growth mindset. Each cell comes from a separate model. Shares cannot be added and are not tests of differences between countries or between mediators. Outcome: reading except Uzbekistan (science).
+
+In Azerbaijan, curiosity accounts for `r mp('Azerbaijan','Curiosity')`% and perseverance for `r mp('Azerbaijan','Perseverance')`% of the reading gradient. Enjoyment of problem-solving also contributes a sizeable single-mediator association, at `r mp('Azerbaijan','Problem-solving enjoyment')`%. Georgia has a broader profile: curiosity is associated with `r mp('Georgia','Curiosity')`%, goal setting with `r mp('Georgia','Goal setting')`%, perseverance with `r mp('Georgia','Perseverance')`%, and problem-solving enjoyment with `r mp('Georgia','Problem-solving enjoyment')`%. Goal setting is therefore difficult to dismiss as irrelevant on the basis of the country evidence.
+
+Kazakhstan's largest observed pathway is curiosity, at `r mp('Kazakhstan','Curiosity')`%, followed by enjoyment of problem-solving at `r mp('Kazakhstan','Problem-solving enjoyment')`%. The unavailable perseverance measure prevents a complete comparison with the other countries. In Kyrgyzstan, curiosity and perseverance have similar point estimates, at `r mp('Kyrgyzstan','Curiosity')`% and `r mp('Kyrgyzstan','Perseverance')`%. Moldova likewise shows a prominent association for both: `r mp('Moldova','Curiosity')`% for curiosity and `r mp('Moldova','Perseverance')`% for perseverance.
+
+Armenia's curiosity share is `r mp('Armenia','Curiosity')`%, while self-regulated learning has a negative estimate of `r mp('Armenia','Self-regulated learning')`%. A negative component can offset positive ones in a joint model, but these single-mediator quantities do not form an additive decomposition. Nor does the sign establish that self-regulation harms learning. The result may reflect measurement, conditional associations and selection into the small analytic sample.
+
+Uzbekistan's science profile includes curiosity (`r mp('Uzbekistan','Curiosity')`%), problem-solving enjoyment (`r mp('Uzbekistan','Problem-solving enjoyment')`%), goal setting (`r mp('Uzbekistan','Goal setting')`%) and perseverance (`r mp('Uzbekistan','Perseverance')`%). This breadth is a reason to retain the science case with its own interpretation. Across the individual country profiles, growth mindset has a positive point estimate, but the separate models do not establish an independent contribution beyond the continuous scales.
+
+## Material deprivation changes the country-specific interpretation
+
+@tbl-deprivation presents the six reading-country results for an additional item the family cannot afford, conditional on ESCS and the other controls. The reading association is `r mf('Azerbaijan',exposure='dep')` points in Azerbaijan, `r mf('Georgia',exposure='dep')` in Georgia, `r mf('Kazakhstan',exposure='dep')` in Kazakhstan, `r mf('Kyrgyzstan',exposure='dep')` in Kyrgyzstan, `r mf('Moldova',exposure='dep')` in Moldova and `r mf('Armenia',exposure='dep')` in Armenia. The item sets differ, so these are country-specific gradients rather than comparable effects of a standardised resource loss.
+
+```{r}
+#| label: tbl-deprivation
+#| tbl-cap: "Material deprivation and reading: school-adjusted associations conditional on ESCS."
+#| tbl-colwidths: [20, 12, 12, 12, 11, 11, 11, 11]
+#| results: asis
+print_table(table_dep())
+```
+
+*Note:* Gradient and Joint pts are reading-point associations per additional unaffordable item. The positive joint shares express the fraction of a negative achievement association accounted for by the skill block. The final three columns are overlapping single-mediator shares. Samples require complete deprivation responses. No matching science deprivation results are available for Uzbekistan.
+
+The contrast between status and hardship is clearest in Georgia. Curiosity accounts for `r mp('Georgia','Curiosity')`% of the rank gradient but only `r mp('Georgia','Curiosity',exposure='dep')`% of the deprivation gradient; perseverance accounts for `r mp('Georgia','Perseverance',exposure='dep')`% of the latter. Azerbaijan also shows a larger deprivation share for perseverance (`r mp('Azerbaijan','Perseverance',exposure='dep')`%) than curiosity (`r mp('Azerbaijan','Curiosity',exposure='dep')`%). In Moldova, both remain substantial, at `r mp('Moldova','Perseverance',exposure='dep')`% and `r mp('Moldova','Curiosity',exposure='dep')`%, respectively.
+
+Other cases resist a general claim that deprivation operates mainly through effort. Kazakhstan's curiosity share is `r mp('Kazakhstan','Curiosity',exposure='dep')`%; Armenia's is `r mp('Armenia','Curiosity',exposure='dep')`%. In Kyrgyzstan, growth mindset has a share of `r mp('Kyrgyzstan','Growth mindset',exposure='dep')`%, curiosity `r mp('Kyrgyzstan','Curiosity',exposure='dep')`%, and perseverance `r mp('Kyrgyzstan','Perseverance',exposure='dep')`%. These comparisons describe associations at a given ESCS. They do not show that hardship changes a particular disposition or that changing the disposition offsets hardship.
+
+## Uncertainty and sample selection
+
+The companion estimates in @tbl-inference preserve the distinction between magnitude and precision. Armenia's joint score-point association is `r fmt(G('Armenia','explained'),2)` with a standard error of `r fmt(G('Armenia','explained','se'),2)`. Its positive point estimate therefore offers limited evidence about the direction of the population association. Percentage shares are especially sensitive when the underlying gradient is imprecisely estimated. The tables do not support treating small differences in country shares as established differences in mechanisms.
+
+The existing robustness checks are also country-specific (@tbl-robustness). Armenia's joint share changes from 11.4% in the corresponding baseline decomposition to 4.2% in the modal-grade sample and -14.4% with nonresponse weights. In Kyrgyzstan, it changes from 17.7% to 15.8% and 24.3%. These are substantively relevant changes. Azerbaijan's respective shares are 29.9%, 28.7% and 29.2%; Georgia's are 29.9%, 28.3% and 30.8%. Kazakhstan's are 35.7%, 32.7% and 37.1%, while Moldova's are 22.2%, 26.5% and 22.0%. This evidence supports different degrees of confidence across the reading cases. Equivalent science checks are unavailable for Uzbekistan.
+
+Residual-correlation sensitivity calculations provide an additional check on the single-mediator models. For curiosity, the saved zero-crossing values are 0.20 in Azerbaijan, Kazakhstan and Kyrgyzstan; 0.25 in Armenia and Georgia; and 0.25 in Moldova. Uzbekistan's science value is 0.20. These values are the modelled mediator-outcome residual correlations at which the indirect association reaches zero. Their substantive importance depends on plausible unmeasured confounders and on the coarse grid used in estimation. They neither establish robustness to prior achievement nor turn the point estimates into upper bounds on causal effects.
+
+# Discussion
+
+The country evidence supports a differentiated account of socio-emotional skills and inequality. Kazakhstan's observed reading profile gives particular prominence to curiosity, while Azerbaijan and Moldova show substantial associations for perseverance as well. Georgia's goal-setting result complicates a simple distinction between intellectual engagement and the organisation of effort. The Uzbek science case also has a broad profile, although its outcome prevents a direct reading comparison. Armenia demonstrates why a country narrative should remain conditional on sample selection and precision.
+
+These findings qualify interpretations that place curiosity and diligence in opposition. In Georgia, the rank and deprivation results point towards different dispositions; in Moldova, curiosity and perseverance remain relevant to both measures of disadvantage. The evidence is consistent with several aspects of social reproduction, but it does not measure the family practices or institutional processes that would distinguish them. Claims about inherited school cultures, institutional strength or the preferences of employers would require information beyond these student questionnaires and test scores.
+
+For policy, the analysis identifies relationships worth examining within particular education systems. Kazakhstan's curiosity association motivates investigation of unequal opportunities to engage with challenging material. Azerbaijan's and Moldova's perseverance results motivate attention to the conditions under which students sustain effort. These are proposals for further study, not estimates of programme returns. Support for material resources, instructional quality or student well-being may affect both reported dispositions and achievement. The present models cannot determine which intervention would be most effective.
+
+Three limitations are central. First, simultaneous measurement and the absence of prior achievement prevent a convincing causal ordering of skills and learning. Second, self-report scales may reflect differences in reference groups and reporting standards as well as differences in underlying skills [@west2016]. Common numerical standardisation does not establish measurement equivalence. Third, complete-case selection may alter country gradients; Armenia's reweighting result makes this concern concrete. The inherited reference scaling, Kazakhstan's missing perseverance measure and Uzbekistan's different outcome further constrain comparisons.
+
+The next stage of analysis should therefore focus on within-country measurement and identification. A harmonised treatment of plausible values and survey uncertainty is needed for the mediation estimates, alongside a closer investigation of nonresponse in Armenia. Longitudinal evidence or evaluated interventions would be required to distinguish skills as causes of learning from skills as responses to earlier educational experiences. The present results supply a country-specific starting point for that work.
+
+# Conclusion
+
+Socio-emotional skills are associated with socio-economic inequalities in learning, but the relevant dispositions and the strength of the evidence differ by country. Curiosity is prominent in Kazakhstan's reading results; perseverance also matters in Azerbaijan and Moldova; and Georgia's profile includes goal setting. Kyrgyzstan's findings depend more on the sample-selection adjustment, while Armenia's positive baseline association is not stable. Uzbekistan contributes a separate science case with associations spanning several dispositions.
+
+These differences are lost when the analysis is reduced to a regional percentage or a single account of which skill transmits advantage. Reporting country-specific score-point associations, shares and sensitivity checks makes the evidence more informative. It also keeps the interpretation within the limits of the design: the estimates describe conditional associations and suggest questions for educational policy, while the effects of changing students' skills remain to be established.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+\newpage
+
+# Appendix A. Uncertainty and robustness {.unnumbered}
+
+## Survey-based companion estimates {.unnumbered}
+
+@tbl-inference reports the joint coefficient decomposition with all ten plausible values. Parentheses contain the saved standard errors. The existing variance routine calculates Fay balanced repeated replication sampling variance on the first plausible value and adds the between-plausible-value component. This is distinct from the model-based simulation uncertainty in the mediation outputs, which does not use the replicate weights. The table is an uncertainty check on the joint association, not a set of standard errors for the exact point estimates in @tbl-joint.
+
+```{r}
+#| label: tbl-inference
+#| tbl-cap: "Companion joint decomposition with survey-based standard errors, school-adjusted specification. Reading except Uzbekistan (science)."
+#| tbl-colwidths: [31, 22, 22, 25]
+#| results: asis
+print_table(table_inference())
+```
+
+The mediation scripts support a principal setting with five plausible values and 500 simulation draws, and a reduced setting with two plausible values and 200 draws. The saved CSVs do not record the settings for each run; some mediator rows were updated separately. Consequently, this draft preserves the existing point estimates without claiming an identical simulation configuration across all rows. In the Armenian reading output, for example, the growth-mindset model has a different stored total gradient from the joint model. A common inference and run-provenance specification remains necessary before final submission. No new estimation is used in this draft.
+
+## Alternative samples and nonresponse weights {.unnumbered}
+
+```{r}
+#| label: tbl-robustness
+#| tbl-cap: "Joint share (%) of the reading gradient under alternative samples or weights, school-adjusted specification."
+#| tbl-colwidths: [31, 20, 23, 26]
+#| results: asis
+print_table(table_robust())
+```
+
+*Note:* These shares are the ratio of the saved joint coefficient reduction to the saved baseline gradient in each decomposition. They can differ slightly from shares averaged across plausible values. Modal grade restricts the sample to students in the country's modal grade. Response weights use the existing inverse-probability adjustment for item nonresponse. Kazakhstan's block omits perseverance. Matching science robustness outputs are unavailable for Uzbekistan.

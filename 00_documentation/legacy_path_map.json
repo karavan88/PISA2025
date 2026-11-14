@@ -1,0 +1,134 @@
+[
+  {
+    "alias": "02_scripts/paperA",
+    "target": "05_papers/02_paperA/01_code"
+  },
+  {
+    "alias": "04_manuscripts/paperA",
+    "target": "05_papers/02_paperA/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/paperA",
+    "target": "05_papers/02_paperA/04_output"
+  },
+  {
+    "alias": "04_manuscripts/paperA_eap",
+    "target": "05_papers/03_paperA_eap/03_manuscript"
+  },
+  {
+    "alias": "02_scripts/paperB",
+    "target": "05_papers/04_paperB/01_code"
+  },
+  {
+    "alias": "04_manuscripts/paperB",
+    "target": "05_papers/04_paperB/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/paperB",
+    "target": "05_papers/04_paperB/04_output"
+  },
+  {
+    "alias": "02_scripts/paperC",
+    "target": "05_papers/05_paperC/01_code"
+  },
+  {
+    "alias": "04_manuscripts/paperC",
+    "target": "05_papers/05_paperC/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/paperC",
+    "target": "05_papers/05_paperC/04_output"
+  },
+  {
+    "alias": "02_scripts/sestransmit",
+    "target": "05_papers/06_sestransmit/01_code"
+  },
+  {
+    "alias": "04_manuscripts/sestransmit",
+    "target": "05_papers/06_sestransmit/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/sestransmit",
+    "target": "05_papers/06_sestransmit/04_output"
+  },
+  {
+    "alias": "02_scripts/schoolgain",
+    "target": "05_papers/07_schoolgain/01_code"
+  },
+  {
+    "alias": "04_manuscripts/schoolgain",
+    "target": "05_papers/07_schoolgain/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/schoolgain",
+    "target": "05_papers/07_schoolgain/04_output"
+  },
+  {
+    "alias": "02_scripts/skillsgain",
+    "target": "05_papers/08_skillsgain/01_code"
+  },
+  {
+    "alias": "04_manuscripts/skillsgain",
+    "target": "05_papers/08_skillsgain/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/skillsgain",
+    "target": "05_papers/08_skillsgain/04_output"
+  },
+  {
+    "alias": "02_scripts/gradegain",
+    "target": "05_papers/09_gradegain/01_code"
+  },
+  {
+    "alias": "04_manuscripts/gradegain",
+    "target": "05_papers/09_gradegain/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/gradegain",
+    "target": "05_papers/09_gradegain/04_output"
+  },
+  {
+    "alias": "02_scripts/resilwb",
+    "target": "05_papers/10_resilwb/01_code"
+  },
+  {
+    "alias": "03_outputs/resilwb",
+    "target": "05_papers/10_resilwb/04_output"
+  },
+  {
+    "alias": "02_scripts/epf_postsoviet",
+    "target": "05_papers/11_epf_postsoviet/01_code"
+  },
+  {
+    "alias": "04_manuscripts/epf_postsoviet",
+    "target": "05_papers/11_epf_postsoviet/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/epf_postsoviet",
+    "target": "05_papers/11_epf_postsoviet/04_output"
+  },
+  {
+    "alias": "02_scripts/caucasus_central_asia",
+    "target": "05_papers/12_caucasus_central_asia/01_code"
+  },
+  {
+    "alias": "04_manuscripts/caucasus_central_asia",
+    "target": "05_papers/12_caucasus_central_asia/03_manuscript"
+  },
+  {
+    "alias": "03_outputs/caucasus_central_asia",
+    "target": "05_papers/12_caucasus_central_asia/04_output"
+  },
+  {
+    "alias": "02_scripts/ijed_ses_seg",
+    "target": "05_papers/01_SESTransmission/01_code"
+  },
+  {
+    "alias": "03_outputs/ijed_ses_seg",
+    "target": "05_papers/01_SESTransmission/04_output"
+  },
+  {
+    "alias": "04_manuscripts/ijed_ses_seg",
+    "target": "05_papers/01_SESTransmission/03_manuscript"
+  }
+]

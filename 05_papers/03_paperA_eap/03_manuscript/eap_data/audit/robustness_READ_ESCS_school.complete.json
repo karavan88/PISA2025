@@ -1,0 +1,15 @@
+{
+  "id": "robustness_READ_ESCS_school",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/07_robustness.R"
+  ],
+  "domain": "READ",
+  "exposure": "ESCS",
+  "specification": "school-adjusted",
+  "started": "2026-09-27 12:53:24",
+  "status": "complete",
+  "elapsed_seconds": 34.2,
+  "script_signature": "52b24883fe476b3cd9ee8c0799d8a7280bc4de8b4e50d55e1e360b2fd0f70b3f",
+  "finished": "2026-09-27 12:53:59"
+}

@@ -1,0 +1,348 @@
+---
+title: "Which inputs close the gap? Distributional education production functions in seven post-Soviet systems (PISA 2025)"
+subtitle: "Analysis report — research questions, models and code, results, and the mapping of results to each question. All estimates are read from saved CSV outputs; nothing is re-estimated at render time."
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+params:
+  domain: "SCIE"
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", ".."))
+DOMAIN <- params$domain
+OUT <- file.path(ROOT, "03_outputs", "epf_postsoviet", DOMAIN)
+Sys.setenv(PISA_DOMAIN = DOMAIN)
+source(file.path(ROOT, "02_scripts/epf_postsoviet/00_helpers.R"))
+rd_csv <- function(f) { p <- file.path(OUT, f); if (file.exists(p)) fread(p) else NULL }
+rd_many <- function(prefix) { fs <- list.files(OUT, pattern = paste0("^", prefix, "_[A-Z]{3}\\.csv$"), full.names = TRUE); if (length(fs)) rbindlist(lapply(fs, fread), fill = TRUE) else NULL }
+flow  <- fread(file.path(ROOT, "03_outputs/epf_postsoviet/sample_flow.csv"))
+desc  <- rd_csv("desc_systems.csv"); icc <- rd_csv("desc_icc.csv"); icc_c <- rd_csv("mean_icc.csv"); corr <- rd_csv("desc_corr.csv")
+bm    <- rd_csv("desc_birthmonth.csv"); sel <- rd_csv("desc_entry_selection.csv")
+mm    <- rd_csv("mean_models.csv"); mm_lin <- rd_csv("mean_models_agelinear.csv"); mm_non <- rd_csv("mean_models_agenone.csv")
+lq    <- rd_many("lqmm"); med <- rd_many("mediation")
+if (!is.null(lq)) { lq[, tau := as.character(tau)]; lq <- unique(lq, by = c("CNT", "model", "tau", "term")) }
+sys_order <- c("KAZ", "UZB", "AZE", "GEO", "ARM", "KGZ", "MDA")
+lab <- function(x) factor(PS_NAMES[as.character(x)], levels = PS_NAMES[sys_order])
+tl  <- function(t) { t <- as.character(t); ifelse(t %in% names(term_lab), term_lab[t], t) }
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999")
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+ci  <- function(e, s) paste0(f1(e), " [", f1(e - 1.96 * s), ", ", f1(e + 1.96 * s), "]")
+star <- function(e, s) paste0(f1(e), ifelse(abs(e / s) > 1.96, "*", ""))
+# Quantile contrast beta(0.25) - beta(0.75). Outputs produced after 1 Oct carry it with a bootstrap SE (tau == "0.25-0.75");
+# older outputs get an approximation that treats the two quantile estimates as independent (conservative, since they are positively correlated).
+contrast_exact <- !is.null(lq) && any(lq$tau == "0.25-0.75")
+contrasts <- function(dt, model_name, terms) {
+  x <- dt[model == model_name & term %in% terms]
+  if (contrast_exact) { k <- x[tau == "0.25-0.75", .(CNT, term, diff = est, diff_se = se)] }
+  else { w <- dcast(x[tau %in% c("0.25", "0.75")], CNT + term ~ tau, value.var = c("est", "se")); k <- w[, .(CNT, term, diff = est_0.25 - est_0.75, diff_se = sqrt(se_0.25^2 + se_0.75^2))] }
+  e <- dcast(x[tau %in% c("0.25", "0.5", "0.75")], CNT + term ~ tau, value.var = "est"); setnames(e, c("0.25", "0.5", "0.75"), c("b25", "b50", "b75"))
+  k <- merge(e, k, by = c("CNT", "term")); k[, z := diff / diff_se]
+  k[, verdict := fifelse(z > 1.96, "compresses (favours low achievers)", fifelse(z < -1.96, "widens (favours high achievers)", "uniform"))]
+  k
+}
+summ_contrast <- function(k) k[, .(`median β(.25)` = f1(median(b25)), `median β(.75)` = f1(median(b75)), `median contrast` = f1(median(diff)),
+                                   `compresses` = sum(verdict %like% "compresses"), `widens` = sum(verdict %like% "widens"), `uniform` = sum(verdict == "uniform"), systems = .N), by = term]
+profile_note <- if (!is.null(lq)) paste0(unique(lq$profile), " profile: ", unique(lq$n_pv), " plausible value(s) in lqmm, ", unique(lq$n_boot), " bootstrap draws") else "lqmm outputs not yet available"
+```
+
+::: {.callout-note}
+**Status.** Domain: **`r dom_lab`**. Quantile mixed models: `r profile_note`. Quantile contrasts: `r if (contrast_exact) "bootstrap SE of the difference" else "approximate SE (independence of the two quantile estimates assumed; exact bootstrap SE produced by the next run of 06_lqmm.R)"`. Mediation outputs: `r if (!is.null(med)) paste(sort(unique(med$CNT)), collapse = ", ") else "not yet run (requires the mediation package)"`. Everything in this report is read from `03_outputs/epf_postsoviet/`; re-run `02_scripts/epf_postsoviet/run_all_estimation.sh` to update.
+:::
+
+# Research questions and hypotheses
+
+The paper asks where in the achievement distribution the inputs of the education production function do their work, and whether the socio-emotional skills students bring to school are a channel through which socio-economic disadvantage — their own and their school's — reaches learning. Every question is answered system by system (Kazakhstan, Uzbekistan, Azerbaijan, Georgia, Armenia, Kyrgyzstan, Moldova) and summarised by the median across systems; no pooled model is estimated. Grade and birth month enter every model as controls, not as objects of interest.
+
+The organising device is the pair of coefficients an input receives at the 25th and 75th conditional percentiles of the score. Their difference, β(.25) − β(.75), has three readable outcomes: positive means the input raises low achievers more than high achievers and so *compresses* the distribution (a gap-closing input); negative means it *widens* it; zero means it lifts everyone and the gap persists.
+
+| | Research question | Hypothesis | Model | Quantity | Decision rule |
+|---|---|---|---|---|---|
+| RQ1 | Does socio-economic disadvantage — the student's own ESCS and the socio-economic composition of the school — bear more heavily on low or on high achievers? | H1: both gradients are at least as large at the 25th as at the 75th percentile (inequality is reproduced along the whole distribution, not only at the top). | lqmm core, τ ∈ {.25, .50, .75}, school random intercept | β_τ for ESCS percentile rank and for LOO school-mean ESCS; contrast β(.25) − β(.75) | contrast > 0 and significant → compresses; < 0 → widens; otherwise uniform |
+| RQ2 | Which school inputs that are policy levers — staffing and material shortages, class size, student–teacher ratio, certified teachers, infrastructure, language of instruction, rural location, SEL policy — matter more for low achievers? | H2: shortage and location inputs bite at the bottom of the distribution; composition and language effects are uniform. | lqmm core | β_τ for each school input; contrast | as above, input by input |
+| RQ3 | Do socio-emotional skills (Big Five domains) pay off more for low achievers than for high achievers? | H3: task performance and open-mindedness have larger associations at the 25th than at the 75th percentile. | lqmm skills (core + four domain scores), skills sample with IPW | β_τ for task, open-mindedness, adaptability, growth mindset; contrast | as above |
+| RQ4 | Is a share of the socio-economic gradient at the 25th percentile transmitted through socio-emotional skills — i.e. are skills a plausible channel for closing the gap? | H4: a non-trivial share (≥ 10 %) of the own-ESCS gradient and of the school-composition gradient at the 25th percentile is mediated by the four skills. The alternative (direct gradient, no skill channel) is the reading in which composition works through the system itself. | Causal mediation (Imai–Keele–Tingley, `mediation`), outcome model = quantile regression at τ = .25; mean model as comparison | ACME, ADE, total effect, mediated share, per exposure and mediator; joint four-skill block | mediated share with its interval; ≥ 10 % counted as substantial |
+
+Two descriptive elements frame the results: the share of achievement variance between schools (ICC) per system, and the conditional grade gradient — the achievement difference between students of the same birth month in adjacent grades — which is reported in the appendix and is not interpreted as a learning gain.
+
+# Data and sample
+
+PISA 2025 public-use files for the seven systems. Every sampled student was born in 2009, so age varies only by birth month and the age controls are twelve birth-month indicators. The estimation sample is students in general programmes (ISCED 244/344) in the modal grade or one grade either side, with ESCS, birth month, sex and school covariates observed; vocational programmes at age 15 (Kazakhstan 13 %, Moldova 7 %, Kyrgyzstan 2 %) are excluded. The skills sample additionally requires all socio-emotional scales and the growth-mindset item and is re-weighted by inverse-probability weights for questionnaire completion (Armenia loses 73 % of students at this step and is kept with that caveat).
+
+```{r tbl-flow}
+fl <- dcast(flow, step ~ CNT, value.var = "n"); setcolorder(fl, c("step", sys_order))
+fl[, step := factor(step, levels = unique(flow$step))]; setorder(fl, step)
+kable(fl, format.args = list(big.mark = ","), caption = "Sample flow by system (students)")
+```
+
+```{r tbl-desc}
+if (!is.null(desc)) {
+  d <- desc[, .(System = PS_NAMES[CNT], Students = n, Schools = schools, `Modal grade` = modal_grade, `Mean score (SE)` = paste0(f1(est_score), " (", f1(se_score), ")"), SD = f1(est_sd),
+                `Below Level 2 (%)` = round(100 * est_below_L2), `ESCS mean` = f2(ESCS), `Russian-medium (%)` = round(100 * rus_medium), `Rural (%)` = round(100 * rural), `Skills sample` = skills_n)]
+  d <- d[match(PS_NAMES[sys_order], System)][!is.na(System)]
+  kable(d, caption = paste0("System descriptives, ", dom_lab, " (weighted; BRR + PV standard errors)"))
+}
+```
+
+```{r fig-icc, fig.height=4, fig.cap="Share of score variance between schools: unconditional (null model) and conditional on the core covariates."}
+if (!is.null(icc)) {
+  ic <- merge(icc, icc_c, by = "CNT", all.x = TRUE)
+  im <- melt(ic[, .(System = lab(CNT), Unconditional = icc, `Conditional (core model)` = icc_conditional)], id.vars = "System")
+  ggplot(im, aes(x = value, y = System, colour = variable)) + geom_point(size = 3) + scale_colour_manual(values = okabe[1:2], name = NULL) +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) + labs(x = "ICC (school level)", y = NULL)
+}
+```
+
+# Models and code
+
+The scripts live in `02_scripts/epf_postsoviet/`; the chunks below show the estimation code that answers each question (not evaluated here — the report reads the CSVs the scripts write).
+
+## Common specification (RQ1–RQ3): linear quantile mixed model
+
+One model per system, school random intercept, three quantiles in one call. The score is fitted in hundreds of points because `lqmm`'s C routines overflow on raw PISA points at Kazakhstan's sample size; coefficients are rescaled afterwards. `lqmm` takes cluster-level weights, so the school mean of the final student weight (normalised) is used, with the inverse-probability weight folded in for the skills model.
+
+```{r code-lqmm, eval=FALSE, echo=TRUE}
+# 06_lqmm.R (excerpt) — one system, both model sets
+student_ctrl <- c("female", "lang_other", "immigrant", "repeated")
+hh_ctrl      <- c("ESCS_pct10")                       # within-system percentile rank of ESCS, per 10 points
+school_ctrl  <- c("sch_escs_loo", "rural", "private", "clsize", "stratio_med", "proatce",
+                  "STAFFSHORT", "EDUSHORT", "infra_poor", "rus_medium", "sel_policy")
+skill_dom    <- c("task", "open", "adapt", "growth")  # Big Five domain scores (sample-standardised) + binary growth mindset
+rhs_core     <- c("grade_c", "bmonth", student_ctrl, hh_ctrl, school_ctrl)   # grade and birth-month dummies are controls
+
+fit <- lqmm(fixed  = y ~ grade_c + bmonth + female + lang_other + immigrant + repeated + ESCS_pct10 +
+                        sch_escs_loo + rural + private + clsize + stratio_med + proatce + STAFFSHORT +
+                        EDUSHORT + infra_poor + rus_medium + sel_policy,          # + task + open + adapt + growth in the skills model
+            random = ~ 1, group = school, tau = c(.25, .50, .75), nK = 7, type = "normal",
+            data = df, weights = df$w_school, control = lqmmControl(LP_max_iter = 2000, UP_max_iter = 50))
+b   <- boot(fit, R = NBOOT, seed = 20260930)          # school block bootstrap; array R x term x tau
+est <- coef(fit) * 100                                 # back to PISA points
+se  <- apply(b[, rownames(coef(fit)), ], c(2, 3), sd, na.rm = TRUE) * 100
+# the test of RQ1–RQ3: does the input compress or widen the conditional distribution?
+diff_draws <- (b[, , "tau = 0.25"] - b[, , "tau = 0.75"]) * 100
+contrast   <- data.table(term = rownames(coef(fit)), est = est[, 1] - est[, 3], se = apply(diff_draws, 2, sd, na.rm = TRUE))
+# FULL profile: point estimates averaged over 10 plausible values, between-PV variance added (Rubin); bootstrap on PV1.
+```
+
+## RQ4: causal mediation at the 25th percentile
+
+Two exposures (own ESCS percentile rank, conditional on school composition; LOO school-mean ESCS, conditional on own ESCS), four mediators one at a time, the joint block as total minus direct. The outcome model is `quantreg::rq` at τ = .25, which `mediation::mediate` accepts; the mediator model is linear (a linear-probability model for the binary growth mindset). Random intercepts are not available inside `mediate`; the leave-one-out school mean is what absorbs sorting into schools.
+
+```{r code-med, eval=FALSE, echo=TRUE}
+# 10_mediation.R (excerpt) — one system, one exposure, one mediator, quantile outcome model
+ctrl <- c("sch_escs_loo", "grade_c", "bmonth", student_ctrl, setdiff(school_ctrl, "sch_escs_loo"))   # when the exposure is ESCS_pct10
+f_m  <- task ~ ESCS_pct10 + <ctrl>                                   # mediator model (lm, weights = IPW x student weight)
+f_y  <- y    ~ task + ESCS_pct10 + <ctrl>                            # outcome model
+mm   <- lm(f_m, data = d, weights = w)
+my   <- rq(f_y, tau = 0.25, data = d, weights = w)                   # or lm(...) for the mean comparison
+med  <- mediate(mm, my, treat = "ESCS_pct10", mediator = "task", sims = 1000, control.value = 0, treat.value = 1)
+c(ACME = med$d0, ADE = med$z0, total = med$tau.coef, share = med$n0)
+# joint block: coef on the exposure in rq(y ~ exposure + ctrl) minus coef in rq(y ~ task + open + adapt + growth + exposure + ctrl);
+# SE by school-cluster bootstrap. Repeated over PVs 1,3,5,7,9 and Rubin-combined in the FULL profile.
+```
+
+## Inference
+
+Mean models (appendix) use all ten plausible values with Fay's BRR replicate weights. Quantile models use the school block bootstrap (`boot.lqmm`) for sampling variance and, in the FULL profile, add the between-PV variance. The quantile contrast's standard error comes from the bootstrap draws of the difference, so the positive correlation between β(.25) and β(.75) is respected; where the saved output predates that addition the report approximates it assuming independence, which is conservative.
+
+# Results
+
+## RQ1 — Socio-economic gradients across the distribution
+
+```{r fig-rq1, fig.cap="Own-ESCS gradient (points per 10 percentile points) and school-composition gradient (points per index unit of LOO school-mean ESCS) at the 25th, 50th and 75th conditional percentiles, by system; 95% CI."}
+if (!is.null(lq)) {
+  g <- lq[model == "core" & term %in% c("ESCS_pct10", "sch_escs_loo") & tau %in% c("0.25", "0.5", "0.75")]; g[, System := lab(CNT)]; g[, Term := tl(term)]
+  ggplot(g, aes(x = tau, y = est, colour = System, group = System)) + geom_hline(yintercept = 0, colour = "grey60") +
+    geom_pointrange(aes(ymin = est - 1.96 * se, ymax = est + 1.96 * se), position = position_dodge(width = .5), size = .3) + geom_line(position = position_dodge(width = .5), alpha = .5) +
+    facet_wrap(~Term, scales = "free_y") + scale_colour_manual(values = okabe, name = NULL) + labs(x = "Conditional quantile", y = paste0(dom_lab, " points"))
+}
+```
+
+```{r tbl-rq1}
+if (!is.null(lq)) {
+  k <- contrasts(lq, "core", c("ESCS_pct10", "sch_escs_loo"))
+  t1 <- k[, .(System = PS_NAMES[CNT], Input = tl(term), `β(.25)` = f1(b25), `β(.50)` = f1(b50), `β(.75)` = f1(b75), `β(.25) − β(.75)` = star(diff, diff_se), Verdict = verdict)]
+  kable(t1[order(Input, match(System, PS_NAMES[sys_order]))], caption = "RQ1: socio-economic gradients by quantile and the quantile contrast (* = |z| > 1.96)")
+  kable(summ_contrast(k)[, term := tl(term)], caption = "RQ1 summary across systems: medians and the number of systems in which the input compresses, widens, or acts uniformly")
+}
+```
+
+## RQ2 — School inputs across the distribution
+
+```{r fig-rq2, fig.height=9, fig.cap="School-input coefficients at the 25th, 50th and 75th conditional percentiles, by system (points per unit; 95% CI). Units: class size per student; student–teacher ratio and certified-teacher share as international quartile/quintile categories; shortage indices in WLE units; the rest are indicators."}
+if (!is.null(lq)) {
+  g <- lq[model == "core" & term %in% setdiff(school_ctrl, "sch_escs_loo") & tau %in% c("0.25", "0.5", "0.75")]; g[, System := lab(CNT)]; g[, Term := factor(tl(term), levels = tl(school_ctrl))]
+  ggplot(g, aes(x = est, y = System, colour = tau)) + geom_vline(xintercept = 0, colour = "grey60") +
+    geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), position = position_dodge(width = .6), size = .3) +
+    facet_wrap(~Term, scales = "free_x", ncol = 3, labeller = label_wrap_gen(28)) + scale_colour_manual(values = okabe[c(2, 1, 3)], name = "tau") + labs(x = "Coefficient (points)", y = NULL)
+}
+```
+
+```{r tbl-rq2}
+if (!is.null(lq)) {
+  k <- contrasts(lq, "core", setdiff(school_ctrl, "sch_escs_loo"))
+  kable(summ_contrast(k)[, term := tl(term)][order(-as.numeric(`median contrast`))], caption = "RQ2 summary across systems: school inputs ordered from most compressing to most widening (median contrast β(.25) − β(.75) in points; counts of systems by verdict)")
+  t2 <- dcast(k[, .(CNT, Input = tl(term), v = star(diff, diff_se))], Input ~ CNT, value.var = "v"); setcolorder(t2, c("Input", intersect(sys_order, names(t2))))
+  kable(t2, caption = "RQ2 detail: quantile contrast β(.25) − β(.75) by input and system, points (* = |z| > 1.96; positive = favours low achievers)")
+}
+```
+
+## RQ3 — Socio-emotional skills across the distribution
+
+```{r fig-rq3, fig.cap="Skill-domain coefficients at the 25th, 50th and 75th conditional percentiles (lqmm skills model; points per SD of the domain score, growth mindset: points for holding one; 95% CI)."}
+if (!is.null(lq) && nrow(lq[model == "skills"]) > 0) {
+  g <- lq[model == "skills" & term %in% skill_dom & tau %in% c("0.25", "0.5", "0.75")]; g[, System := lab(CNT)]; g[, Term := factor(tl(term), levels = tl(skill_dom))]
+  ggplot(g, aes(x = est, y = System, colour = tau)) + geom_vline(xintercept = 0, colour = "grey60") +
+    geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), position = position_dodge(width = .6), size = .3) + facet_wrap(~Term, ncol = 4) +
+    scale_colour_manual(values = okabe[c(2, 1, 3)], name = "tau") + labs(x = paste0(dom_lab, " points"), y = NULL)
+}
+```
+
+```{r tbl-rq3}
+if (!is.null(lq) && nrow(lq[model == "skills"]) > 0) {
+  k <- contrasts(lq, "skills", skill_dom)
+  kable(summ_contrast(k)[, term := tl(term)], caption = "RQ3 summary across systems: skill domains, medians by quantile and the number of systems in which the skill compresses, widens, or acts uniformly")
+  t3 <- k[, .(System = PS_NAMES[CNT], Skill = tl(term), `β(.25)` = f1(b25), `β(.75)` = f1(b75), `β(.25) − β(.75)` = star(diff, diff_se), Verdict = verdict)]
+  kable(t3[order(Skill, match(System, PS_NAMES[sys_order]))], caption = "RQ3 detail by system")
+}
+```
+
+```{r fig-corr, fig.height=5, fig.cap="Correlations (senate-weighted, skills sample) of the domain scores with ESCS percentile rank and with the PV1 score, by system. Weak skill–ESCS correlations mean the skills are not another SES proxy."}
+if (!is.null(corr)) {
+  c2 <- corr[x %in% c("task", "open", "adapt", "growth") & y %in% c("score", "ESCS_pct")]; c2[, System := lab(CNT)]
+  c2[, x := factor(x, levels = c("task", "open", "adapt", "growth"), labels = c("Task performance", "Open-mindedness", "Adaptability", "Growth mindset"))]; c2[, with := fifelse(y == "score", paste("with", dom_lab, "score"), "with ESCS percentile")]
+  ggplot(c2, aes(x = x, y = System, fill = r)) + geom_tile() + geom_text(aes(label = f2(r)), size = 3) + facet_wrap(~with) +
+    scale_fill_gradient2(low = okabe[2], high = okabe[1], limits = c(-.5, .5), name = "r") + labs(x = NULL, y = NULL) + theme(axis.text.x = element_text(angle = 30, hjust = 1))
+}
+```
+
+## RQ4 — Mediation of the gradient through skills at the 25th percentile
+
+```{r rq4-pending, results="asis"}
+if (is.null(med)) cat("::: {.callout-warning}\nMediation outputs are not yet available: `10_mediation.R` requires the `mediation` package, which is installed from `00_documentation/r_pkgs/` once the tarball is in place. The section fills itself when `mediation_<CNT>.csv` files exist.\n:::\n")
+```
+
+```{r tbl-rq4}
+if (!is.null(med)) {
+  m <- med[outcome_model == "q25", .(CNT, exposure = fifelse(exposure == "ESCS_pct10", "Own ESCS", "School-mean ESCS"), mediator = fifelse(mediator == "joint_block", "All four skills", tl(mediator)), v = paste0(formatC(100 * prop, format = "f", digits = 1), "% (", formatC(100 * prop_se, format = "f", digits = 1), ")"))]
+  mw <- dcast(m, exposure + mediator ~ CNT, value.var = "v"); setcolorder(mw, c("exposure", "mediator", intersect(sys_order, names(mw))))
+  mw[, mediator := factor(mediator, levels = c(tl(skill_dom), "All four skills"))]; setorder(mw, exposure, mediator)
+  kable(mw, caption = paste0("RQ4: share of the socio-economic gradient in ", dom_lab, " at the 25th percentile mediated by each skill domain, % (SE)"))
+  m2 <- med[outcome_model == "q25" & mediator == "joint_block", .(System = PS_NAMES[CNT], Exposure = fifelse(exposure == "ESCS_pct10", "Own ESCS (per 10 pct points)", "School-mean ESCS (per index unit)"),
+             `Total (points)` = f1(total), `Via skills (points)` = paste0(f1(acme), " (", f1(acme_se), ")"), `Direct (points)` = f1(ade), `Share mediated` = paste0(round(100 * prop), "%"))]
+  kable(m2[order(Exposure, match(System, PS_NAMES[sys_order]))], caption = "RQ4: decomposition of the gradient at the 25th percentile into the part transmitted through the four-skill block and the direct part")
+}
+```
+
+```{r fig-rq4, fig.height=5, fig.cap="Mediated share of the gradient, joint four-skill block: 25th percentile versus mean outcome model, by exposure and system (95% CI)."}
+if (!is.null(med)) {
+  j <- med[mediator == "joint_block"]; j[, System := lab(CNT)]; j[, exposure := fifelse(exposure == "ESCS_pct10", "Own ESCS", "School-mean ESCS")]; j[, outcome_model := fifelse(outcome_model == "q25", "25th percentile", "Mean")]
+  ggplot(j, aes(x = prop, y = System, colour = outcome_model)) + geom_vline(xintercept = 0, colour = "grey60") +
+    geom_pointrange(aes(xmin = prop - 1.96 * prop_se, xmax = prop + 1.96 * prop_se), position = position_dodge(width = .5)) + facet_wrap(~exposure) +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1)) + scale_colour_manual(values = okabe[c(2, 1)], name = NULL) + labs(x = "Mediated share of the gradient", y = NULL)
+}
+```
+
+# Mapping the results to the research questions
+
+```{r tbl-map}
+if (!is.null(lq)) {
+  k1 <- contrasts(lq, "core", c("ESCS_pct10", "sch_escs_loo")); k2 <- contrasts(lq, "core", setdiff(school_ctrl, "sch_escs_loo"))
+  k3 <- if (nrow(lq[model == "skills"]) > 0) contrasts(lq, "skills", skill_dom) else NULL
+  line <- function(k, t) { x <- k[term == t]; paste0(tl(t), ": β(.25) ", f1(median(x$b25)), " vs β(.75) ", f1(median(x$b75)), " (median); compresses in ", sum(x$verdict %like% "compresses"), ", widens in ", sum(x$verdict %like% "widens"), ", uniform in ", sum(x$verdict == "uniform"), " of ", nrow(x), " systems") }
+  verdict_rq <- function(k, terms, hyp_sign) { x <- k[term %in% terms]; n_c <- sum(x$verdict %like% "compresses"); n_w <- sum(x$verdict %like% "widens"); n_u <- sum(x$verdict == "uniform")
+    if (hyp_sign == "compress") { if (n_c > n_w & n_c >= n_u) "Supported: the inputs favour low achievers in most systems" else if (n_u >= n_c & n_u >= n_w) "Not supported in the compressing direction: effects are mostly uniform across the distribution (inputs lift everyone; the gap persists)" else "Rejected: effects are larger for high achievers" }
+    else { if (n_w > n_c) "Supported: the gradient is steeper at the top — disadvantage widens the distribution" else if (n_u >= n_c & n_u >= n_w) "Supported in the reproduction sense: the gradient is uniform across the distribution" else "Not supported: the gradient is steeper at the bottom" } }
+  rows <- list(
+    data.table(RQ = "RQ1", Hypothesis = "H1: own-SES and school-composition gradients at least as large at the bottom as at the top",
+               Evidence = paste(line(k1, "ESCS_pct10"), line(k1, "sch_escs_loo"), sep = " / "), Answer = verdict_rq(k1, c("ESCS_pct10", "sch_escs_loo"), "reproduce")),
+    data.table(RQ = "RQ2", Hypothesis = "H2: shortage and location inputs bite at the bottom; composition and language uniform",
+               Evidence = paste(sapply(c("rural", "STAFFSHORT", "EDUSHORT", "clsize", "stratio_med", "proatce", "infra_poor", "rus_medium", "private", "sel_policy"), function(t) line(k2, t)), collapse = " / "), Answer = verdict_rq(k2, c("rural", "STAFFSHORT", "EDUSHORT", "clsize", "stratio_med", "proatce", "infra_poor"), "compress")))
+  if (!is.null(k3)) rows[[3]] <- data.table(RQ = "RQ3", Hypothesis = "H3: task performance and open-mindedness pay off more at the bottom",
+               Evidence = paste(sapply(skill_dom, function(t) line(k3, t)), collapse = " / "), Answer = verdict_rq(k3, c("task", "open"), "compress"))
+  if (!is.null(med)) { j <- med[mediator == "joint_block" & outcome_model == "q25"]
+    rows[[4]] <- data.table(RQ = "RQ4", Hypothesis = "H4: ≥ 10% of the gradient at the 25th percentile is mediated by the four skills",
+               Evidence = paste0("Own ESCS: median share ", round(100 * median(j[exposure == "ESCS_pct10", prop])), "% (≥ 10% in ", sum(j[exposure == "ESCS_pct10", prop] >= .1), " of ", nrow(j[exposure == "ESCS_pct10"]), " systems); school-mean ESCS: median share ", round(100 * median(j[exposure == "sch_escs_loo", prop])), "% (≥ 10% in ", sum(j[exposure == "sch_escs_loo", prop] >= .1), " systems)"),
+               Answer = fifelse(median(j[exposure == "sch_escs_loo", prop]) >= .1, "Supported: skills are a measurable channel of the composition gradient at the bottom of the distribution", "Not supported for school composition: the composition gradient at the bottom is direct — the Bowles reading")) }
+  else rows[[length(rows) + 1]] <- data.table(RQ = "RQ4", Hypothesis = "H4: ≥ 10% of the gradient at the 25th percentile is mediated by the four skills", Evidence = "pending (mediation not yet run)", Answer = "pending")
+  kable(rbindlist(rows), caption = "Results mapped to the research questions (medians across systems; verdicts from the quantile contrasts)")
+}
+```
+
+Power note for the current profile. With 30 bootstrap draws and the independence approximation for the contrast's standard error, the verdicts above are conservative: an input whose medians are −9.6 at the 25th and −1.3 at the 75th percentile (rural location) is classified "uniform" in every system only because the interval of the difference is wide. The medians give the direction; the FULL run (200 draws, exact bootstrap SE of the difference) gives the test. Read the counts as provisional until then.
+
+Reading the map. The decisive comparison for the paper's title question is between RQ1 and RQ2–RQ3: where disadvantage (RQ1) is uniform or widening across the distribution while some inputs (RQ2) or skills (RQ3) are compressing, those inputs are the levers that close the gap; where everything is uniform, the production function lifts all students equally and the gap is structural. RQ4 then says whether the socio-emotional channel is one of those levers or whether the composition gradient bypasses it.
+
+# Appendix
+
+## The conditional grade gradient
+
+The coefficient on grade is the achievement difference between students of the same birth month in adjacent grades, conditional on the covariates. It is a control in the quantile models and is not interpreted as a learning gain: in a single cross-section the student who is a grade ahead at a given age is also the youngest in her class, so schooling and relative-age effects are not separately identified (Avvisati & Givord 2021, 2023).
+
+```{r tbl-grade}
+if (!is.null(mm)) {
+  g <- mm[term == "grade_c" & model %in% c("M1a_gross", "M1b_core", "M1d_within", "M1e_lmer"), .(CNT, model = c(M1a_gross = "Gross (grade + birth-month dummies)", M1b_core = "Core (+ controls)", M1d_within = "Core + school FE", M1e_lmer = "Core, school random intercept")[model], v = ci(est, se))]
+  gw <- dcast(g, CNT ~ model, value.var = "v"); gw[, System := PS_NAMES[CNT]]; gw <- gw[match(sys_order, CNT)][!is.na(CNT)]; gw[, CNT := NULL]; setcolorder(gw, "System")
+  kable(gw, caption = paste0("Grade coefficient, ", dom_lab, " points per grade, estimate [95% CI], BRR + PV inference"))
+}
+if (!is.null(mm) && !is.null(mm_lin) && !is.null(mm_non)) {
+  g <- rbind(mm[term == "grade_c" & model == "M1b_core", .(CNT, age = "Birth-month dummies", v = ci(est, se))], mm_lin[term == "grade_c" & model == "M1b_core", .(CNT, age = "Linear age (months)", v = ci(est, se))], mm_non[term == "grade_c" & model == "M1b_core", .(CNT, age = "No age term", v = ci(est, se))])
+  gw <- dcast(g, CNT ~ age, value.var = "v"); gw[, System := PS_NAMES[CNT]]; gw <- gw[match(sys_order, CNT)][!is.na(CNT)]; gw[, CNT := NULL]; setcolorder(gw, c("System", "No age term", "Linear age (months)", "Birth-month dummies"))
+  kable(gw, caption = "Sensitivity of the core grade coefficient to the age specification")
+}
+```
+
+```{r fig-bm, fig.height=8, fig.cap="Grade allocation by birth month (general programmes, modal grade +/- 1): weighted share of students above (blue) and below (orange) the modal grade."}
+if (!is.null(bm)) {
+  b <- copy(bm); b[, System := lab(CNT)]; b[, bmonth := factor(bmonth, levels = month.abb)]
+  ggplot(b, aes(x = bmonth)) + geom_col(aes(y = share_above), fill = okabe[1], alpha = .8, width = .7) + geom_col(aes(y = -share_below), fill = okabe[2], alpha = .8, width = .7) +
+    geom_hline(yintercept = 0, colour = "grey50") + facet_wrap(~System, ncol = 2) + scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + labs(x = "Birth month (2009 cohort)", y = "Share above (+) / below (-) the modal grade")
+}
+```
+
+## Mean-model coefficients (for continuity with the 2018 design)
+
+```{r tbl-core}
+if (!is.null(mm)) {
+  g <- mm[model == "M1b_core" & !term %like% "bmonth" & term != "(Intercept)", .(CNT, term, v = star(est, se))]
+  gw <- dcast(g, term ~ CNT, value.var = "v"); gw[, Term := tl(term)]; gw[, term := NULL]; setcolorder(gw, c("Term", intersect(sys_order, names(gw))))
+  med_ <- mm[model == "M1b_core" & !term %like% "bmonth" & term != "(Intercept)", .(Median = f1(median(est))), by = term]; gw <- merge(gw, med_[, .(Term = tl(term), Median)], by = "Term", sort = FALSE)
+  gw <- gw[order(match(Term, tl(c("grade_c", student_ctrl, hh_ctrl, school_ctrl))))]
+  kable(gw, caption = "Core mean model (M1b) coefficients by system, points; * = |t| > 1.96 (BRR + PV). Last column: median across systems.")
+}
+if (!is.null(mm)) {
+  g <- mm[model == "M1c_skills" & term %in% skill_dom, .(System = PS_NAMES[CNT], Skill = tl(term), v = ci(est, se))]
+  kable(dcast(g, Skill ~ System, value.var = "v"), caption = "Skill coefficients in the mean model (M1c, skills sample, IPW): points per SD of the domain score, 95% CI")
+}
+```
+
+## Diagnostics and notes
+
+```{r tbl-skillsmiss}
+if (!is.null(mm)) {
+  g <- mm[model %in% c("M1b_core", "M1c_core_on_skills_sample") & term %in% c("grade_c", "ESCS_pct10", "sch_escs_loo"), .(CNT, model = fifelse(model == "M1b_core", "core sample", "skills sample (IPW)"), term = tl(term), v = f1(est))]
+  kable(dcast(g, CNT + term ~ model, value.var = "v"), caption = "Sensitivity of key coefficients to the skills-sample restriction (core specification on both samples)")
+}
+if (!is.null(sel)) kable(sel[, .(System = PS_NAMES[CNT], `ESCS gap: above-modal vs modal (within birth month)` = f2(escs_gap_above), `ESCS gap: below-modal vs modal (within birth month)` = f2(escs_gap_below))], caption = "Selection into early and late school entry: within-birth-month ESCS differences between students outside and inside the modal grade (index units)")
+```
+
+- **Weights in lqmm.** `lqmm` accepts cluster-level weights only; the school mean of the final student weight (normalised) is used, with the IPW folded in for the skills model. Mean models use the full replicate-weight design.
+- **Units.** PROATCE is released in the 2025 PUF as a 1–5 category and STRATIO as international quartiles (medians used); both are labelled accordingly.
+- **Profile.** `r profile_note`. The FULL profile (10 PVs, 200 bootstrap draws, exact quantile-contrast SEs, mediation with 1,000 simulations) is run with `PISA_PROFILE=FULL 02_scripts/epf_postsoviet/run_all_estimation.sh` and overwrites the same CSVs.

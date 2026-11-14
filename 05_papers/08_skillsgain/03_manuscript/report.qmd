@@ -1,0 +1,462 @@
+---
+title: "Skills, Status and the School Year"
+subtitle: "Who learns more in a year of schooling at age 15? Socio-emotional skills, family and school SES, and the causal grade gain in 20 PISA 2025 systems — design, estimates and the paper they support (target: *World Development* / *IJED*)"
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: true
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+invisible(Sys.setlocale("LC_CTYPE", "en_US.UTF-8"))                        # print ×, γ, – correctly from cat()
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", "..")); knitr::opts_knit$set(root.dir = ROOT); setwd(ROOT)
+source("02_scripts/skillsgain/00_helpers.R")
+rd <- function(f) if (file.exists(os(f))) fread(os(f)) else NULL
+cov <- rd("coverage.csv"); st <- rd("structure.csv"); base <- rd("baseline.csv"); bal <- rd("balance.csv"); fsg <- rd("fs_by_group.csv")
+het <- rd("het.csv"); lev <- rd("levels.csv"); med <- rd("mediation.csv"); medp <- rd("mediation_pooled.csv"); meds <- rd("mediation_sens.csv")
+ph <- rd("pool_het.csv"); pl <- rd("pool_levels.csv"); pb <- rd("pool_baseline.csv"); pbal <- rd("pool_balance.csv"); pm <- rd("pool_mediation.csv")
+stab <- rd("stability.csv"); sesx <- rd("ses_explained_by_se.csv"); cf <- rd("counterfactual.csv")
+fo <- function(f, s = "same") rd(paste0(f, "_", s, ".csv"))
+f_ate <- fo("forest_ate"); f_blp <- fo("forest_blp"); f_gates <- fo("forest_gates"); f_vi <- fo("forest_vi")
+f_ate_all <- fo("forest_ate", "all"); f_blp_all <- fo("forest_blp", "all"); f_gates_all <- fo("forest_gates", "all")
+has_forest <- !is.null(f_blp) && !is.null(f_gates) && "dim" %in% names(f_gates)
+SAMESET <- "Same-school (14)"; TRSET <- "Transition (6)"; ALLSET <- "All 20"
+het <- merge(het, st[, .(CNT, structure)], by = "CNT"); base <- merge(base, st[, .(CNT, structure)], by = "CNT"); med <- merge(med, st[, .(CNT, structure)], by = "CNT")
+P <- function(spec_, term_, outcome_ = "ACH", set_ = SAMESET, col = "re_mean") ph[spec == spec_ & term == term_ & outcome == outcome_ & set == set_][[col]][1]
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+ci <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), " [", formatC(e - 1.96 * s, format = "f", digits = d), ", ", formatC(e + 1.96 * s, format = "f", digits = d), "]")
+PC <- function(spec_, term_, outcome_ = "ACH", set_ = SAMESET, d = 1) ci(P(spec_, term_, outcome_, set_), P(spec_, term_, outcome_, set_, "re_se"), d)
+hi95 <- function(spec_, term_, outcome_ = "ACH", set_ = SAMESET) P(spec_, term_, outcome_, set_) + 1.96 * P(spec_, term_, outcome_, set_, "re_se")
+lo95 <- function(spec_, term_, outcome_ = "ACH", set_ = SAMESET) P(spec_, term_, outcome_, set_) - 1.96 * P(spec_, term_, outcome_, set_, "re_se")
+L <- function(term_, set_ = SAMESET, outcome_ = "ACH", col = "re_mean") pl[term == term_ & outcome == outcome_ & set == set_][[col]][1]
+B <- function(term_ = "gamma", set_ = ALLSET, outcome_ = "ACH", col = "re_mean", sample_ = "all") pb[term == term_ & outcome == outcome_ & set == set_ & sample == sample_][[col]][1]
+YEARS <- 9                                                                  # years of schooling behind the age-15 stock (benchmark for "steady accumulation")
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999", "#000000")
+col_struct <- c(`Same-school` = okabe[1], Transition = okabe[2])
+same <- st[structure == "Same-school", CNT]; trans <- st[structure == "Transition", CNT]
+nm <- function(x) SYS_NAMES[as.character(x)]
+```
+
+::: {.callout-note}
+**Status.** All numbers below are read from CSV files in `03_outputs/skillsgain/`, produced by the numbered scripts in `02_scripts/skillsgain/` (`run_all.sh`). Nothing is estimated at render time. Causal-forest results: `r if (has_forest) paste0("included (", f_ate[group == "All", n_pv][1], " plausible values for the same-school forest)") else "**not yet available** (the forest is still running; sections that need it are skipped)"`. Mediation (pooled, Imai–Keele–Tingley): `r if (!is.null(medp)) "included" else "**not yet available**"`.
+:::
+
+# The paper in one page
+
+**Question.** Who learns more during one year of schooling at age 15? Do students with stronger socio-emotional (SE) skills gain more from a year? Do family and school SES make the year less productive for disadvantaged students? And can SE skills offset that disadvantage?
+
+**Design.** The school-entry cutoff assigns children born on either side of a date to different grades. Within each PISA 2025 age cohort, this produces a causal *grade gain* γ: the effect of one more year of schooling (with its year of age, starting age held fixed), identified by instrumenting the actual grade with the theoretical grade (Avvisati and Givord 2021, OECD Education Working Paper 257; their *Labour Economics* 2023 paper uses a different design, shifts in PISA test dates in five countries). The new step is to let γ vary with the student's SE skills, family SES and school SES, using three tools:
+
+- an interacted two-stage least squares, estimated system by system and pooled by random-effects meta-analysis;
+- an instrumental causal forest (Athey, Tibshirani and Wager 2019);
+- a causal-mediation decomposition (Imai, Keele and Tingley 2010).
+
+**Sample.** The 20 systems chosen in the Grade Gain Report: Kenya, B-S-J-Z, Mauritius, Chinese Taipei, Paraguay, Cambodia, Peru, Ecuador, Brazil, UAE, Hong Kong, Brunei, the Philippines and Costa Rica, plus Czechia, Estonia, Germany, Slovakia, Finland and Croatia. The decisive split turns out to be *institutional*, not regional:
+
+- In **14 same-school systems** the two grades of the cohort sit in the same schools.
+- In **6 transition systems** (`r paste(nm(trans), collapse = ", ")`) the upper grade is a different, often tracked, school.
+
+```{r headline, results="asis"}
+cat("**Findings (same-school systems, achievement = mean of the three domains, random-effects means, 95% CI).**\n\n")
+cat("1. **A year of schooling adds about the same amount for everyone.** The average grade gain is ", f1(B("gamma", SAMESET)), " points. Per SD of each moderator, the gain changes by:\n",
+    "    - SE index: ", PC("joint", "gamma:SE"), " points;\n",
+    "    - student SES: ", PC("joint", "gamma:SES"), ";\n",
+    "    - school SES: ", PC("joint", "gamma:schSES"), ".\n\n",
+    "   The same moderators carry large gaps in *levels*: ", f1(L("lev_SE")), ", ", f1(L("lev_SES")), " and ", f1(L("lev_schSES")), " points per SD. The year at 15 neither widens nor narrows any of these gaps at a detectable rate: a school year does not run faster for students with more grit, curiosity or money.\n\n", sep = "")
+cat("2. **SE skills do not compensate for disadvantage.** The SE × SES interaction is ", PC("inter", "gamma:SExSES"), " and the SE × school-SES interaction is ", PC("inter", "gamma:SExschSES"),
+    ". If anything, skills pay slightly more for advantaged students, the opposite of compensation.\n\n", sep = "")
+if (!is.null(pm)) { gm <- function(t, s = SAMESET) pm[mediator == "SE" & outcome == "ACH" & term == t & set == s]
+  cat("3. **SE skills are at most a minor channel of the grade gain.** A grade (with its year of age) raises the SE index by ", f2(gm("a_path")$re_mean), " SD, and this comes from age: at fixed age the grade moves SE by ",
+      f2(pbal[set == SAMESET & term == "tau" & var == "SE", re_mean]), " SD. The implied indirect effect is ", f1(gm("indirect")$re_mean), " of ", f1(gm("total")$re_mean), " points (", round(100 * gm("indirect")$re_mean / gm("total")$re_mean),
+      "%), and even this share holds only under sequential ignorability.\n\n", sep = "") }
+cat("4. **Gaps widen where the year coincides with sorting.** In the six transition systems, the grade gain rises by ", PC("ses_sch", "gamma:schSES", set_ = TRSET), " points per SD of *destination*-school SES, against ", PC("ses_sch", "gamma:schSES"),
+    " in same-school systems. Students who move into advantaged upper-secondary schools learn much more in that year. This is heterogeneity by an endogenous destination, so it is descriptive, not causal moderation.\n\n", sep = "")
+```
+
+**Implication.** The hoped-for story was "skills raise learning but do not close gaps". The data support a sharper one: **skills do not change how much a school year teaches, and the classroom year is neutral (it neither widens nor narrows gaps); gaps open where students are sorted between schools.** This answers the question posed for *World Development* and *IJED* about the production of learning: the margins that matter for equity are school assignment and tracking at transitions. Self-reported SE skills do not move learning. The evidence that SE skills "matter for learning" comes from cross-sectional level gradients, and those gradients do not survive translation into a causal flow.
+
+**Where the claim stops.** The null on SE moderation is precise enough to rule out effects above about `r f1(hi95("joint", "gamma:SE"))` points per SD, roughly `r round(100 * hi95("joint", "gamma:SE") / B("gamma", SAMESET))`% of a year's gain. It cannot rule out slow compounding: spreading the level gradient evenly over `r YEARS` years of schooling implies `r f1(L("lev_SE") / YEARS)` points per SD per year, which is inside the confidence interval. What the data exclude is that SE skills *accelerate* learning by more than a small amount at 15.
+
+# Research design
+
+## Hypotheses (set before estimation, in this order)
+
+| | Hypothesis | Parameter | Prediction if true |
+|---|---|---|---|
+| H1 | **Amplification**: SE skills raise the productivity of a school year | γ<sub>SE</sub> | > 0 |
+| H2 | **Disadvantage**: low family / school SES lowers the productivity of a year | γ<sub>SES</sub>, γ<sub>schSES</sub> | > 0 |
+| H3 | **Compensation**: SE skills matter more for disadvantaged students | γ<sub>SE×SES</sub>, γ<sub>SE×schSES</sub> | < 0 |
+| H4 | **Mediation**: schooling raises SE skills, which raise achievement | a × b | > 0, sizeable share of γ |
+| H5 | **The gap**: SE skills raise learning but do not close the SES gap | H1 true, H3 false | γ<sub>SE</sub> > 0, γ<sub>SE×SES</sub> ≈ 0 |
+
+H5 is the working story that motivated the paper. H1–H4 are the components that decide it.
+
+## Identification: from the grade gain to who gains
+
+Following Avvisati and Givord, the grade gain is the coefficient γ in
+
+$$y_i = \alpha + \beta\,\mathrm{ssa}_i + \gamma\,D_i + \delta' x_i + \varepsilon_i ,$$
+
+where $D_i$ is the upper grade, instrumented by $Z_i = 1[\text{born before the cutoff}]$, and ssa is school-starting age. Within a one-year cohort ssa = const − r − 12D, with r the birth month relative to the cutoff. So the 2SLS of y on [D, r, x] gives γ = b<sub>D</sub> − 12 b<sub>r</sub>. To let the gain vary with a moderator M (standardised within system), D and r are interacted with M:
+
+$$y_i = \alpha + b_D D_i + b_{DM} D_i M_i + b_r r_i + b_{rM} r_i M_i + \theta M_i + \delta' x_i + \varepsilon_i ,$$
+
+with D and D·M instrumented by Z and Z·M. The grade gain at moderator value M is then γ(M) = (b<sub>D</sub> − 12 b<sub>r</sub>) + (b<sub>DM</sub> − 12 b<sub>rM</sub>)·M. The reported γ<sub>M</sub> = b<sub>DM</sub> − 12 b<sub>rM</sub> is the change in the grade gain, in PISA points, per SD of M. Each system is estimated separately, with Fay BRR over 80 replicate weights and Rubin's rules over 10 plausible values. Systems are pooled with a DerSimonian–Laird random-effects mean, which down-weights imprecise systems.
+
+**What is causal and what is not.**
+
+- γ(M) is the causal effect of a school year *for students with moderator value M*. The instrument is as good as random within every value of M.
+- γ<sub>M</sub> does **not** say that raising M would raise the gain. M is not randomised, and it may proxy for something else (prior ability, motivation, school quality).
+
+Four layers address this:
+
+1. Family and school SES enter jointly with the SE index, so γ<sub>SE</sub> is the moderation by skills *at given SES*.
+2. A coefficient-stability ratio (Altonji, Elder and Taber 2005) shows how much γ<sub>SE</sub> moves when the SES moderators enter.
+3. School fixed effects (same-school systems) remove anything common to a school.
+4. A grade-purged SE index (SE minus the grade's own effect on SE) rules out the possibility that the moderator is itself an outcome of the grade.
+
+**Two validity conditions specific to moderation.**
+
+- *The moderator must not be moved by the treatment.* SE skills are measured at 15, after the grade. The balance tests below show the grade barely moves them, and the purged index removes what it does.
+- *School SES must refer to the same school in both grades.* This holds only where both grades share schools; hence the same-school / transition split.
+
+## Data
+
+PISA 2025, the 20 systems above, all eligible for the cutoff design in the Grade Gain Report. Construction (`02_prepare.R`):
+
+- **SE index:** the mean of the within-system z-scores of the six PISA 2025 scales (perseverance, goal setting, self-regulation, curiosity, enjoyment of problem-solving, cognitive adaptability), re-standardised.
+- **Two sub-indices:** self-management (the first three scales) and open-mindedness (the last three).
+- **Student SES:** ESCS. Costa Rica has no ESCS or any of its components, so it uses books at home.
+- **School SES:** the leave-one-out weighted mean of the SES of sampled schoolmates (at least five).
+- **Achievement:** the plausible-value-wise mean of science, mathematics and reading. The three domains are also reported separately.
+
+```{r tbl-coverage}
+tc <- merge(cov, st[, .(CNT, structure, share_mixed_students)], by = "CNT")
+tc <- tc[order(structure, group, CNT), .(System = name, Group = group, Structure = structure, `Both grades in school` = paste0(round(100 * share_mixed_students), "%"), Students = n, `SES source` = ses_src, `With SE index` = paste0(round(100 * p_SE), "%"), `Scales fielded` = n_scales, `r(SE, SES)` = f2(r_SE_SES), `r(SES, school SES)` = f2(r_SES_schSES))]
+kable(tc, caption = "Sample. 'Both grades in school' = weighted share of students whose school holds 10–90% of its sampled cohort in each grade; systems at 50% or more are 'same-school'. Cambodia fielded no SE scales; Brazil and Kenya no perseverance; Mauritius only perseverance and curiosity.")
+```
+
+# Validity of the design
+
+## Balance at the cutoff
+
+```{r tbl-balance}
+vb <- c("female", "immigrant", "lang_other", "SES", "books_z", "schSES", "SE", "SE_task", "SE_open", "SE_p")
+tb <- rbindlist(lapply(c(ALLSET, SAMESET, TRSET), function(s) pbal[set == s & term == "tau" & var %in% vb, .(var, set = s, v = paste0(f2(re_mean), " (", f2(re_se), ")"), sig = paste0(sig_pos + sig_neg, "/", n_sys))]))
+tb <- dcast(tb, var ~ set, value.var = c("v", "sig"))[match(vb, var)]; tb[, var := ml(var)]
+setnames(tb, c("Variable", paste0("Jump: ", c(ALLSET, SAMESET, TRSET)), paste0("Systems |z|>1.96: ", c(ALLSET, SAMESET, TRSET))))
+kable(tb[, c(1, 2, 5, 3, 6, 4, 7)], caption = "Jump at the cutoff (fixed-age 2SLS contrast τ of each variable on the upper grade; within-system SD units, shares for binary variables): random-effects mean (SE) and number of systems with a significant jump.")
+```
+
+```{r balance-text, results="asis"}
+kb <- bal[term == "tau" & var %in% c("SES", "SE", "schSES")]; kb[, z := est / se]
+cat("Predetermined characteristics are balanced on average: sex, books at home and home language show no pooled jump. Three features need flagging.\n\n",
+    "- **Student SES jumps in a few systems**, most strongly in Kenya (", f2(kb[CNT == "KEN" & var == "SES", est]), " SD). Kenya's SE index jumps too (", f2(kb[CNT == "KEN" & var == "SE", est]), " SD). Kenya has a weak first stage and only 65% of the cohort in its two modal grades, so it is a transition system with a fragile design. It is dropped in a robustness set; it is not in the same-school sample.\n",
+    "- **School SES jumps in the transition systems** (Czechia ", f2(kb[CNT == "CZE" & var == "schSES", est]), ", B-S-J-Z ", f2(kb[CNT == "QCI" & var == "schSES", est]), "). There the grade changes the school, so school SES is partly an outcome of the grade. In the same-school systems the pooled jump is ",
+    f2(pbal[set == SAMESET & term == "tau" & var == "schSES", re_mean]), " SD.\n",
+    "- **The SE index moves little with the grade** (pooled jump ", f2(pbal[set == ALLSET & term == "tau" & var == "SE", re_mean]), " SD). The exceptions are B-S-J-Z, Chinese Taipei and Peru, where self-reports fall in the upper grade (a frame-of-reference effect). The purged index removes the jump by construction.\n", sep = "")
+```
+
+## The instrument works in every group
+
+```{r fig-fs, fig.height=3.8, fig.cap="First stage (jump in the probability of the upper grade at the cutoff) by within-system quartile of the SE index and of student SES; random-effects means across systems, 95% CI. Interacted 2SLS needs compliance in every group; it is similar across quartiles."}
+fq <- fsg[term == "fs", pool(est, se), by = .(by, q)]; fq[, By := fifelse(by == "SE_q", "SE index quartile", "Student SES quartile")]
+ggplot(fq, aes(x = factor(q), y = re_mean)) + geom_pointrange(aes(ymin = re_mean - 1.96 * re_se, ymax = re_mean + 1.96 * re_se), colour = okabe[1]) + facet_wrap(~By) +
+  scale_y_continuous(limits = c(0, 1)) + labs(x = "Quartile (1 = lowest)", y = "First stage")
+```
+
+# Results
+
+## A year of schooling: the baseline
+
+```{r fig-base, fig.height=6, fig.cap="Grade gain &gamma; in achievement (mean of science, mathematics and reading, points), by system; 95% CI (BRR + PV). Colour = school structure. Dotted lines = random-effects means by structure."}
+bb <- base[sample == "all" & outcome == "ACH" & term == "gamma"]; bb[, System := factor(nm(CNT), levels = nm(bb[order(est), CNT]))]
+mb <- bb[, pool(est, se), by = structure]
+ggplot(bb, aes(x = est, y = System, colour = structure)) + geom_vline(xintercept = 0, colour = "grey70") + geom_vline(data = mb, aes(xintercept = re_mean, colour = structure), linetype = 3) +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), size = .3) + scale_colour_manual(values = col_struct, name = NULL) + labs(x = "Points per year of schooling", y = NULL)
+```
+
+The grade gain in overall achievement averages `r f1(B("gamma", ALLSET))` points across the 20 systems (`r f1(B("gamma", SAMESET))` in same-school, `r f1(B("gamma", TRSET))` in transition systems), with a between-system SD of `r f1(B("gamma", ALLSET, col = "tau_sd"))` points. These match the Grade Gain Report's domain-by-domain estimates.
+
+## Levels versus a year's flow
+
+This figure carries the paper.
+
+```{r fig-levels-flow, fig.height=4.6, fig.cap="Same-school systems, achievement. 'Level gap' = cross-sectional difference in scores per SD of each moderator, holding grade, birth month and the other moderators fixed. 'One year's gain' = change in the causal grade gain per SD (interacted 2SLS). 'Steady accumulation' = level gap divided by 9 years of schooling (the yearly rate that would build the gap if it accrued evenly). Random-effects means, 95% CI."}
+mods <- c("SE", "SES", "schSES")
+lf <- rbind(pl[set == SAMESET & outcome == "ACH" & term %in% paste0("lev_", mods), .(mod = sub("lev_", "", term), what = "Level gap (stock at 15)", est = re_mean, se = re_se)],
+            pl[set == SAMESET & outcome == "ACH" & term %in% paste0("lev_", mods), .(mod = sub("lev_", "", term), what = "Steady accumulation (stock / 9 years)", est = re_mean / YEARS, se = re_se / YEARS)],
+            ph[set == SAMESET & outcome == "ACH" & spec == "joint" & term %in% paste0("gamma:", mods), .(mod = sub("gamma:", "", term), what = "One year's gain (causal flow)", est = re_mean, se = re_se)])
+lf[, Moderator := factor(ml(mod), levels = rev(ml(mods)))]; lf[, what := factor(what, levels = c("Level gap (stock at 15)", "Steady accumulation (stock / 9 years)", "One year's gain (causal flow)"))]
+ggplot(lf, aes(x = est, y = Moderator, colour = what)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), position = position_dodge(width = .55), size = .35) +
+  scale_colour_manual(values = c(okabe[7], okabe[5], okabe[1]), name = NULL) + guides(colour = guide_legend(nrow = 1)) + labs(x = "PISA points per SD of the moderator", y = NULL)
+```
+
+```{r tbl-main}
+specs_main <- list(c("ses", "gamma:SES", "SES only"), c("sch", "gamma:schSES", "School SES only"), c("ses_sch", "gamma:SES", "SES + school SES"), c("ses_sch", "gamma:schSES", "SES + school SES"),
+                   c("se", "gamma:SE", "SE only"), c("joint", "gamma:SE", "Joint"), c("joint", "gamma:SES", "Joint"), c("joint", "gamma:schSES", "Joint"),
+                   c("inter", "gamma:SExSES", "Joint + interactions"), c("inter", "gamma:SExschSES", "Joint + interactions"))
+tm <- rbindlist(lapply(specs_main, function(s) data.table(Specification = s[3], Moderator = ml(sub("gamma:", "", s[2])),
+       `Same-school (14)` = PC(s[1], s[2]), `Transition (6)` = PC(s[1], s[2], set_ = TRSET), `All 20` = PC(s[1], s[2], set_ = ALLSET),
+       `Sig. +/− (same-school)` = paste0(P(s[1], s[2], col = "sig_pos"), "/", P(s[1], s[2], col = "sig_neg")), `I² (same-school)` = paste0(round(P(s[1], s[2], col = "I2")), "%"))))
+kable(tm, caption = "Change in the grade gain (achievement points) per SD of the moderator: random-effects mean [95% CI] across systems. All specifications control sex and immigrant background and include the moderators' main effects. SES-only specifications use every student with SES; the others use the common sample with SE, SES and school SES (19 systems; Cambodia has no SE scales).")
+```
+
+```{r main-text, results="asis"}
+cat("**Reading.**\n\n",
+    "- **SE skills (H1).** In same-school systems a 1 SD higher SE index changes a year's gain by ", PC("joint", "gamma:SE"), " points, against a level gap of ", f1(L("lev_SE")), " points. Amplification of more than ", f1(hi95("joint", "gamma:SE")), " points per SD (", round(100 * hi95("joint", "gamma:SE") / B("gamma", SAMESET)), "% of the average gain) is ruled out.\n",
+    "- **Family and school SES (H2).** Disadvantage does not make the year less productive in same-school systems: student SES ", PC("joint", "gamma:SES"), ", school SES ", PC("joint", "gamma:schSES"),
+    ". The level gaps, ", f1(L("lev_SES")), " and ", f1(L("lev_schSES")), " points per SD, were built before 15 or by sorting, not by unequal classroom productivity at 15.\n",
+    "- **Transition systems are different.** The grade gain rises steeply with destination-school SES (", PC("ses_sch", "gamma:schSES", set_ = TRSET), "). Given school SES, it falls with the student's own SES (", PC("ses_sch", "gamma:SES", set_ = TRSET), "). The year that moves students into upper secondary concentrates learning in advantaged schools. Students are selected into those schools, so this is how learning is distributed across destinations, not what any one school would do for a given student. ",
+    "SE moderation is *negative* there (", PC("joint", "gamma:SE", set_ = TRSET), "), driven by Kenya, B-S-J-Z and Chinese Taipei. In the two Chinese systems the upper grade itself lowers self-reported SE skills (frame of reference), so the moderator is contaminated; the purged index is the cleaner read (", PC("purged", "gamma:SE_p", set_ = TRSET), ").\n",
+    "- **Compensation (H3).** The interactions are ", PC("inter", "gamma:SExSES"), " (SE × SES) and ", PC("inter", "gamma:SExschSES"), " (SE × school SES). The point estimate for SE × SES is *positive*: skills, if anything, pay more for advantaged students. **H3 is rejected and H5 fails at its first step (H1)**.\n\n", sep = "")
+```
+
+## Socio-emotional skills: every way of slicing them
+
+```{r fig-se-specs, fig.height=5.2, fig.cap="Same-school systems, achievement: change in the grade gain per SD of the SE measure across specifications. Every model controls sex, immigrant background, student SES and school SES (moderation). Random-effects means, 95% CI. The dashed line marks 10% of the average grade gain."}
+rows <- list(c("se", "gamma:SE", "SE index (no SES moderators)"), c("joint", "gamma:SE", "SE index (headline)"), c("purged", "gamma:SE_p", "SE index, purged of the grade's effect"),
+             c("joint_fe", "gamma:SE", "SE index, school fixed effects"), c("parts", "gamma:SE_task", "Self-management"), c("parts", "gamma:SE_open", "Open-mindedness"),
+             c("scale_PERSEV", "gamma:PERSEV", "Perseverance"), c("scale_GOALSET", "gamma:GOALSET", "Goal setting"), c("scale_SELFREG", "gamma:SELFREG", "Self-regulation"),
+             c("scale_CURIO", "gamma:CURIO", "Curiosity"), c("scale_ENPROBS", "gamma:ENPROBS", "Enjoyment of problem-solving"), c("scale_COGABIL", "gamma:COGABIL", "Cognitive adaptability"))
+sp <- rbindlist(lapply(rows, function(r) data.table(lab = r[3], est = P(r[1], r[2]), se = P(r[1], r[2], col = "re_se"), n = P(r[1], r[2], col = "n_sys"))))
+sp[, lab := factor(lab, levels = rev(sapply(rows, `[`, 3)))]
+ggplot(sp, aes(x = est, y = lab)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(xintercept = 0.1 * B("gamma", SAMESET) * c(-1, 1), linetype = 2, colour = "grey60") +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), colour = okabe[1], size = .35) + labs(x = "Change in the year's gain (points) per SD", y = NULL)
+```
+
+```{r fig-se-sys, fig.height=6.2, fig.cap="Change in the grade gain per SD of the SE index (joint specification), by system; 95% CI. Dotted lines = random-effects means by structure."}
+hs <- het[spec == "joint" & outcome == "ACH" & term == "gamma:SE"]; hs[, System := factor(nm(CNT), levels = nm(hs[order(est), CNT]))]
+mh <- hs[, pool(est, se), by = structure]
+ggplot(hs, aes(x = est, y = System, colour = structure)) + geom_vline(xintercept = 0, colour = "grey70") + geom_vline(data = mh, aes(xintercept = re_mean, colour = structure), linetype = 3) +
+  geom_pointrange(aes(xmin = pmax(est - 1.96 * se, -40), xmax = pmin(est + 1.96 * se, 40)), size = .3) + scale_colour_manual(values = col_struct, name = NULL) +
+  coord_cartesian(xlim = c(-40, 40)) + labs(x = "Points per year, per SD of the SE index", y = NULL)
+```
+
+```{r se-text, results="asis"}
+cat("No version of the SE measure moderates the grade gain:\n\n",
+    "- not the index;\n",
+    "- not its two halves;\n",
+    "- not any of the six scales;\n",
+    "- not the version purged of the grade's own effect;\n",
+    "- not the school-fixed-effects version.\n\n",
+    "The per-system estimates scatter around zero, with heterogeneity no larger than sampling error in most systems. ",
+    "Coefficient stability: γ<sub>SE</sub> is ", f2(stab[outcome == "ACH", without]), " without the SES moderators and ", f2(stab[outcome == "ACH", with]), " with them. ",
+    "Both are close to zero, so there is no positive moderation for unobserved confounders to explain away. Selection on unobservables could only be *hiding* a positive effect if it ran against the observed selection. ",
+    "The level gradient tells the familiar story (students with stronger SE skills score ", f1(L("lev_SE")), " points higher at the same SES), but it does not translate into faster learning in a school year.\n", sep = "")
+```
+
+## Family SES and school SES
+
+```{r fig-sch, fig.height=6.2, fig.cap="Change in the grade gain per SD of school SES (specification with student and school SES), by system; 95% CI. In transition systems school SES is that of the destination school and is partly an outcome of the grade."}
+hc <- het[spec == "ses_sch" & outcome == "ACH" & term == "gamma:schSES"]; hc[, System := factor(nm(CNT), levels = nm(hc[order(est), CNT]))]
+mc <- hc[, pool(est, se), by = structure]
+ggplot(hc, aes(x = est, y = System, colour = structure)) + geom_vline(xintercept = 0, colour = "grey70") + geom_vline(data = mc, aes(xintercept = re_mean, colour = structure), linetype = 3) +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), size = .3) + scale_colour_manual(values = col_struct, name = NULL) + labs(x = "Points per year, per SD of school SES", y = NULL)
+```
+
+```{r tbl-domains}
+td <- rbindlist(lapply(OUT4, function(o) data.table(Outcome = out_lab4[o], `Grade gain` = ci(B("gamma", SAMESET, o), B("gamma", SAMESET, o, "re_se")),
+        `× SE` = PC("joint", "gamma:SE", o), `× SES` = PC("joint", "gamma:SES", o), `× school SES` = PC("joint", "gamma:schSES", o), `× SE×SES` = PC("inter", "gamma:SExSES", o),
+        `Level gap SE` = f1(L("lev_SE", outcome_ = o)), `Level gap SES` = f1(L("lev_SES", outcome_ = o)), `Level gap school SES` = f1(L("lev_schSES", outcome_ = o)))))
+kable(td, caption = "Same-school systems, by domain: grade gain and its change per SD of each moderator (joint specification; interaction from the 'inter' specification), random-effects means [95% CI]; level gaps in points per SD for comparison.")
+```
+
+## Compensation: the SE × SES grid
+
+```{r fig-gates, fig.height=4.8, fig.cap="Causal forest, same-school systems: average grade gain (doubly robust scores) by within-system quartile of the SE index (rows) and student SES (columns), points. If skills compensated, the bottom-left would catch up with the top-right; if skills amplified, gains would rise up the rows.", eval=has_forest}
+gg <- f_gates[dim == "SE x SES"]; gg[, `:=`(SEq = as.integer(sub("SE(\\d)_SES\\d", "\\1", group)), SESq = as.integer(sub("SE\\d_SES(\\d)", "\\1", group)))]
+ggplot(gg, aes(x = factor(SESq), y = factor(SEq), fill = est)) + geom_tile(colour = "white") + geom_text(aes(label = paste0(f1(est), "\n(", f1(se), ")")), size = 3.2) +
+  scale_fill_gradient2(low = okabe[2], mid = "white", high = okabe[1], midpoint = f_ate[group == "All", est], name = "Points") + labs(x = "Student SES quartile (1 = lowest)", y = "SE index quartile (1 = lowest)")
+```
+
+```{r gates-text, results="asis", eval=has_forest}
+gg <- f_gates[dim == "SE x SES"]; mx <- gg[which.max(est)]; bx <- f_blp[term == "SExSES"]
+cat("The grid has 16 cells, each estimated to about ±", f1(median(gg$se)), " points. The largest cell is ", sub("SE(\\d)_SES(\\d)", "SE quartile \\1, SES quartile \\2", mx$group), " at ", f1(mx$est), " (", f1(mx$se), ") points; ",
+    "the high-skill, low-SES corner is where compensation would show up. With 16 cells, one deviation of this size is expected by chance. ",
+    "The smooth test of the same idea, the forest's projection on SE × SES, is ", ci(bx$est, bx$se), ". So the corner is not part of a pattern. Gains vary across cells about as much as noise does.\n", sep = "")
+```
+
+```{r tbl-cf, eval=!is.null(cf)}
+tcf <- cf[sample == "same"][order(order), .(Quantity = quantity, Estimate = ifelse(is.na(se), f2(est), ci(est, se)))]   # shares of the gap are in the CSV; they are not meaningful while the gap itself is ~0
+kable(tcf, caption = "Counterfactuals from the causal forest (same-school systems; doubly robust scores projected on SE, SES, school SES and their interactions with system fixed effects; school-clustered SEs, Rubin over PVs). Points per year of schooling.")
+```
+
+```{r cf-text, results="asis", eval=!is.null(cf)}
+c1 <- cf[sample == "same"]; g <- function(p) c1[quantity %like% p]
+cat("Read as policy arithmetic, the forest says:\n\n",
+    "- The SES gap in a year's gain (top minus bottom SES quartile) is ", ci(g("^SES gap")$est, g("^SES gap")$se), " points, against a stock gap in levels of about ", round(L("lev_SES") * g("Student SES gap")$est), " points.\n",
+    "- Raising every student's SE skills by 1 SD would change the average gain by ", ci(g("^\\(a\\) .*average")$est, g("^\\(a\\) .*average")$se), " points and the SES gap by ", ci(g("^\\(a\\) .*SES gap")$est, g("^\\(a\\) .*SES gap")$se), ".\n",
+    "- Giving the bottom SES quartile the SE level of the top quartile (", f2(g("^SE gap")$est), " SD more) would change its gain by ", ci(g("^\\(b\\)")$est, g("^\\(b\\)")$se), " points.\n\n",
+    "None of these moves a year's learning by more than a point or two.\n", sep = "")
+```
+
+## Are SE skills a channel? Mediation
+
+```{r tbl-med, eval=!is.null(pm)}
+tmd <- rbindlist(lapply(c(SAMESET, TRSET, ALLSET), function(s) { x <- pm[mediator == "SE" & outcome == "ACH" & set == s]; g <- function(t) x[term == t]
+  data.table(Set = s, Systems = g("total")$n_sys, `Total γ` = ci(g("total")$re_mean, g("total")$re_se), `a: grade → SE (SD)` = ci(g("a_path")$re_mean, g("a_path")$re_se, 2),
+             `b: SE → score (points/SD)` = ci(g("b_path")$re_mean, g("b_path")$re_se), `Indirect (total − direct)` = ci(g("indirect")$re_mean, g("indirect")$re_se), `Direct γ` = ci(g("direct")$re_mean, g("direct")$re_se),
+             `Indirect share` = paste0(round(100 * g("indirect")$re_mean / g("total")$re_mean), "%")) }))
+kable(tmd, caption = "Mediation of the grade gain through the SE index (achievement). The a-path is causal (same instrument). The b-path and the indirect effect additionally assume no unobserved confounding of SE and achievement (sequential ignorability). Random-effects means [95% CI].")
+```
+
+```{r tbl-medp, eval=!is.null(medp)}
+kable(medp[, .(Sample = sample, Quantity = quantity, Estimate = f2(est), `95% CI` = ifelse(is.na(lo), "", paste0("[", f2(lo), ", ", f2(hi), "]")), N = n)],
+      caption = "Pooled causal mediation (Imai, Keele & Tingley 2010) with the theoretical grade as the treatment (intention-to-treat scale: divide by the first stage for a per-grade effect), system fixed effects and system-specific birth-month trends; and the sensitivity parameter of Imai, Keele & Yamamoto (2010): the correlation ρ between mediator and outcome errors at which the indirect effect would vanish.")
+```
+
+```{r fig-sens, fig.height=3.6, fig.cap="Sensitivity of the indirect (ITT) effect to the correlation &rho; between the errors of the mediator and outcome equations.", eval=!is.null(meds)}
+ggplot(meds, aes(x = rho, y = acme)) + geom_hline(yintercept = 0, colour = "grey60") + geom_ribbon(aes(ymin = lo, ymax = hi), fill = okabe[6], alpha = .3) + geom_line(colour = okabe[1]) +
+  facet_wrap(~sample) + labs(x = "ρ (mediator–outcome error correlation)", y = "Indirect effect (ITT, points)")
+```
+
+```{r med-text, results="asis", eval=!is.null(pm)}
+x <- pm[mediator == "SE" & outcome == "ACH" & set == SAMESET]; g <- function(t) x[term == t]
+cat("The mediation result is decided by the a-path. In same-school systems a grade with its year of age raises the SE index by ", f2(g("a_path")$re_mean), " SD (causal). The fixed-age jump is ", f2(pbal[set == SAMESET & term == "tau" & var == "SE", re_mean]), " SD, so the increase comes from age, not from the extra year of school. In transition systems the a-path is ", f2(pm[mediator == "SE" & outcome == "ACH" & set == TRSET & term == "a_path", re_mean]), ". ",
+    "Even with the large, non-causal b-path (", f1(g("b_path")$re_mean), " points per SD), the implied indirect effect is ", f1(g("indirect")$re_mean), " of ", f1(g("total")$re_mean), " points (", round(100 * g("indirect")$re_mean / g("total")$re_mean), "%). ",
+    "Since b is if anything inflated by ability bias, this is an upper bound in practice. ",
+    if (!is.null(medp)) { q <- function(sm, k) medp[sample %like% sm & quantity == k]
+      paste0("The pooled potential-outcomes mediation isolates the schooling part. It uses the theoretical grade at fixed birth month as the treatment, so it is the same-age contrast between grades. Its indirect effect is ", f2(q("^Same", "ACME (indirect, ITT)")$est), " [", f2(q("^Same", "ACME (indirect, ITT)")$lo), ", ", f2(q("^Same", "ACME (indirect, ITT)")$hi), "] points in same-school systems (total ", f1(q("^Same", "Total (ITT)")$est), ") and ",
+             f2(q("^All", "ACME (indirect, ITT)")$est), " [", f2(q("^All", "ACME (indirect, ITT)")$lo), ", ", f2(q("^All", "ACME (indirect, ITT)")$hi), "] across all 19 systems with scales. The extra year of *school* sends nothing through SE skills; the small indirect share above comes from the extra year of *age*. ") } else "",
+    "**H4 fails**: schooling at 15 raises achievement without passing through self-reported SE skills.\n", sep = "")
+```
+
+## Causal forest: does a flexible model find anything the linear one missed?
+
+```{r tbl-forest, eval=has_forest}
+tf <- f_blp[, .(Term = fifelse(term == "(Intercept)", "Grade gain at the mean (intercept)", ml(term)), `Same-school forest` = ci(est, se))]
+if (!is.null(f_blp_all)) tf <- merge(tf, f_blp_all[, .(Term = fifelse(term == "(Intercept)", "Grade gain at the mean (intercept)", ml(term)), `All-20 forest` = ci(est, se))], by = "Term", sort = FALSE)
+kable(tf, caption = "Best linear projection of the forest's conditional grade gains γ(x) on the moderators, with system fixed effects (doubly robust, school-clustered; Rubin over PVs). Points per SD.")
+ta <- f_ate[, .(Group = group, `Average grade gain` = ci(est, se), PVs = n_pv)]
+kable(ta, caption = "Average grade gain from the forest's doubly robust scores (same-school systems), overall and by region group.")
+```
+
+```{r fig-forest-sch, fig.height=3.8, fig.cap="Causal forest: average grade gain (doubly robust) by within-system quartile of school SES and of student SES, in the forest restricted to the 14 same-school systems and in the forest on all 20 systems. 95% CI.", eval=has_forest && !is.null(f_gates_all)}
+fg <- rbind(f_gates[dim %in% c("School SES quartile", "SES quartile")][, forest := "Same-school (14)"], f_gates_all[dim %in% c("School SES quartile", "SES quartile")][, forest := "All 20"])
+fg[, q := as.integer(sub("\\D+", "", group))]; fg[, dim := factor(dim, levels = c("SES quartile", "School SES quartile"), labels = c("Student SES quartile", "School SES quartile"))]
+ggplot(fg, aes(x = factor(q), y = est, colour = forest)) + geom_pointrange(aes(ymin = est - 1.96 * se, ymax = est + 1.96 * se), position = position_dodge(width = .4), size = .35) +
+  facet_wrap(~dim) + scale_colour_manual(values = c(`Same-school (14)` = okabe[1], `All 20` = okabe[2]), name = NULL) + labs(x = "Quartile (1 = lowest)", y = "Grade gain, points")
+```
+
+```{r fig-vi, fig.height=3.8, fig.cap="Variable importance in the same-school forest (share of splits, depth-weighted).", eval=has_forest}
+vv <- f_vi[order(-vi)][1:12]; vv[, var := factor(ifelse(grepl("^sys_", var), paste("System:", nm(sub("sys_", "", var))), ml(var)), levels = rev(ifelse(grepl("^sys_", var), paste("System:", nm(sub("sys_", "", var))), ml(var))))]
+ggplot(vv, aes(x = vi, y = var)) + geom_col(fill = okabe[1]) + labs(x = "Importance", y = NULL)
+```
+
+```{r forest-text, results="asis", eval=has_forest}
+gq <- f_gates[dim == "SE quartile"]; gs <- f_gates[dim == "SES quartile"]; gk <- f_gates[dim == "School SES quartile"]
+cat("The forest searches for heterogeneity without imposing linearity. It agrees with the interacted 2SLS. The average grade gain is ", ci(f_ate[group == "All", est], f_ate[group == "All", se]), " points. ",
+    "By SE quartile the gains are ", paste(f1(gq$est), collapse = ", "), "; by SES quartile ", paste(f1(gs$est), collapse = ", "), "; by school-SES quartile ", paste(f1(gk$est), collapse = ", "), ". ",
+    "School SES and the SE sub-indices are used for splits (variable importance), but the splits do not translate into systematic differences in the doubly robust gains. That is the signature of noise-fitting, not of real heterogeneity.\n", sep = "")
+```
+
+## Robustness
+
+```{r tbl-robust}
+sets <- c(SAMESET, "Same-school without Costa Rica", "Same-school without Cambodia", "Same-school without Mauritius", "Same-school, first stage >= 0.4", "Same-school, non-European", "Same-school, European", ALLSET, "All without Kenya", "All without B-S-J-Z & Taipei", "Non-European (14)", "European OECD (6)")
+sets <- intersect(sets, unique(ph$set))
+tr <- rbindlist(lapply(sets, function(s) data.table(Set = s, Systems = P("joint", "gamma:SE", set_ = s, col = "n_sys"), `γ` = PC("joint", "gamma", set_ = s), `× SE` = PC("joint", "gamma:SE", set_ = s),
+      `× SES` = PC("joint", "gamma:SES", set_ = s), `× school SES` = PC("joint", "gamma:schSES", set_ = s), `× SE×SES` = PC("inter", "gamma:SExSES", set_ = s))))
+kable(tr, caption = "Joint specification (achievement) across sets of systems: random-effects means [95% CI]. Leave-outs: Costa Rica (SES = books), Cambodia (no SE scales, edge cutoff), Mauritius (two scales), weak first stages (< 0.4: UAE, Ecuador, Brazil, Kenya), Kenya (SES and SE jump at the cutoff), B-S-J-Z and Taipei (the grade lowers self-reports).")
+```
+
+# How to write it up
+
+## Title options
+
+1. *Does a School Year Widen Gaps? Skills, Status and Learning at Age 15 in 20 Countries*
+2. *Grit Is Not a Learning Accelerator: Causal Evidence from School-Entry Cutoffs*
+3. *Equal Years, Unequal Schools: Who Learns More from a Year of Schooling*
+
+## Draft abstract (≈150 words)
+
+```{r abstract, results="asis"}
+cat("> Socio-emotional skills and family background predict large gaps in learning. Do they also change how much a student learns in a year of school? ",
+    "I use school-entry cutoffs in 20 PISA 2025 education systems to estimate the causal gain from one more grade at age 15 and how it varies across students. ",
+    "A grade adds about ", round(B("gamma", ALLSET)), " points (0.2 SD). In the 14 systems where both grades share schools, the gain is the same for students with strong and weak socio-emotional skills (",
+    f1(P("joint", "gamma:SE")), " points per SD, 95% CI ", f1(lo95("joint", "gamma:SE")), " to ", f1(hi95("joint", "gamma:SE")), ") and for rich and poor students and schools. ",
+    "Skills neither compensate for disadvantage nor carry the effect of schooling, which barely moves them. ",
+    "Where the extra grade coincides with entry into tracked upper-secondary schools, gains rise by ", round(P("ses_sch", "gamma:schSES", set_ = TRSET)), " points per SD of destination-school status. ",
+    "Gaps open through sorting between schools, not through unequal learning within them.\n", sep = "")
+```
+
+## Introduction skeleton (Head's formula)
+
+1. **Hook.** Socio-emotional skills are among the most heavily promoted levers in education policy, and their cross-sectional association with achievement is large. In these data, students with 1 SD stronger SE skills score `r f1(L("lev_SE"))` points higher at the same SES. Whether that association reflects faster learning is unknown, because skills, background and learning are jointly determined.
+2. **Question.** Does a year of schooling teach more to students with stronger SE skills, and less to disadvantaged students, and do skills offset disadvantage? Answered with school-entry cutoffs (fuzzy discontinuity in grade by birth date) in 20 systems.
+3. **Results.** (i) Flat gains in same-school systems; precise null on SE. (ii) No compensation; no mediation. (iii) Sharp divergence by destination school at the transition to upper secondary.
+4. **Literature and value added.**
+   - *Technology of skill formation and dynamic complementarity* (Cunha and Heckman 2007; Heckman, Stixrud and Urzua 2006): a direct test of whether non-cognitive skills raise the productivity of school inputs, with causal school inputs.
+   - *Schools as equalisers* (Downey, von Hippel and Broh 2004; Raudenbush and Eschmann 2015): the first multi-country evidence at 15 using a causal grade contrast rather than seasonal comparisons.
+   - *Tracking and inequality* (Hanushek and Wössmann 2006): a within-cohort, within-year view of where gaps open.
+   - *Measurement of SE skills* (reference bias: West et al. 2016): the grade-purged moderator and the frame-of-reference evidence in B-S-J-Z and Taipei.
+   - *The grade gain* (Avvisati and Givord 2021, WP 257: 18 systems, one average gain per system, test scores only; Avvisati and Givord 2023, *Labour Economics*: test-date design, five countries). This paper moves from *how much* a year adds to *for whom*. It adds the school-structure (tracking) dimension, SE skills as moderator, mediator and outcome, and 2025 coverage of low- and middle-income systems. Check WP 257's full text for any subgroup tables before claiming novelty on SES heterogeneity.
+5. **Roadmap.**
+
+*Citations above are the standard references for each strand; verify every one (author, year, journal, finding) before submission.*
+
+## Positioning for the two journals
+
+- **World Development.** Lead with the 14 non-European systems (Kenya, Mauritius, Peru, the Philippines, Cambodia, Brazil and others). Frame the paper around SEL programmes promoted by donors and ministries as learning accelerators, and around the transition to secondary as the policy margin. The non-European same-school subset is a robustness row above; it can become the main sample if the editor wants a development focus.
+- **IJED.** Lead with the production-function framing: school inputs, student inputs and their complementarity. The policy section can name SEL spending and tracking ages.
+
+# Limits and next steps
+
+- **Discrete running variable.** Twelve birth months, linear in age on each side. BRR covers sampling error, not functional-form error. Honest CIs for discrete running variables (Kolesár and Rothe 2018) are the pre-submission step, as in the Grade Gain Report.
+- **Weak first stages for interactions.** UAE and Ecuador (0.2), Brazil and Kenya (0.3) give noisy interacted estimates. The random-effects mean down-weights them, and the "first stage ≥ 0.4" row shows the conclusions do not depend on them.
+- **SE measures are self-reports at 15.** Reliability below one attenuates γ<sub>SE</sub> (by roughly the scale reliability, about 0.8 for the index). The upper bound becomes about `r f1(hi95("joint", "gamma:SE") / 0.8)` points per SD after disattenuation, still small. A behavioural measure of persistence from the PISA 2025 process data (time on task and effort decay across the test) would answer the self-report objection directly and is the natural next layer.
+- **Transition systems.** Heterogeneity by destination school is not causal moderation. A design that holds the destination fixed (e.g. systems with school-level admission scores) would separate peer and school effects from selection.
+- **Compounding.** One year cannot distinguish "no effect" from "a small yearly effect that compounds"; the steady-accumulation benchmark in the levels-vs-flow figure shows the size such a yearly effect would need.
+- **Multiple testing.** Five hypotheses × three moderators × four outcomes. The headline claims rest on pre-ordered tests (H1–H5 on achievement), and every one is a non-rejection or a sign reversal. Corrections only strengthen them.
+
+# Appendix
+
+## Per-system estimates
+
+```{r tbl-sys}
+ts <- het[outcome == "ACH" & spec == "joint" & term %in% c("fs", "gamma", "gamma:SE", "gamma:SES", "gamma:schSES")]
+ts[, v := ifelse(term == "fs", f2(est), paste0(f1(est), ifelse(abs(est / se) > 1.96, "*", ""), " (", f1(se), ")"))]
+tw <- dcast(ts, structure + group + CNT ~ term, value.var = "v"); tw[, System := nm(CNT)]
+kable(tw[order(structure, group, System), .(Structure = structure, Group = group, System, `First stage` = fs, `γ` = gamma, `× SE` = `gamma:SE`, `× SES` = `gamma:SES`, `× school SES` = `gamma:schSES`)],
+      caption = "Joint specification, achievement, per system: estimate (SE); * = |z| > 1.96.")
+```
+
+## Mediation by system
+
+```{r tbl-med-sys, eval=!is.null(med)}
+tm2 <- dcast(med[mediator == "SE" & outcome == "ACH"], structure + CNT ~ term, value.var = "est")
+kable(tm2[order(structure, CNT), .(Structure = structure, System = nm(CNT), `Total γ` = f1(total), `a (SD)` = f2(a_path), `b (pts/SD)` = f1(b_path), `Indirect` = f1(indirect), `Direct` = f1(direct), Share = paste0(round(100 * indirect / total), "%"))],
+      caption = "Mediation through the SE index, per system (achievement).")
+```
+
+## Pipeline
+
+| Step | Script | Output |
+|---|---|---|
+| 0 | `02_scripts/gradegain/02_prepare.R` | `gradegain_analytic.rds` (cutoff, D, Z, r, ssa) |
+| 1 | `01_build_extra.py` (Mac, pyreadstat) | `skillsgain_extra.csv.gz` (books, SES components) |
+| 2 | `02_prepare.R` | `skillsgain_analytic.rds`, `coverage.csv`, `scale_corr.csv` |
+| 3 | `03_validity.R` | `balance.csv`, `fs_by_group.csv`, `baseline.csv`, `structure.csv` |
+| 4 | `04_heterogeneity.R` | `het.csv`, `levels.csv` |
+| 5 | `05_forest.R` (SAMPLE = same / all) | `forest_*_same.csv`, `forest_*_all.csv`, `forest_scores_*.rds` |
+| 6 | `06_mediation.R` | `mediation.csv`, `mediation_pooled.csv`, `mediation_sens.csv` |
+| 7 | `07_pool.R` | `pool_*.csv`, `stability.csv`, `ses_explained_by_se.csv`, `counterfactual.csv` |
+| — | `run_all.sh` | steps 2–7, make-like (`FORCE=1` reruns) |

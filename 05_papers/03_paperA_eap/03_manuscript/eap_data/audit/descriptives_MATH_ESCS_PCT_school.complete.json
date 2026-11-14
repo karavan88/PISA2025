@@ -1,0 +1,15 @@
+{
+  "id": "descriptives_MATH_ESCS_PCT_school",
+  "command": [
+    "Rscript",
+    "02_scripts/paperA/03_descriptives.R"
+  ],
+  "domain": "MATH",
+  "exposure": "ESCS_PCT",
+  "specification": "school-adjusted",
+  "started": "2026-09-27 12:46:32",
+  "status": "complete",
+  "elapsed_seconds": 2.7,
+  "script_signature": "ac02672e1b219b62dc1a30c6bb06f7ac2d1312a10a2ecdfd58e9c8f65e1fe293",
+  "finished": "2026-09-27 12:46:35"
+}

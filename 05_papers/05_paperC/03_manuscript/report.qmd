@@ -1,0 +1,229 @@
+---
+title: "What does a year of school buy at fifteen? Science, mathematics and reading at the school-entry cutoff in fourteen PISA 2025 systems"
+subtitle: "Analysis report — one question, one model: the fuzzy-RD effect of an additional year of schooling on science, mathematics and reading, system by system, set against the grade coefficient of the cross-sectional production function. All estimates are read from saved CSV outputs."
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", "..")); setwd(ROOT); source("02_scripts/paperB/00_helpers.R")
+rd_all <- fread(op("rd_estimates.csv")); cut_all <- fread(op("cutoffs.csv")); lsdv_all <- fread("03_outputs/paperC/grade_lsdv.csv"); sds <- fread("03_outputs/paperC/score_sd.csv")
+agd_all <- fread("03_outputs/paperC/age_decomposition.csv"); ag18 <- fread("03_outputs/paperC/avvisati_givord_2021_table51.csv")
+FUZZY <- setdiff(SYS_FUZZY, "MNE")                       # Montenegro's jump falls to 0.17 on the all-programme sample and is left out of the appendix tier
+rd <- rd_all[CNT %in% SYS_SHARP]; cut <- cut_all[CNT %in% SYS_SHARP]; lsdv <- lsdv_all[CNT %in% SYS_SHARP]; agd <- agd_all[CNT %in% SYS_SHARP]
+H_MAIN <- 4; DOMS <- c("SCIE", "MATH", "READ")
+pick <- function(dt) dt[order(CNT, outcome, h, match(spec, c("ll", "common", "diff")))][spec != "diff", .SD[1], by = .(CNT, outcome, h)]
+main <- pick(rd); m4 <- main[h == H_MAIN & outcome %in% PV_DOMS]
+sys_order <- cut[order(-jump), CNT]
+lab <- function(x) factor(SYS_NAMES[as.character(x)], levels = rev(SYS_NAMES[sys_order]))
+reg <- function(x) factor(REGION[as.character(x)], levels = c("East Asia", "Southeast Asia", "Post-Soviet", "Europe", "Latin America"))
+dom_lab <- c(SCIE = "Science", MATH = "Mathematics", READ = "Reading")
+mk_cmp <- function(m, l) { x <- merge(m[, .(CNT, domain = outcome, tau, tau_se)], l[controls == "controls", .(CNT, domain, lsdv = est, lsdv_se = se)], by = c("CNT", "domain"), all.x = TRUE)
+  x <- merge(x, l[controls == "none", .(CNT, domain, lsdv0 = est, lsdv0_se = se)], by = c("CNT", "domain"), all.x = TRUE)
+  x <- merge(x, melt(sds[, .(CNT, SCIE, MATH, READ)], id.vars = "CNT", variable.name = "domain", value.name = "sd"), by = c("CNT", "domain"))
+  x[, `:=`(tau_sd = tau / sd, lsdv_sd = lsdv / sd, ratio = tau / lsdv)]; x }
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+ci  <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), " [", formatC(e - 1.96 * s, format = "f", digits = d), ", ", formatC(e + 1.96 * s, format = "f", digits = d), "]")
+star <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), ifelse(abs(e / s) > 1.96, "*", ""))
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999")
+# RD and the LSDV benchmark side by side, in points and in national SD units
+cmp <- mk_cmp(m4, lsdv)
+S <- function(d, col = "tau") cmp[domain == d][[col]]
+summ <- cmp[, .(med_tau = median(tau), q25 = quantile(tau, .25), q75 = quantile(tau, .75), pos = sum(tau / tau_se > 1.96), neg = sum(tau / tau_se < -1.96), med_lsdv = median(lsdv), med_tau_sd = median(tau_sd), med_lsdv_sd = median(lsdv_sd), med_ratio = median(ratio)), by = domain]
+g <- function(d, col) summ[domain == d][[col]]
+sig_sys <- function(d) { x <- cmp[domain == d & tau / tau_se > 1.96][order(-tau)]; paste0(SYS_NAMES[x$CNT], " +", f1(x$tau), collapse = ", ") }
+n_sys <- length(SYS_SHARP)
+```
+
+::: {.callout-note}
+**Status.** Same `r n_sys` sharp-cutoff systems and the same fuzzy-RD estimates as Paper B; three achievement outcomes (science, mathematics, reading); the thirteen fuzzy-cutoff systems as an appendix check (`03_outputs/paperB/rd_estimates.csv`, headline bandwidth `r H_MAIN` birth months, local linear, BRR + 10 PVs); this report adds the cross-sectional grade coefficient (`03_outputs/paperC/grade_lsdv.csv`, LSDV with birth-month dummies and student controls) as the benchmark. Re-estimate with `02_scripts/paperC/run_all_estimation.sh` (about a minute on top of Paper B's five).
+:::
+
+# The question
+
+Education production functions estimated on PISA proxy the value of a school year by the grade coefficient: the score difference between students of the same age in adjacent grades, with birth-month dummies absorbing age. That coefficient is 15–60 points in most systems and is routinely read as "what a year of schooling adds". But within a birth month, who sits in the higher grade is a family decision — early entry, no repetition — except at the school-entry cutoff, where the rule decides. The question of this paper is the simplest one the cutoff can answer: **in a system where the entry rule is sharp, how many science, mathematics and reading points does one additional year of schooling add by age 15?** And, as a corollary: how far is that from the grade coefficient the production function reports?
+
+| | Research question | Quantity | Decision rule |
+|---|---|---|---|
+| RQ1 | How large is the effect of one more year of schooling on science, mathematics and reading at age 15? | Fuzzy-RD effect τ at the entry cutoff, PISA points and national SD units, per system; median across systems | τ significant at 5 % per system; the median and IQR as the summary |
+| RQ2 | How does it compare with the grade coefficient of the cross-sectional production function? | LSDV grade coefficient (score on upper-grade indicator + birth-month dummies + controls, whole cohort) per system; ratio τ / LSDV | ratio well below one in most systems = the grade coefficient mostly measures selection into early entry |
+| RQ2b | How much of the gap is the age bundle rather than selection? | β (within-grade age slope per year) and γ = τ + β per system; γ against Avvisati & Givord's PISA 2018 estimates for the overlapping systems | γ in the 15–25-point range reproduces the literature; the remaining gap to the grade coefficient is selection |
+| RQ3 | Is the answer the same across systems and regions? | spread of τ across the fourteen systems; region labels | medians by region label, never pooled |
+
+**What "a year of schooling" can mean.** Three quantities are tied together by construction: age at test = school-starting age + years of schooling. A single cross-section can therefore identify two contrasts, never all three, and every estimate of "a year of schooling" is a bundle of two of them:
+
+| Bundle | What is held fixed | What moves | How it is estimated here |
+|---|---|---|---|
+| τ — the fixed-age contrast | age at test | +1 year of schooling, −1 year of school-starting age (youngest in the grade instead of oldest) | the fuzzy-RD jump at the cutoff |
+| β — the age slope | grade | +1 year of age at test and +1 year of school-starting age (inside a grade the two are the same thing) | the within-grade slope of the score on birth month, per year |
+| γ = τ + β — the schooling-plus-age effect | school-starting age | +1 year of schooling, +1 year of age at test | the Avvisati & Givord (2021) estimand: theoretical grade as instrument, starting age as a linear control |
+
+The grade coefficient of the production function is a fourth number: γ plus whatever selects children into early entry and out of repetition. The paper reports all four.
+
+# Sample and design (in brief)
+
+The fourteen systems are those in which, across all 91 PISA 2025 participants, the probability of being in the upper of the two grades that hold the age-15 cohort drops by at least 0.45 between two adjacent birth months (Paper B, cutoff audit): Chinese Taipei, Korea, B-S-J-Z, Hong Kong, Brunei, Philippines, Georgia, Finland, Estonia, Slovakia, Croatia, Serbia, Peru, Paraguay. The running variable is birth month relative to the cutoff, the instrument is being born before it, the treatment is the upper grade, the specification is local linear with separate slopes on each side (a common slope where one side has a single month: Finland, Peru, Paraguay), bandwidth `r H_MAIN` months, the partial cutoff month dropped in Georgia, Estonia and Paraguay. Inference is Fay BRR over 80 replicate weights plus Rubin over 10 plausible values. Balance of ESCS, sex, immigrant background, home language and repetition at the cutoff, placebo cutoffs and the smoothness of the birth-month distribution are documented in Paper B (5 of 70 balance tests significant; 10 % placebo rejection rate — the standard errors are somewhat too small for a 12-point running variable).
+
+```{r tbl-fs}
+fs <- m4[outcome == "SCIE", .(Region = REGION[CNT], System = SYS_NAMES[CNT], `Cutoff` = cut$cut_label[match(CNT, cut$CNT)], `Jump` = f2(cut$jump[match(CNT, cut$CNT)]), `Students in window` = n, `First stage (SE)` = paste0(f2(fs), " (", formatC(fs_se, format = "f", digits = 3), ")"))][order(match(System, SYS_NAMES[sys_order]))]
+kable(fs, caption = paste0("The fourteen systems: first month after the entry cutoff, jump in P(upper grade), and the first stage at h = ", H_MAIN))
+```
+
+# Results
+
+## RQ1 — Points per year of schooling in the three domains
+
+```{r fig-rq1, fig.height=5.5, fig.cap=paste0("Fuzzy-RD effect of one additional year of schooling on the science, mathematics and reading scores, PISA points, h = ", H_MAIN, "; 95% CI (BRR + PV). Dotted line = median across the fourteen systems.")}
+gg <- m4[outcome %in% DOMS]; gg[, System := lab(CNT)]; gg[, Region := reg(CNT)]; gg[, Domain := factor(dom_lab[outcome], levels = dom_lab[DOMS])]
+md <- gg[, .(median = median(tau)), by = Domain]
+ggplot(gg, aes(x = tau, y = System, colour = Region)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(data = md, aes(xintercept = median), linetype = 3) +
+  geom_pointrange(aes(xmin = tau - 1.96 * tau_se, xmax = tau + 1.96 * tau_se), size = .35) + facet_wrap(~Domain) + scale_colour_manual(values = okabe[1:5], name = NULL) + labs(x = "PISA points per additional year of schooling", y = NULL)
+```
+
+```{r tbl-rq1}
+t1 <- cmp[domain %in% DOMS, .(Region = REGION[CNT], System = SYS_NAMES[CNT], Domain = factor(dom_lab[domain], levels = dom_lab[DOMS]), v = paste0(ci(tau, tau_se), "  (", f2(tau_sd), " SD)"))]
+t1 <- dcast(t1, Region + System ~ Domain, value.var = "v")[order(match(System, SYS_NAMES[sys_order]))]
+kable(t1, caption = paste0("RQ1: effect of one more year of schooling at the cutoff, h = ", H_MAIN, ": points [95% CI] and, in brackets, the effect in the system's own score standard deviation"))
+kable(summ[domain %in% DOMS, .(Domain = dom_lab[domain], `Median τ (points)` = f1(med_tau), IQR = paste0("[", f1(q25), ", ", f1(q75), "]"), `Median τ (SD)` = f2(med_tau_sd), `Significantly positive` = pos, `Significantly negative` = neg, Systems = n_sys)], caption = "Medians across the fourteen systems")
+```
+
+```{r rq1-text, results="asis"}
+cat("**Reading.** In the median system one more year of schooling adds ", f1(g("SCIE", "med_tau")), " science points [IQR ", f1(g("SCIE", "q25")), ", ", f1(g("SCIE", "q75")), "], ", f1(g("MATH", "med_tau")), " mathematics points [", f1(g("MATH", "q25")), ", ", f1(g("MATH", "q75")), "] and ", f1(g("READ", "med_tau")), " reading points [", f1(g("READ", "q25")), ", ", f1(g("READ", "q75")), "] — ", f2(g("SCIE", "med_tau_sd")), ", ", f2(g("MATH", "med_tau_sd")), " and ", f2(g("READ", "med_tau_sd")), " of a national standard deviation. ",
+    "The effect is significant in ", g("SCIE", "pos"), " systems for science (", sig_sys("SCIE"), "), ", g("MATH", "pos"), " for mathematics (", sig_sys("MATH"), ") and ", g("READ", "pos"), " for reading (", sig_sys("READ"), "); it is significantly negative nowhere. ",
+    "Reading responds most and mathematics least, and the systems with large effects are the same in every domain: B-S-J-Z and Brunei, with Paraguay and Peru next. ",
+    "At the other end, Finland, Estonia and Hong Kong have negative point estimates in all three domains — not significant, and in Finland and Estonia resting on one or three birth months after the cutoff — and Serbia, Korea, Slovakia, Croatia and the Philippines are within a few points of zero.\n", sep = "")
+```
+
+## RQ2 — The grade coefficient and the cutoff estimate
+
+```{r fig-rq2, fig.height=5.5, fig.cap=paste0("The cross-sectional grade coefficient (LSDV: score on upper-grade indicator with birth-month dummies and student controls, whole cohort) and the fuzzy-RD effect at the cutoff, by system and domain, points; 95% CI. Where the cutoff is nearly deterministic (Chinese Taipei, Korea) the grade indicator is almost collinear with the birth-month dummies and the LSDV coefficient is imprecise.")}
+gl <- rbind(cmp[domain %in% DOMS, .(CNT, domain, est = lsdv, se = lsdv_se, Estimator = "Grade coefficient (LSDV, whole cohort)")], cmp[domain %in% DOMS, .(CNT, domain, est = tau, se = tau_se, Estimator = "Fuzzy RD at the cutoff")])
+gl[, System := lab(CNT)]; gl[, Domain := factor(dom_lab[domain], levels = dom_lab[DOMS])]
+ggplot(gl, aes(x = est, y = System, colour = Estimator)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), position = position_dodge(width = .5), size = .35) + facet_wrap(~Domain) +
+  scale_colour_manual(values = okabe[c(2, 1)], name = NULL) + labs(x = "PISA points per grade / per year of schooling", y = NULL)
+```
+
+```{r tbl-rq2}
+t2 <- cmp[domain %in% DOMS, .(Region = REGION[CNT], System = SYS_NAMES[CNT], Domain = dom_lab[domain], `Grade coefficient, no controls` = star(lsdv0, lsdv0_se), `Grade coefficient, controls` = star(lsdv, lsdv_se), `Fuzzy RD` = star(tau, tau_se), `RD / grade coefficient` = ifelse(abs(lsdv / lsdv_se) > 1.96, f2(ratio), "— (grade coef. imprecise)"))][order(Domain, match(System, SYS_NAMES[sys_order]))]
+kable(t2, caption = "RQ2: the grade coefficient of the production function versus the cutoff estimate, points (* = |z| > 1.96). The ratio is shown where the grade coefficient itself is estimated with precision.")
+```
+
+```{r rq2-text, results="asis"}
+rt <- cmp[domain %in% DOMS & abs(lsdv / lsdv_se) > 1.96]
+cat("**Reading.** The grade coefficient has a median of ", f1(g("SCIE", "med_lsdv")), " points for science, ", f1(g("MATH", "med_lsdv")), " for mathematics and ", f1(g("READ", "med_lsdv")), " for reading — ", f2(g("SCIE", "med_lsdv_sd")), ", ", f2(g("MATH", "med_lsdv_sd")), " and ", f2(g("READ", "med_lsdv_sd")), " national SD, the familiar size of \"a year of schooling\" in PISA production functions. ",
+    "The cutoff estimate is a fraction of it: the median ratio of RD to grade coefficient, over the systems where the grade coefficient is precise, is ", f2(median(rt[domain == "SCIE", ratio])), " for science, ", f2(median(rt[domain == "MATH", ratio])), " for mathematics and ", f2(median(rt[domain == "READ", ratio])), " for reading. ",
+    "Part of the gap is the age bundle, taken up in the next section; the rest is selection: within a birth month, the students who are a grade ahead got there because their families entered them early or because they were never held back, and those students score higher for reasons that have nothing to do with the extra year. ",
+    "Only in B-S-J-Z (ratio ", f2(cmp[CNT == "QCI" & domain == "SCIE", ratio]), " / ", f2(cmp[CNT == "QCI" & domain == "MATH", ratio]), " / ", f2(cmp[CNT == "QCI" & domain == "READ", ratio]), " for science / mathematics / reading) and Brunei (", f2(cmp[CNT == "BRN" & domain == "SCIE", ratio]), " / ", f2(cmp[CNT == "BRN" & domain == "MATH", ratio]), " / ", f2(cmp[CNT == "BRN" & domain == "READ", ratio]), ") does the cutoff confirm half or more of the grade coefficient; in Finland, Hong Kong, Peru and Slovakia a grade coefficient of 30–65 points coexists with a cutoff estimate indistinguishable from zero. ",
+    "This is the same result as the Georgia–Azerbaijan–Kazakhstan benchmark in the post-Soviet production-function paper, now for fourteen systems on three continents: the LSDV grade coefficient is not a learning gain.\n", sep = "")
+```
+
+## RQ2b — The three bundles: fixed-age contrast, age slope, schooling-plus-age
+
+```{r tbl-bundles}
+ad <- dcast(agd[h == 6], CNT + domain ~ term, value.var = c("est", "se"))
+ad <- merge(ad, lsdv[controls == "controls", .(CNT, domain, lsdv = est, lsdv_se = se)], by = c("CNT", "domain"))
+ad <- merge(ad, melt(ag18, id.vars = "CNT", measure.vars = c("MATH", "READ", "SCIE"), variable.name = "domain", value.name = "ag"), by = c("CNT", "domain"), all.x = TRUE)
+tb <- ad[, .(Region = REGION[CNT], System = SYS_NAMES[CNT], Domain = factor(dom_lab[domain], levels = dom_lab[DOMS]),
+             `τ fixed-age RD` = star(est_tau, se_tau), `β age slope / yr` = star(est_beta, se_beta), `γ = τ + β` = star(est_gamma, se_gamma), `A&G 2021 (PISA 2018)` = ifelse(is.na(ag), "—", f1(ag)), `Grade coef. (LSDV)` = star(lsdv, lsdv_se))]
+kable(tb[order(Domain, match(System, SYS_NAMES[sys_order]))], caption = "The bundles by system and domain, points (h = 6, common slope; * = |z| > 1.96). τ: one more year of school at the same age (youngest in grade); β: one more year of age inside a grade; γ: one more year of school and of age, starting age fixed — the quantity Avvisati & Givord (2021) estimate on PISA 2018 (their Table 5.1, where the system overlaps); grade coefficient: the production-function benchmark.")
+sb <- ad[, .(`τ fixed-age` = f1(median(est_tau)), `β age slope` = f1(median(est_beta)), `γ = τ + β` = f1(median(est_gamma)), `γ significant` = sum(est_gamma / se_gamma > 1.96), `A&G 2021 (overlap)` = f1(median(ag, na.rm = TRUE)), `Grade coef.` = f1(median(lsdv))), by = .(Domain = factor(dom_lab[domain], levels = dom_lab[DOMS]))][order(Domain)]
+kable(sb, caption = "Medians across the fourteen systems (A&G column: median of their estimates over the nine overlapping systems)")
+```
+
+```{r bundles-text, results="asis"}
+gm <- function(d, v) median(ad[domain == d][[v]], na.rm = TRUE)
+cat("**Reading.** The age slope inside a grade is ", f1(gm("SCIE", "est_beta")), " science, ", f1(gm("MATH", "est_beta")), " mathematics and ", f1(gm("READ", "est_beta")), " reading points per year of age in the median system — a 15-year-old in grade 10 who is a year older than her classmate scores that much higher, through maturation and through having started school older. ",
+    "Adding it to the fixed-age contrast gives γ = ", f1(gm("SCIE", "est_gamma")), " / ", f1(gm("MATH", "est_gamma")), " / ", f1(gm("READ", "est_gamma")), " points for one more year of schooling *and* of age — significant in ", sum(ad[domain == "SCIE", est_gamma / se_gamma > 1.96]), " of 14 systems for science and within a few points of the 18.8 / 19.9 / 19.4 that Avvisati and Givord report as the average over 18 systems in PISA 2018 (median ", f1(gm("SCIE", "ag")), " science over the nine systems common to both studies). ",
+    "The system-by-system agreement with their 2018 estimates is loose (different cycle, different window, one cohort each), but the level is the same. ",
+    "So the sequence is: a year of schooling taken at the same age and in the position of the youngest in the grade is worth ", f1(gm("SCIE", "est_tau")), " science points; the same year with its year of age is worth ", f1(gm("SCIE", "est_gamma")), "; and the production function's grade coefficient says ", f1(gm("SCIE", "lsdv")), ". The first gap is the price of starting school young; the second is selection.\n", sep = "")
+```
+
+## RQ3 — Across systems and regions
+
+```{r tbl-rq3}
+rr <- cmp[domain %in% DOMS, .(`Median RD (points)` = f1(median(tau)), `Median grade coef.` = f1(median(lsdv)), `RD significant` = paste0(sum(tau / tau_se > 1.96), " of ", .N)), by = .(Domain = dom_lab[domain], Region = reg(CNT))][order(Domain, Region)]
+kable(rr, caption = "By region label (East Asia: Chinese Taipei, Korea, B-S-J-Z, Hong Kong; Southeast Asia: Brunei, Philippines; Post-Soviet: Georgia; Europe: Finland, Estonia, Slovakia, Croatia, Serbia; Latin America: Peru, Paraguay). Labels, not estimation units.")
+```
+
+The pattern does not sort by region. Within East Asia the cutoff estimate runs from about +30 points in B-S-J-Z to zero or below in Korea and Hong Kong; within Europe from a few points above zero to −12; the two Latin American systems and Brunei are the only group where all three domains are positive throughout. What separates B-S-J-Z and Brunei from the rest is not geography. One reading is that in both the upper grade is a different stage of schooling — in B-S-J-Z the move from junior to senior secondary after a selective examination, in Brunei the start of the two-year O-level cycle — so the extra year is a year of a different curriculum; where the two grades sit inside the same stage, the cutoff finds little. This is a hypothesis for the paper, not a result of this report.
+
+## Specification checks
+
+```{r tbl-bw}
+bw <- main[outcome %in% DOMS, .(median = median(tau), pos = sum(tau / tau_se > 1.96)), by = .(outcome, h)]
+dd <- rd[spec == "diff" & h == 3 & outcome %in% DOMS, .(median = median(tau), pos = sum(tau / tau_se > 1.96)), by = outcome]
+bw[, cell := paste0(f1(median), " (", pos, " sig.)")]; dd[, cell := paste0(f1(median), " (", pos, " sig.)")]
+bwd <- dcast(bw, outcome ~ h, value.var = "cell"); setnames(bwd, c("Domain", paste0("Local linear, h = ", sort(unique(bw$h))))); bwd[, `Difference in means, h = 3` := dd$cell[match(Domain, dd$outcome)]]; bwd[, Domain := dom_lab[Domain]]
+kable(bwd, caption = "Median effect across systems (number of systems with a significant positive effect) by bandwidth and functional form")
+```
+
+The median rises with the bandwidth and is largest for the plain difference between the months on either side of the cutoff: the local-linear terms, fitted on three or four birth months per side, absorb part of the jump. The honest range for the median system is therefore **zero to about ten points** for science and mathematics and **five to about thirteen** for reading. Even the most generous specification stays at a third to a half of the grade coefficient; the schooling-plus-age bundle γ (next section) is the quantity that stays stable at 15–20 points.
+
+# Mapping the results to the research questions
+
+```{r tbl-map}
+rows <- list(
+  data.table(RQ = "RQ1", Question = "Points per additional year of schooling at 15",
+             Evidence = paste0("science median ", f1(g("SCIE", "med_tau")), " [", f1(g("SCIE", "q25")), ", ", f1(g("SCIE", "q75")), "], mathematics ", f1(g("MATH", "med_tau")), " [", f1(g("MATH", "q25")), ", ", f1(g("MATH", "q75")), "], reading ", f1(g("READ", "med_tau")), " [", f1(g("READ", "q25")), ", ", f1(g("READ", "q75")), "]; significant in ", g("SCIE", "pos"), " / ", g("MATH", "pos"), " / ", g("READ", "pos"), " of ", n_sys, " systems; never significantly negative"),
+             Answer = "At the same age, a few points in the typical system; large (20–30 points) only where the upper grade is a new stage of schooling. This is the fixed-age bundle, not the learning gain itself (see RQ2b)."),
+  data.table(RQ = "RQ2", Question = "Compared with the grade coefficient of the production function",
+             Evidence = paste0("grade coefficient median ", f1(g("SCIE", "med_lsdv")), " / ", f1(g("MATH", "med_lsdv")), " / ", f1(g("READ", "med_lsdv")), " points; RD-to-grade ratio median ", f2(median(rt[domain == "SCIE", ratio])), " / ", f2(median(rt[domain == "MATH", ratio])), " / ", f2(median(rt[domain == "READ", ratio])), " where the grade coefficient is precise"),
+             Answer = "The grade coefficient overstates the fixed-age value of a school year several-fold; part of the gap is the age bundle (RQ2b), the rest selection into early entry and non-repetition."),
+  data.table(RQ = "RQ2b", Question = "Fixed-age contrast, age slope, schooling-plus-age",
+             Evidence = paste0("median β (age slope per year) ", f1(gm("SCIE", "est_beta")), " / ", f1(gm("MATH", "est_beta")), " / ", f1(gm("READ", "est_beta")), "; γ = τ + β ", f1(gm("SCIE", "est_gamma")), " / ", f1(gm("MATH", "est_gamma")), " / ", f1(gm("READ", "est_gamma")), " points, against Avvisati & Givord's 18.8 / 19.9 / 19.4 (PISA 2018)"),
+             Answer = "A year of schooling with its year of age is worth about a fifth of a standard deviation, as in the literature; at the same age, with the penalty of being youngest in the grade, it is worth close to zero. Neither is 'nobody learns'."),
+  data.table(RQ = "RQ3", Question = "Same across systems and regions?", Evidence = "same sign pattern in every region label; B-S-J-Z and Brunei stand out in both domains; Finland, Estonia, Hong Kong negative but imprecise",
+             Answer = "The result does not depend on the region; it depends on what the upper grade is in that system."))
+kable(rbindlist(rows), caption = "Results mapped to the research questions")
+```
+
+**What follows for the production-function papers.** The grade coefficient should be reported as the conditional grade–achievement association and not converted into "years of schooling". Where an entry cutoff exists, two causal bundles are available — the fixed-age contrast τ and the schooling-plus-age effect γ — and a paper must say which one it means by "a year of schooling"; γ is the one comparable to the literature and to the intuition that students learn something in a year, τ is the one that answers "does being a grade ahead help a child of a given age". Where no cutoff exists, neither is identified from a single cross-section. The post-Soviet production-function paper already follows this rule for Georgia, Azerbaijan and Kazakhstan; this report shows that the rule is general.
+
+# Appendix
+
+## The fuzzy-cutoff systems
+
+Thirteen further systems have a jump in the probability of the upper grade between 0.25 and 0.45 (Mauritius 0.73 but without a complete skill set — irrelevant here, where only scores are used; the United States, Costa Rica, Kenya, Cambodia, Kazakhstan, Albania, New Zealand, Brazil, Azerbaijan, Kosovo, Chile, Israel). The weak first stage multiplies their standard errors three- to five-fold, and in Chile, Israel and New Zealand the cutoff sits at the edge of the cohort. They are run through the same pipeline as a check that the sharp-tier result is not a property of fourteen systems.
+
+```{r tbl-fuzzy}
+mfz <- pick(rd_all[CNT %in% FUZZY])[h == H_MAIN & outcome %in% DOMS & !is.na(tau)]
+cmf <- mk_cmp(mfz, lsdv_all[CNT %in% FUZZY])
+tf <- cmf[, .(Region = REGION[CNT], System = SYS_NAMES[CNT], Domain = factor(dom_lab[domain], levels = dom_lab[DOMS]), v = paste0(ci(tau, tau_se), " | ", ifelse(is.na(lsdv), "—", star(lsdv, lsdv_se))))]
+tf <- dcast(tf, Region + System ~ Domain, value.var = "v")[order(match(System, SYS_NAMES[cut_all[CNT %in% FUZZY][order(-jump), CNT]]))]
+kable(tf, caption = paste0("Fuzzy-tier systems, h = ", H_MAIN, ": fuzzy-RD effect [95% CI] | grade coefficient (LSDV with controls; — where ESCS is not in the file). Points."))
+sf <- rbind(cmp[, .(tier = "Sharp (14)", domain, tau, tau_se, lsdv)], cmf[, .(tier = "Fuzzy (13)", domain, tau, tau_se, lsdv)])
+sf <- sf[, .(`Median RD (points)` = f1(median(tau)), IQR = paste0("[", f1(quantile(tau, .25)), ", ", f1(quantile(tau, .75)), "]"), `RD significant +/−` = paste0(sum(tau / tau_se > 1.96), "/", sum(tau / tau_se < -1.96)), `Median grade coef.` = f1(median(lsdv, na.rm = TRUE)), Systems = .N), by = .(Domain = factor(dom_lab[domain], levels = dom_lab[DOMS]), Tier = tier)][order(Domain, -Tier)]
+kable(sf, caption = "Sharp versus fuzzy tier: medians across systems by domain")
+```
+
+```{r fuzzy-text, results="asis"}
+fm <- cmf[, .(m = median(tau), pos = sum(tau / tau_se > 1.96)), by = domain]
+cat("The fuzzy tier gives medians of ", f1(fm[domain == "SCIE", m]), " (science), ", f1(fm[domain == "MATH", m]), " (mathematics) and ", f1(fm[domain == "READ", m]), " (reading) points — somewhat above the sharp tier, with ", sum(fm$pos), " significant estimates out of ", nrow(cmf), " and intervals of ±40 points or more in most systems; Kenya and Costa Rica are the only systems that approach precision. The grade coefficients in this tier (medians ", f1(median(cmf[domain == "SCIE", lsdv], na.rm = TRUE)), "–", f1(median(cmf[domain == "MATH", lsdv], na.rm = TRUE)), " points by domain) again sit well above the cutoff estimates in most systems; Kazakhstan and Albania have negative grade coefficients because grade 10 at age 15 mixes general and vocational tracks there — a different failure of the grade coefficient, not a smaller one. Nothing here contradicts the sharp-tier result, and nothing here could establish one.\n", sep = "")
+```
+
+## Notes
+
+- The RD estimates, balance tests, placebo cutoffs and compliance profiles are those of Paper B (`02_scripts/paperB/`, `03_outputs/paperB/`); this report adds `02_scripts/paperC/01_grade_lsdv.R` → `03_outputs/paperC/grade_lsdv.csv`, `score_sd.csv`, and `02_age_decomposition.R` → `age_decomposition.csv` (τ, β, γ at h = 4 and 6, common slope) and `avvisati_givord_2021_table51.csv` (transcribed from OECD Education Working Paper 257, Table 5.1).
+- The decomposition uses a common slope on both sides of the cutoff (the locally-linear-age assumption of Avvisati & Givord); τ at h = 6 with a common slope therefore differs from the headline τ at h = 4 with separate slopes in some systems (Estonia most of all). All outputs carry a `tier` column (sharp / fuzzy); Montenegro (jump 0.17 on the all-programme sample) is excluded from the fuzzy tier in the report.
+- The grade coefficient is estimated on the whole 12-month cohort with the upper-grade indicator, birth-month dummies and (second version) sex, ESCS, immigrant background and home language; students in all programmes are kept in both estimators.
+- In Chinese Taipei and Korea the entry rule is almost deterministic, so within a birth month there is almost no variation in grade: the grade coefficient there has standard errors of 20–26 points and is not a usable benchmark.
+- Edge-of-cohort systems (one usable birth month after the cutoff): Finland, Peru, Paraguay — common-slope specification.

@@ -1,0 +1,293 @@
+---
+title: "Do Socio-Emotional Skills Transmit Socio-Economic Advantage? Evidence from 87 School Systems in PISA 2025"
+author:
+  - name: Karen Avanesian
+date: today
+date-format: "D MMMM YYYY"
+abstract: |
+  Children from advantaged families report more curiosity, perseverance and confidence in learning, and these dispositions predict achievement. I ask how much of the socio-economic gradient in achievement runs through them, in every school system that fielded the PISA 2025 socio-emotional scales: 87 systems and 546,885 students. Estimating a linear causal-mediation model separately in each system, I find that seven dispositions jointly carry a median 12% of the gradient in science (interquartile range 10–17%), 16% of the gradient among students in the same school, and similar shares in reading and mathematics. The channel is statistically distinguishable from zero in 84 of 87 systems. Curiosity is the largest single conduit everywhere; growth mindset has the highest return but the smallest socio-economic gap. The share is unrelated to a system's average achievement or the size of its gradient, but falls steeply with between-school sorting: where schools stratify students by background, dispositions carry less of the gradient.
+keywords: [socio-emotional skills, socio-economic gradient, mediation, PISA, educational inequality]
+thanks: "Draft for Education Economics. Data: PISA 2025 public-use files (OECD). Replication: `02_scripts/sestransmit/` in the project repository."
+bibliography: references.bib
+csl: elsevier-harvard.csl
+link-citations: true
+number-sections: true
+tbl-cap-location: top
+format:
+  html:
+    embed-resources: true
+    toc: true
+    theme: cosmo
+  pdf:
+    pdf-engine: xelatex
+    documentclass: article
+    papersize: a4
+    geometry: margin=2.5cm
+    mainfont: PT Serif
+    fontsize: 11pt
+    linestretch: 1.15
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{etoolbox}
+        \newcommand{\tblsize}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
+        \usepackage{float}
+        \floatplacement{figure}{H}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({library(data.table); library(knitr)})
+invisible(Sys.setlocale("LC_CTYPE", "en_US.UTF-8"))
+T <- "../../03_outputs/sestransmit/tables/"; F <- "../../03_outputs/sestransmit/figures/"
+h <- as.list(fread(paste0(T, "headline.csv")))
+f1 <- function(x) sprintf("%.1f", x); f0 <- function(x) sprintf("%.0f", x); f2 <- function(x) sprintf("%.2f", x)
+fig <- function(n) paste0(F, n, if (knitr::is_latex_output()) ".pdf" else ".png")
+nb <- function(d) { d <- copy(d); for (c in names(d)) if (is.character(d[[c]])) set(d, j = c, value = gsub(" \\[", "\u00a0[", gsub(" \\(", "\u00a0(", gsub(", ", ",\u00a0", d[[c]])))); d }   # no line breaks inside "a [b, c]" or "a (se)"
+kb <- function(d) kable(nb(d), format = "pipe", align = c("l", rep("r", ncol(d) - 1)))
+t1 <- fread(paste0(T, "t1_sample.csv"), encoding = "UTF-8"); t2 <- fread(paste0(T, "t2_headline.csv"), encoding = "UTF-8")
+t3 <- fread(paste0(T, "t3_mediators.csv"), encoding = "UTF-8"); t4 <- fread(paste0(T, "t4_systems_science.csv"), encoding = "UTF-8")
+t5 <- fread(paste0(T, "t5_robustness.csv"), encoding = "UTF-8"); t6 <- fread(paste0(T, "t6_correlates.csv"), encoding = "UTF-8"); t6f <- fread(paste0(T, "t6_fit.csv"))
+cov <- fread(paste0(T, "../audit/sample_coverage.csv"), encoding = "UTF-8")
+v <- fread(paste0(T, "../audit/validation.csv"))
+pick <- function(sys, col = "Share (total), %") as.numeric(t4[System == sys][[col]])
+med <- function(x) sub(" .*", "", x)   # median from a "median [q25, q75]" cell
+```
+
+# Introduction
+
+In every system that took part in PISA 2025, fifteen-year-olds from the top tenth of the socio-economic distribution outscore those from the bottom tenth, by a median of `r f0(h$beta_p10p90)` points in science, roughly two years of schooling. The same students also differ in how they describe themselves. Advantaged children report more curiosity, more perseverance and more confidence that intelligence can be developed, and each of these dispositions predicts achievement conditional on family background [@almlund2011; @heckman2012]. Economists have long treated such skills as part of the technology of skill formation, produced by family investment and in turn productive of later outcomes [@cunha2007; @heckman2006]. Whether they are also a conduit for inequality, a route by which family advantage becomes achievement advantage, is a different question, and one that has mostly been asked in single countries with rich longitudinal data [@lundberg2013; @attanasio2020; @falk2021].
+
+This paper asks that question in `r h$systems` school systems at once. PISA 2025 is the first international assessment to field a common battery of socio-emotional scales alongside achievement tests and a harmonised measure of family background. I use it to estimate, separately in each system, how much of the socio-economic gradient in achievement runs through seven dispositions: perseverance, curiosity, enjoyment of problem-solving, cognitive adaptability, goal setting, self-regulated learning and a growth mindset. The estimator is the linear causal-mediation model of @imai2010psych, with the joint contribution of all skills given by the @gelbach2016 decomposition, estimated on `r format(h$students, big.mark = ",")` students with full PISA inference (balanced repeated replication and ten plausible values).
+
+Three results stand out. First, the channel is real and nearly universal. The seven dispositions jointly carry a median `r f1(h$share_med)`% of the gradient in science across systems (interquartile range `r f1(h$share_q25)`–`r f1(h$share_q75)`%), equivalent to `r f1(h$joint_p10p90)` PISA points of the `r f0(h$beta_p10p90)`-point gap between the 10th and 90th percentiles. The joint indirect effect is statistically distinguishable from zero in `r h$sig_student` of `r h$n_student` systems and exceeds a tenth of the gradient in `r h$gt10_student`. Among students in the same school, where the gradient is less than half as steep, the dispositions carry a larger fraction of what remains: `r f1(h$share_sch_med)`% (IQR `r f1(h$share_sch_q25)`–`r f1(h$share_sch_q75)`%). Reading and mathematics give the same picture.
+
+Second, the composition of the channel is stable. Curiosity is the largest single conduit in most systems, carrying `r f1(h$curio_share_med)`% of the gradient on its own, because it combines a sizeable socio-economic gap (`r f2(h$curio_gap_med)` SD between the 10th and 90th percentiles) with the highest return among the continuous scales (`r f1(h$curio_b_med)` points per SD). Growth mindset is the mirror image: the return to holding one is large, `r f0(h$growth_b_med)` points, but the gap between advantaged and disadvantaged students is only `r f0(h$growth_gap_med)` percentage points, so it carries `r f1(h$growth_share_med)`% of the gradient. Perseverance and enjoyment of problem-solving each carry about 4%; goal setting and self-regulated learning carry little, and conditional on the other skills nothing.
+
+Third, where the channel is wide tells something about how school systems transmit advantage. The share is unrelated to a system's mean score (r = `r f2(h$cor_share_sci)`) and only weakly to the size of its gradient (r = `r f2(h$cor_share_beta)`), and OECD and partner systems have the same median. It falls steeply, however, with the fraction of achievement variance that lies between schools (r = `r f2(h$cor_share_icc)`). In Finland, Norway and Denmark, where between-school differences account for a tenth to a fifth of the variance, dispositions carry 24–29% of the gradient. In Germany, Hungary, the Netherlands and Austria, where more than half of the variance lies between schools, they carry 6–12%. A system that sorts children into different schools by background transmits advantage through the school assignment; a system that does not sort leaves more of the transmission to run inside the child.
+
+The paper speaks to three literatures. The economics of personality has established that non-cognitive skills are priced in labour markets and schooling [@heckman2006; @borghans2008; @deming2017], that they are shaped by family background [@attanasio2020; @falk2021] and that they respond to schooling and to early intervention [@heckman2013; @jackson2018]. Mediation of the socio-economic gradient follows from those three facts, but its magnitude has been measured mainly in British and American cohort data [@lundberg2013; @west2016]. Cross-national work on the gradient itself has documented its size and growth [@chmielewski2019; @jerrim2014] without decomposing it, because no international assessment measured dispositions on a common scale before the OECD's Survey on Social and Emotional Skills [@oecd2021], which covers a few cities, and PISA 2025 [@oecd2026]. The contribution here is to measure the channel comparably in almost every participating system and to show that its width is a property of the school system rather than of the country's income or performance.
+
+Two limits apply to every number in the paper and I state them once. The dispositions are self-reports collected on the same day as the test, so part of the "return" to curiosity is reverse: students who do well in science come to describe themselves as curious. And identification of the indirect effect requires that no unmeasured variable drives both the disposition and achievement conditional on family background and the controls (sequential ignorability), an assumption no observational design can secure. I report the sensitivity parameter $\rho^*$ of @imai2010statsci for every system and skill: the median value for curiosity is `r f2(h$curio_rho_med)`, meaning an omitted confounder would have to induce an error correlation of that size between the skill and outcome equations to eliminate the channel. The estimates are therefore best read as the share of the gradient that is *statistically accounted for* by dispositions under a transparent set of assumptions, and the cross-system comparison, which is the paper's main contribution, does not require those assumptions to hold exactly, only that their failure be similar across systems.
+
+Section 2 describes the data and the measures, Section 3 the estimator, Section 4 the results, including the mediator-by-mediator decomposition, the cross-system correlates and robustness, and Section 5 concludes.
+
+# Data
+
+## Systems and students
+
+PISA 2025 assessed fifteen-year-olds in 90 education systems. I use the public-use student and school files. Three systems are excluded: Cambodia did not field any of the socio-emotional scales, and Costa Rica and El Salvador have no ESCS index or its components in the public file. The remaining `r h$systems` systems are listed in @tbl-sample with sample sizes. Science is the major domain of PISA 2025 and the primary outcome; reading and mathematics are reported as parallel outcomes. Uzbekistan has science scores only.
+
+The analytic sample in each system contains students with a valid ESCS index, a science score and a valid response on every socio-emotional scale the system fielded. It covers a median `r f0(100 * median(cov$share))`% of the sampled students, with a range from `r f0(100 * min(cov$share))`% in Armenia and 29% in Lebanon, where item non-response on the questionnaire was heavy, to 99% in B-S-J-Z (China). The analytic sample scores higher than the full sample in most systems, by a median of `r f0(median(cov$sci_analytic - cov$sci_all))` points, because questionnaire non-response is concentrated among weaker students. Section 4.4 shows that reweighting for this selection changes nothing.
+
+## Socio-economic position
+
+Family background is the PISA index of economic, social and cultural status (ESCS), which combines parental education, parental occupation and home possessions [@avvisati2020]. I do not use the index in its own units: one unit of ESCS is a different distance in the distribution of each system, and the index is anchored to the OECD average, which has no meaning for a Kenyan or a Korean sample. The exposure is instead the student's weighted percentile rank in the national ESCS distribution, divided by ten, so that one unit is ten percentile points and the move from the 10th to the 90th percentile is eight units. Results with ESCS in index units are a robustness check (Section 4.4); because the mediated *share* is a ratio, it is almost unaffected by the choice.
+
+## Socio-emotional skills
+
+PISA 2025 fielded six scales derived from the OECD's Survey on Social and Emotional Skills [@oecd2021]: perseverance, curiosity, enjoyment of problem-solving, cognitive adaptability, goal setting and self-regulated learning. Each is a weighted-likelihood estimate from a block of Likert items, scaled by the OECD to a mean of zero and standard deviation of one across OECD countries. I re-standardise each scale across the pooled analytic sample, weighting systems equally, so that one unit is one standard deviation of the pooled fifteen-year-old population; indirect effects and shares are invariant to this rescaling. Growth mindset is a single item, "You have a certain amount of intelligence, and you really can't do much to change it", coded one for students who disagree or strongly disagree.
+
+Not every system fielded every scale. `r sum(cov$n_med == 7)` systems have all seven dispositions. The United States lacks perseverance and curiosity, Norway curiosity and cognitive adaptability, Sweden perseverance, curiosity and cognitive adaptability, and Spain the growth-mindset item. Brazil, Indonesia, Kazakhstan, Kenya and Albania lack perseverance. Five systems, Mauritius, Rwanda, Zambia, the Kurdistan Region of Iraq and Dushanbe, fielded only two or three dispositions. Every scale a system fielded enters its models, so the joint share is a lower bound in the systems with fewer scales; Section 4.4 compares systems on the five scales that nearly all of them share.
+
+## Controls
+
+The student controls are sex, age, grade relative to the system's modal grade, an indicator for any immigrant background and an indicator for speaking a language other than the test language at home. Each enters with a missing-value indicator, so that the analytic sample is defined by the exposure, the outcome and the mediators alone. The within-school specification adds the leave-one-out school mean of the exposure, an indicator for private management and two community-size indicators. The school-mean specification is Mundlak's [-@mundlak1978]: with the school mean of the exposure held fixed, the coefficient on a student's own percentile rank is the within-school gradient, the comparison between classmates of different backgrounds. Four systems, Iceland, Luxembourg, Macao and Malta, have no school identifiers in the public file and have no within-school estimates.
+
+# Empirical framework
+
+Write $Y$ for achievement, $T$ for the exposure (ESCS percentile rank in tens), $M_k$ for disposition $k$ and $X$ for the controls. In system $c$, the socio-economic gradient is $\beta$ in
+
+$$Y = \alpha + \beta\,T + X'\gamma + \varepsilon, \tag{1}$$
+
+the socio-economic gap in disposition $k$ is $\pi_k$ in
+
+$$M_k = \alpha_k + \pi_k\,T + X'\gamma_k + u_k, \tag{2}$$
+
+and the return to disposition $k$ conditional on background is $b_k$ in
+
+$$Y = \alpha' + \beta_k\,T + b_k\,M_k + X'\gamma' + v_k. \tag{3}$$
+
+Under the linear structural equation model, the average causal mediation effect (ACME) of $T$ on $Y$ through $M_k$ is $\pi_k b_k$, and it is identified if $T$ is as good as random given $X$ and $M_k$ is as good as random given $T$ and $X$, the sequential ignorability assumption of @imai2010psych [see also @vanderweele2015]. The first part is the familiar condition for the gradient to have a causal reading, which I do not claim; the second is the part specific to mediation. I report $\pi_k$, $b_k$, their product, the product scaled to the 10th-to-90th percentile move ($8\pi_k b_k$) and the share $\pi_k b_k/\beta$. The seven single-mediator models are the estimates of record for individual skills because they do not require one to hold the other, correlated, dispositions fixed.
+
+The joint contribution of all dispositions comes from the outcome equation with every fielded skill included,
+
+$$Y = \alpha'' + \beta_{\mathrm{dir}}\,T + \textstyle\sum_k g_k\,M_k + X'\gamma'' + \eta, \tag{4}$$
+
+as $\beta - \beta_{\mathrm{dir}} = \sum_k \pi_k g_k$, the @gelbach2016 decomposition, which is exact for least squares on a common sample and does not depend on the order in which skills are added. The joint share is $(\beta - \beta_{\mathrm{dir}})/\beta$. The conditional contributions $\pi_k g_k/\beta$ are reported alongside the single-mediator shares; where they differ, as they do for goal setting and cognitive adaptability, the difference reflects the correlation among the dispositions, and the single-mediator estimate is the one with a causal interpretation under sequential ignorability for that skill.
+
+For sensitivity I use the result of @imai2010statsci that in the linear model the ACME equals zero when the correlation $\rho$ between the errors of (2) and (1) equals the observed partial correlation between $M_k$ and $Y$ given $T$ and $X$. I report this value, $\rho^*_k$, for every system and skill. A $\rho^*$ of 0.2 means that an unmeasured factor, prior achievement, say, or a response style, would have to induce an error correlation of 0.2 between the skill and outcome equations to account for the entire measured channel.
+
+Every model is a weighted least-squares regression fitted separately in each system with final student weights. Because all quantities are functions of one weighted cross-product matrix of the regressors, mediators and plausible values, I compute each statistic for the final weight and each of the 80 Fay-adjusted balanced repeated replication weights, on each of the ten plausible values. Sampling variance is the BRR variance averaged over plausible values and imputation variance follows Rubin's [-@rubin1987] rule; standard errors combine the two. The closed form reproduces `lm()` to machine precision and the quasi-Bayesian point estimate of `mediation::mediate()` [@tingley2014] to within Monte Carlo error (@tbl-validation). I summarise results across systems by the median and the interquartile range. I never pool students across systems or average within groups of countries; OECD membership appears only as a label.
+
+A mediated share is a ratio, and where the gradient in the denominator is indistinguishable from zero the ratio is uninformative. I report shares only where the gradient has $|t| > 2$, which removes the within-school estimates for Kenya and Rwanda, whose within-school gradients are near zero.
+
+# Results
+
+## The channel is real and nearly universal
+
+```{r}
+#| label: tbl-headline
+#| tbl-cap: "Socio-economic gradient with and without socio-emotional skills: medians and interquartile ranges across systems. Gradients are PISA points per 10 percentile points of ESCS. The total gradient uses student controls; the within-school gradient adds the leave-one-out school mean of ESCS rank, private management and community size. Shares are reported where the gradient has |t| > 2."
+setnames(t2, c("Specification", "Share > 10%", "Significant at 5%"), c("Spec.", "Share above 10%", "Significant (5%)"))
+t5[, Specification := NULL][, Spec. := rep(c("Total", "Within"), 3)]; setcolorder(t5, c("Check", "Spec."))
+kb(t2)
+```
+
+@tbl-headline gives the headline. In the median system the socio-economic gradient in science is `r f1(h$beta_med)` points per ten percentile points, or `r f0(h$beta_p10p90)` points between the 10th and 90th percentiles. Adding the dispositions to the regression lowers it to a median `r med(t2[[1, 5]])` points. The difference, the joint indirect effect through all fielded skills, is `r f1(h$joint_med)` points per ten percentile points, `r f1(h$joint_p10p90)` points over the 10th-to-90th move, and `r f1(h$share_med)`% of the gradient. The interquartile range across systems is `r f1(h$share_q25)`–`r f1(h$share_q75)`%. The indirect effect is distinguishable from zero at the 5% level in `r h$sig_student` of `r h$n_student` systems; the three exceptions are Kenya, Zambia and Rwanda, where two or three dispositions were fielded and the gradients themselves are small.
+
+Among classmates the gradient is less than half as steep, `r med(t2[[2, 4]])` points per ten percentile points, because much of the total gradient reflects which school a student attends. The dispositions carry a larger fraction of what remains: `r f1(h$share_sch_med)`% (IQR `r f1(h$share_sch_q25)`–`r f1(h$share_sch_q75)`%), above a tenth in `r h$gt10_school` of `r h$n_school_share` systems with a reportable share. That ordering is expected if some of the transmission between schools runs through the school rather than the child, and Section 4.3 returns to it. Reading and mathematics look like science: median shares of `r med(t2[[3, 7]])`% and `r med(t2[[5, 7]])`% in the total specification, `r med(t2[[4, 7]])`% and `r med(t2[[6, 7]])`% within schools (@fig-domains in the appendix plots the system-level shares in the three domains against each other; they lie close to the 45-degree line).
+
+```{r}
+#| label: fig-joint
+#| fig-cap: "Joint share of the socio-economic gradient in science carried by socio-emotional skills, by system. Filled points: total gradient (student controls); hollow points: within-school gradient (Mundlak school controls). Bars are 95% confidence intervals for the total-gradient share (Fay BRR, 10 plausible values). Within-school shares are omitted for Kenya and Rwanda, whose within-school gradients are indistinguishable from zero."
+#| out-width: "88%"
+#| fig-align: center
+include_graphics(fig("fig1_joint_share"))
+```
+
+@fig-joint shows every system. The range is wide, from `r f1(h$share_min)`% in Rwanda to `r f1(h$share_max)`% in Uzbekistan, but the bulk of systems lie between 8 and 20%, and the confidence intervals are narrow enough that the ordering is informative. The five Nordic systems occupy five of the top nine positions: Norway `r f1(pick("Norway"))`%, Denmark `r f1(pick("Denmark"))`%, Iceland `r f1(pick("Iceland"))`%, Finland `r f1(pick("Finland"))`% and Sweden `r f1(pick("Sweden"))`%. Korea (`r f1(pick("Korea"))`%), the Philippines and Saudi Arabia join them. At the bottom, apart from the three East African systems with partial batteries, sit Poland (`r f1(pick("Poland"))`%), Türkiye, Germany (`r f1(pick("Germany"))`%), Italy, Hong Kong, Austria and Hungary. Within schools the ranking is similar but compressed from below: Germany's share rises to `r f1(pick("Germany", "Share (within), %"))`%, Hungary's to `r f1(pick("Hungary", "Share (within), %"))`%, the Netherlands' from `r f1(pick("Netherlands"))` to `r f1(pick("Netherlands", "Share (within), %"))`%.
+
+## Which dispositions carry the gradient
+
+```{r}
+#| label: tbl-mediators
+#| tbl-cap: "Mediator by mediator (science, total gradient): medians and interquartile ranges across systems. The socio-economic gap is 8 times the coefficient on ESCS rank in the skill equation, in pooled SD of the skill (for growth mindset, in the probability of holding one). The return is the coefficient on the skill in the outcome equation conditional on ESCS rank and controls. The single-mediator share is the ACME divided by the total gradient; the conditional share is the skill's Gelbach contribution with all other skills in the model. rho* is the error correlation at which the ACME would be zero. The last column counts systems where the ACME differs from zero at the 5 per cent level."
+setnames(t3, c("SES gap, P10-P90 (SD)", "ACME, P10-P90 (points)", "Share, single (%)", "Share, conditional (%)", "ACME significant"),
+             c("Gap P10–P90 (SD)", "ACME P10–P90 (pts)", "Share single (%)", "Share conditional (%)", "ACME sig."))
+kb(t3)
+```
+
+@tbl-mediators decomposes the channel into its two factors, the socio-economic gap in each disposition and the return to it, and @fig-gapreturn plots the two against each other for every system. The gaps are of similar size across dispositions: in the median system, students at the 90th percentile of ESCS score 0.2–0.3 SD higher than students at the 10th on each of the continuous scales. Self-regulated learning (0.1 SD) and growth mindset (`r f0(h$growth_gap_med)` percentage points) have smaller gaps. The returns differ far more. Curiosity is worth `r f1(h$curio_b_med)` points per SD conditional on background, perseverance 11.6, enjoyment of problem-solving 10.3, and the other three continuous scales 5–6. Holding a growth mindset is associated with `r f0(h$growth_b_med)` points, the largest return of all, though it is a binary rather than a standard-deviation contrast.
+
+```{r}
+#| label: fig-gapreturn
+#| fig-cap: "The two factors of the channel: the socio-economic gap in each disposition (P10 to P90 of ESCS, in SD of the disposition; in probability for growth mindset) and its return (science points per SD; per unit for growth mindset), one point per system. Dashed curves join combinations with the same indirect effect over the P10–P90 move, in PISA points."
+#| out-width: "100%"
+include_graphics(fig("fig2_gap_return"))
+```
+
+The product of gap and return makes curiosity the largest conduit: a median `r f1(h$curio_share_med)`% of the gradient, `r med(t3[Skill == "Curiosity"][[5]])` points over the 10th-to-90th move, significant in 80 of 84 systems that fielded it. Perseverance and enjoyment of problem-solving each carry 3.9%, growth mindset `r f1(h$growth_share_med)`%, cognitive adaptability 2.3%, goal setting 2.1% and self-regulated learning 1.0%. The seven single-mediator shares sum to about 20%, well above the joint share of 12%, because the dispositions are correlated: a student who is curious also tends to persevere and to enjoy problems, and each single-mediator model credits the shared component to the skill in question. The conditional shares in @tbl-mediators, which hold the other skills fixed, resolve the overlap. Curiosity keeps 5.7% and growth mindset 3.8%, perseverance and enjoyment of problem-solving fall to about 1%, and cognitive adaptability, goal setting and self-regulated learning carry nothing or slightly less than nothing once curiosity is in the model. Goal setting's negative conditional contribution is a suppression effect, not evidence that goal-setting disadvantaged students score higher.
+
+@fig-heatmap shows the same decomposition system by system. The composition is remarkably stable. Curiosity is the largest or second-largest single channel in nearly every system where it was fielded; where it is missing (Norway, Sweden, the United States), perseverance or enjoyment of problem-solving takes its place. Growth mindset carries more than a tenth of the gradient on its own in Saudi Arabia, Qatar, Mexico, New Zealand, Mauritius and Canada, and essentially nothing in Czechia, Serbia, Switzerland or Türkiye, a dispersion that the continuous scales do not show.
+
+```{r}
+#| label: fig-heatmap
+#| fig-cap: "Single-mediator shares of the socio-economic gradient in science (one skill at a time) and the joint share (all fielded skills), per cent, by system. Blank cells: scale not fielded."
+#| out-width: "85%"
+#| fig-align: center
+include_graphics(fig("fig3_heatmap"))
+```
+
+## Where the channel is wide
+
+```{r}
+#| label: tbl-correlates
+#| tbl-cap: !expr sprintf("Cross-system correlates of the joint share (science, total gradient, per cent). OLS across %d systems with heteroskedasticity-robust standard errors; R-squared = %.2f. The between-school share of variance is the intraclass correlation of the first plausible value in science, computed on the full national sample; it is missing for Iceland, Luxembourg, Macao and Malta.", t6f$n, t6f$r2)
+t6[`Bivariate r` == "NA", `Bivariate r` := ""]
+kb(t6)
+```
+
+Why do dispositions carry 29% of the gradient in Norway and 6% in Germany? @tbl-correlates and @fig-correlates look for the answer in system-level characteristics. Two candidates fail. The share is unrelated to a system's mean science score (r = `r f2(h$cor_share_sci)`): high- and low-performing systems are spread across the whole range, and OECD and partner systems have identical medians (`r f1(h$share_oecd_med)` and `r f1(h$share_partner_med)`%). Nor does the share track the size of the gradient it divides (r = `r f2(h$cor_share_beta)`); systems with steep gradients do not systematically have wider or narrower skill channels.
+
+```{r}
+#| label: fig-correlates
+#| fig-cap: "The joint share (science, total gradient) against three system characteristics: mean science score, the size of the gradient, and the between-school share of achievement variance. Point size is proportional to the number of dispositions fielded. Dashed line: median share. Panel C adds the least-squares fit."
+#| out-width: "100%"
+include_graphics(fig("fig4_correlates"))
+```
+
+The third candidate is the structure of the school system. Panel C of @fig-correlates plots the share against the fraction of science variance that lies between schools, the intraclass correlation. The relation is strong and negative, r = `r f2(h$cor_share_icc)`: each percentage point of variance that lies between schools lowers the share by `r f2(-h$icc_coef)` points (robust SE `r f2(h$icc_se)`), and adding the intraclass correlation raises the R-squared of the cross-system regression from 0.10 to `r f2(t6f$r2)`. At one end are Finland (10% of variance between schools), Norway (13%), Denmark (18%) and Sweden (20%), comprehensive systems where dispositions carry 24–29% of the gradient. At the other end are the Netherlands and Hungary (59%), Türkiye (56%), the Slovak Republic (54%), Germany (53%) and Austria (51%), systems that track students into different school types by age fifteen or earlier [@hanushek2006], where dispositions carry 5–12%.
+
+The mechanics of this correlation are straightforward. In a stratified system much of the total gradient is a between-school gradient: advantaged children attend higher-achieving schools, and the achievement difference between those schools is produced by selection, peers, curricula and teachers, not by the children's dispositions. Whatever advantaged children bring to the test in the form of curiosity or perseverance is then a small fraction of a large gradient. In a comprehensive system the between-school component is small, so the dispositions children carry with them make up a larger fraction of a smaller total. The within-school shares bear this out. They are higher than the total shares almost everywhere, and the rise is largest in the stratified systems, Hungary from 7 to 14%, the Netherlands from 12 to 20%, Türkiye from 5 to 15%, because the within-school comparison strips out the sorting.
+
+Two readings of this pattern are possible and the data do not separate them. On one, the share of the gradient that runs through dispositions is a feature of how families transmit advantage that is roughly constant across societies, and what varies is how much additional transmission the school system layers on top through sorting; the Nordic shares are then the closest measure of the "pure" family channel. On the other, comprehensive schooling itself shifts the burden of transmission onto dispositions, because when schools do not differentiate, families do, through the attitudes and habits they cultivate at home. Either way, the result cautions against reading a small mediated share as evidence that dispositions matter little for inequality: in Germany the share is small because sorting is large, not because advantaged German students are no more curious than disadvantaged ones (the curiosity gap in Germany is 0.33 SD, above the median).
+
+## Robustness and sensitivity
+
+```{r}
+#| label: tbl-robust
+#| tbl-cap: "Robustness of the joint share (science). Inverse-probability weights reweight the analytic sample to the full national sample using a system-specific response model on ESCS rank, science score and the student controls. ESCS in index units replaces the percentile rank. Five common scales drops perseverance and growth mindset and restricts to systems that fielded the remaining five. Correlation and median absolute difference are across systems."
+kb(t5)
+```
+
+@tbl-robust and @fig-robust report three checks on the joint share. Reweighting the analytic sample for questionnaire non-response, by inverse-probability weights from a system-specific logit of completeness on ESCS rank, science score and the student controls, moves the median share by 0.1 percentage points and the system-level shares correlate at `r f2(h$cor_ipw)` with the main estimates. Replacing the percentile rank by the ESCS index in its own units leaves the shares unchanged (correlation 1.00), as the algebra implies. Restricting every system to the five scales that nearly all of them fielded lowers the median share from 12.4 to 8.9%, the contribution of perseverance and growth mindset, with a cross-system correlation of 0.87; the systems with partial batteries in @fig-joint are therefore understated by roughly this amount.
+
+```{r}
+#| label: fig-rho
+#| fig-cap: "Sensitivity: the error correlation rho* between the disposition and outcome equations at which the single-mediator indirect effect would be zero, one point per system (science, total gradient)."
+#| out-width: "90%"
+#| fig-align: center
+include_graphics(fig("fig6_rho_star"))
+```
+
+@fig-rho shows the sensitivity parameter. The curiosity channel is the most resistant to unmeasured confounding: eliminating it would require an error correlation of `r f2(h$curio_rho_med)` in the median system and at least 0.1 in every system. Growth mindset (0.16) and perseverance (0.14) follow; the channels through cognitive adaptability, goal setting and self-regulated learning would vanish at correlations of 0.06–0.07, which is within what a response style or unmeasured prior achievement might generate. The ordering of the dispositions by robustness therefore coincides with their ordering by size. These are observational benchmarks, not tests: the paper does not establish that any of these channels is causal, and a fifteen-year-old's reported curiosity surely reflects past success in science as well as producing future success. What the sensitivity analysis shows is that the curiosity channel is not a fragile artefact of a small partial correlation.
+
+# Conclusion
+
+Across 87 school systems, the dispositions that PISA 2025 measures, above all curiosity, statistically account for about one-eighth of the socio-economic gradient in achievement and about one-sixth of the gradient among classmates. The channel is of similar size in science, reading and mathematics, is present in rich and poor systems alike, and has the same composition nearly everywhere: curiosity carries the most because it combines a large gap with a large return, growth mindset has the largest return but the smallest gap, and goal setting and self-regulated learning carry nothing once the others are held fixed.
+
+The cross-system variation is the paper's most useful result. The share is not a function of how well a system performs or how unequal it is; it is a function of how much the system sorts students between schools. Where tracking is early and between-school variance large, as in Germany, Hungary, the Netherlands or Austria, family advantage reaches the test score mainly through the school a child is assigned to, and dispositions carry a twentieth to a tenth of the gradient. Where schooling is comprehensive, as in the Nordic countries, dispositions carry a quarter or more. The two patterns are two routes to the same destination, and a policy that closes one, by delaying tracking or by equalising schools, may widen the other.
+
+For policy on socio-emotional learning the implication is a matter of arithmetic. A programme that eliminated the socio-economic gap in curiosity, 0.28 SD in the median system, would, at the measured return, close about 4.5 points of a 70-point gap between the 10th and 90th percentiles. Closing the gaps in all seven dispositions would close about 9 points. Those are not trivial, but they say that dispositions are a conduit for family advantage of moderate width, not the main one, and that interventions targeting them would need to be judged by their direct effects on learning rather than by their promise to equalise outcomes.
+
+The natural next step is longitudinal. The PISA design can describe the channel but cannot order it in time; cohort data that measure dispositions before the achievement gap opens, in a range of school systems, would show whether the between-system differences documented here reflect how families transmit advantage or how schools reshape what families transmit.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+# Appendix {.unnumbered}
+
+```{=latex}
+\renewcommand{\tblsize}{\scriptsize}
+```
+
+```{r}
+#| label: tbl-sample
+#| tbl-cap: "Systems and samples. N (PUF): students in the public-use file; N analytic: students with ESCS, a science score and valid responses on every fielded disposition; Scales: number of dispositions fielded (of seven)."
+kb(t1)
+```
+
+```{r}
+#| label: tbl-systems
+#| tbl-cap: "Socio-economic gradient in science and the joint indirect effect through socio-emotional skills, by system (PISA points per 10 percentile points of ESCS; standard errors in parentheses). 'n.r.': share not reported because the gradient has |t| < 2. Blank: no school identifiers in the public file."
+setnames(t4, c("Gradient (total)", "Indirect (total)", "Share (total), %", "Gradient (within)", "Indirect (within)", "Share (within), %"),
+             c("Gradient, total", "Indirect, total", "Share, total (%)", "Gradient, within", "Indirect, within", "Share, within (%)"))
+kb(t4)
+```
+
+```{=latex}
+\renewcommand{\tblsize}{\footnotesize}
+```
+
+```{r}
+#| label: tbl-validation
+#| tbl-cap: "Validation of the estimator, Hong Kong, science, total gradient, curiosity as mediator. The first six rows average ten plausible values; lm() refits each equation by weighted least squares. The last two rows use the first plausible value: mediate() with 500 quasi-Bayesian draws, and medsens() on a 0.01 grid for rho*."
+ord <- c("beta_tot", "beta_dir", "pi_CURIO", "b_CURIO", "acme_CURIO", "gamma_CURIO", "acme_CURIO (PV1)", "rho_CURIO (PV1)")
+v <- v[match(ord, stat)]
+vv <- v[, .(Statistic = c("Total gradient", "Direct effect (all skills)", "Gap in curiosity (pi)", "Return to curiosity (b)", "ACME, curiosity (pi x b)", "Conditional coefficient (g)", "ACME, curiosity, PV1", "rho*, curiosity, PV1"),
+            `lm()` = ifelse(is.na(lm), "", sprintf("%.4f", lm)), `Cross-product` = ifelse(is.na(crossprod), "", sprintf("%.4f", crossprod)),
+            `mediation package` = ifelse(is.na(package), "", sprintf("%.4f", package)), `Partial correlation` = ifelse(is.na(crossprod_formula), "", sprintf("%.4f", crossprod_formula)))]
+kb(vv)
+```
+
+```{r}
+#| label: fig-domains
+#| fig-cap: "Joint share of the gradient (total specification) in reading and mathematics against science, one point per system."
+#| out-width: "85%"
+#| fig-align: center
+include_graphics(fig("fig7_domains"))
+```
+
+```{r}
+#| label: fig-robust
+#| fig-cap: "Robustness of the joint share, system by system: main specification against (A) inverse-probability weights for item non-response, (B) ESCS in index units, (C) the five scales fielded in nearly all systems."
+#| out-width: "100%"
+include_graphics(fig("fig5_robustness"))
+```

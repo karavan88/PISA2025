@@ -1,0 +1,337 @@
+---
+title: "Does schooling make you persevere? A regression-discontinuity study of a year of school and socio-emotional skills (PISA 2025)"
+subtitle: "Analysis report — research questions, the cutoff audit across all PISA 2025 systems, design and code, results system by system, validity checks, and the mapping of results to each question. All estimates are read from saved CSV outputs; nothing is re-estimated at render time."
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", ".."))
+setwd(ROOT); source("02_scripts/paperB/00_helpers.R")
+rd_all <- fread(op("rd_estimates.csv")); bal_all <- fread(op("rd_balance.csv")); med_all <- fread(op("med_share.csv")); plc_all <- fread(op("rd_placebo.csv"))
+cut_all <- fread(op("cutoffs.csv")); comp_all <- fread(op("compliance.csv")); audit <- fread(op("cutoff_audit_all.csv"))
+# the main text uses the sharp tier; the fuzzy tier (jump 0.25-0.45) is an appendix check. Montenegro's jump falls to 0.17 once all programmes are included and is left out.
+FUZZY <- setdiff(SYS_FUZZY, "MNE")
+rd <- rd_all[CNT %in% SYS_SHARP]; bal <- bal_all[CNT %in% SYS_SHARP]; med <- med_all[CNT %in% SYS_SHARP]; plc <- plc_all[CNT %in% SYS_SHARP]; cut <- cut_all[CNT %in% SYS_SHARP]; comp <- comp_all[CNT %in% SYS_SHARP]
+H_MAIN <- 4
+# main specification per system x outcome x bandwidth: separate slopes where both sides have >= 2 birth months, else a common slope
+pick <- function(dt) dt[order(CNT, outcome, h, match(spec, c("ll", "common", "diff")))][spec != "diff", .SD[1], by = .(CNT, outcome, h)]
+main <- pick(rd); m4 <- main[h == H_MAIN]
+sys_order <- cut[order(-jump), CNT]                                     # systems ordered by the size of the first-stage jump
+lab <- function(x) factor(SYS_NAMES[as.character(x)], levels = rev(SYS_NAMES[sys_order]))   # sharpest cutoff at the top of each panel
+reg <- function(x) factor(REGION[as.character(x)], levels = c("East Asia", "Southeast Asia", "Post-Soviet", "Europe", "Latin America"))
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2); f3 <- function(x) formatC(x, format = "f", digits = 3)
+ci  <- function(e, s, d = 2) paste0(formatC(e, format = "f", digits = d), " [", formatC(e - 1.96 * s, format = "f", digits = d), ", ", formatC(e + 1.96 * s, format = "f", digits = d), "]")
+star <- function(e, s, d = 2) paste0(formatC(e, format = "f", digits = d), ifelse(abs(e / s) > 1.96, "*", ""))
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999")
+out_order <- c(out_skills, "growth", "growth_sci", "fatalism", "SCIE", "MATH", "READ")
+summ <- function(dt) dt[, .(median = median(tau), q25 = quantile(tau, .25), q75 = quantile(tau, .75), neg = sum(tau / tau_se < -1.96), pos = sum(tau / tau_se > 1.96), n_sys = .N), by = outcome][match(out_order, outcome)][!is.na(outcome)]
+s4 <- summ(m4)
+g <- function(o, col = "median") s4[outcome == o][[col]]
+sig_sys <- function(o, sign = -1) { x <- m4[outcome == o & sign * tau / tau_se > 1.96]; if (nrow(x)) paste(SYS_NAMES[x$CNT], collapse = ", ") else "none" }
+n_sys <- length(SYS_SHARP)
+```
+
+::: {.callout-note}
+**Status.** `r n_sys` systems with a sharp school-entry cutoff (jump in the probability of the upper grade of 0.45 or more across one birth month, from an audit of all PISA 2025 participants; Slovakia is the borderline case at 0.45). Headline bandwidth `r H_MAIN` birth months on each side of the cutoff; bandwidths 3 and 6 and three functional forms as specification checks. Outcomes: six SSES-type scales and sense of belonging (within-system SD units), three beliefs (binary), science (headline achievement domain), mathematics and reading (appendix). Inference: Fay BRR over 80 replicate weights, Rubin over 10 plausible values for achievement. Everything in this report is read from `03_outputs/paperB/`; `02_scripts/paperB/run_all_estimation.sh` re-estimates the whole chain in about five minutes.
+:::
+
+# Research questions and hypotheses
+
+Paper A asked whether socio-emotional skills carry family advantage into achievement. This paper asks the reverse question: does schooling itself produce the skills? Cross-sectional correlations cannot separate the two arrows. The school-entry cutoff can: students born just after the cutoff start school a year later than students born just before it, so at the PISA age of 15 they have had one year less of schooling and sit one grade lower, while being — to the month — the same age. Comparing the two groups at the cutoff identifies the effect of an additional year of schooling at age 15 on what students report about themselves.
+
+One thing the design cannot do must be said at the outset. The student born just before the cutoff is a grade ahead *and* the youngest in her class; the student born just after is a grade behind *and* the oldest in his. The cutoff moves exposure to schooling and relative age within the grade together, and no cross-section can separate them. Every estimate below is therefore the effect of **one more year of school in the position of the youngest in the grade**, and is interpreted as such. The direction of the relative-age component is known from the literature on school starting age: younger-for-grade students report lower confidence, perseverance and self-concept and are more often diagnosed with attention problems; this is the same sign a negative schooling effect would have, so a negative estimate is ambiguous and a positive one is a lower bound on the schooling effect.
+
+| | Research question | Hypothesis (from the proposal) | Quantity | Decision rule |
+|---|---|---|---|---|
+| RQ1 | Does an additional year of schooling at age 15 change students' socio-emotional skills — perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving, cognitive adaptability — and their sense of belonging? | H1: schooling raises self-regulation and belonging but not curiosity. | Fuzzy-RD effect τ on each scale, in within-system SD units, per system; median across systems | an effect of 0.10 SD or more, significant in a majority of systems, counts as a schooling effect; a median within ±0.05 SD with few significant systems counts as no effect |
+| RQ2 | Does it change students' beliefs — growth mindset (intelligence; science ability) and status fatalism? | H2: schooling strengthens a growth mindset. | τ on each binary belief (percentage points) | as above, 5 percentage points as the threshold |
+| RQ3 | Does the extra year raise science achievement, and what part of that effect runs through the induced change in skills? | H3: the mediated share of the schooling effect is small. | τ on the science score (points); product-of-coefficients decomposition Σ β_k τ_Mk | share computed only where τ on science is itself distinguishable from zero |
+| RQ4 | Does the answer depend on the system? | — | the spread of τ across the `r n_sys` systems and the five region labels | medians by region label are compared, never pooled |
+
+# The cutoff audit: which systems carry the design
+
+```{r audit-numbers}
+au <- audit[!is.na(jump)]
+n_all <- nrow(au); n_jump25 <- sum(au$jump >= .25, na.rm = TRUE); n_jump45 <- sum(au$jump >= .45, na.rm = TRUE); n_single <- sum(au$profile == "single grade")
+```
+
+For every one of the `r n_all` PISA 2025 systems with enough students, the weighted share of students in the upper of the two grades that hold the cohort was computed by birth month (audit on general programmes only; Thai Buddhist birth years converted). A usable cutoff is a drop in that share of at least 0.45 between two adjacent birth months, with the share otherwise flat. `r n_jump45` systems meet the threshold in the audit; `r n_jump25 - n_jump45` more show a jump between 0.25 and 0.45 (among them Slovakia, the United States, Costa Rica, Kazakhstan, Azerbaijan, Albania, New Zealand, Brazil, Chile, Israel); in the remaining systems the share declines smoothly with birth month — school entry is a family decision, not a rule — or the whole cohort sits in one grade (Japan, Viet Nam, Malaysia, Saudi Arabia), so there is no discontinuity to exploit. Of the sixteen sharp systems, three are dropped: the United Kingdom because England and Scotland have different cutoffs inside one national sample, Mauritius because the skill scales were not fielded, and the Palestinian Authority because its cutoff falls in the second month of the cohort, leaving one birth month on the treated side. Slovakia (0.43 in the audit, 0.45 once vocational students are included in the analysis sample) is kept as the borderline case. The thirteen systems with a jump between 0.25 and 0.45 (including the United States, with no skill scales, and Costa Rica, with no ESCS) are run as a second tier and reported in the appendix only. The analysis itself keeps students in all programmes and re-detects each cutoff on that sample (table below). The East Asian and post-Soviet systems that motivated the project are represented by Chinese Taipei, B-S-J-Z, Hong Kong, Korea and Georgia; Viet Nam, Mongolia, Macao, Kazakhstan, Uzbekistan, Kyrgyzstan, Moldova, Armenia and Azerbaijan have no sharp cutoff and cannot be in an RD paper.
+
+```{r tbl-cutoffs}
+ct <- cut[order(-jump), .(Region = REGION[CNT], System = SYS_NAMES[CNT], `Grades (lower/upper)` = paste0(g_lo, "/", g_hi), `First month after cutoff` = cut_label,
+                          `P(upper grade) before` = f2(p_before), `P(upper grade) first month after` = f2(p_first_low), `Jump` = f2(jump), `Partial month (donut)` = ifelse(donut == 1, "yes", "no"),
+                          `Birth months before / after cutoff in sample` = paste0(n_left, " / ", n_right))]
+kable(ct, caption = "The fourteen systems and their school-entry cutoffs, ordered by the size of the first-stage jump. Where the first month after the cutoff is partial (P between 0.2 and 0.8, the rule bites inside the month) that month is dropped (donut). The last column is the support on each side: PISA samples one birth-year cohort, so a cutoff near the edge of the cohort leaves few months on one side.")
+```
+
+```{r fig-compliance, fig.height=8, fig.cap="Compliance: weighted share of students in the upper grade by birth month relative to the cutoff (0 = first month born after the cutoff). Hollow points mark the dropped partial month."}
+cc <- merge(comp, cut[, .(CNT, donut)], by = "CNT"); cc[, System := lab(CNT)]; cc[, dropped := donut == 1 & r == 0]
+ggplot(cc, aes(x = r, y = p)) + geom_vline(xintercept = -0.5, colour = "grey60", linetype = 2) + geom_line(colour = "grey70") +
+  geom_point(aes(shape = dropped), size = 2.2, colour = okabe[1]) + scale_shape_manual(values = c(16, 1), guide = "none") +
+  facet_wrap(~System, ncol = 4) + scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + labs(x = "Birth month relative to the first post-cutoff month", y = "Share in the upper grade")
+```
+
+# Design, models and code
+
+**Running variable and treatment.** For each system the birth month is expressed relative to the first month after the cutoff: r = 0 is that month, r < 0 is born before (the rule assigns the upper grade), r ≥ 0 born after. The treatment D is being in the upper of the two grades that hold the cohort — one more year of schooling by age 15. The instrument is Z = 1[r < 0]. Students in all programmes are kept: programme type at 15 is itself a consequence of grade and excluding vocational students would condition on an outcome.
+
+**Estimation.** Within a bandwidth of h birth months on each side, the reduced form and the first stage are weighted least squares of the outcome and of D on Z and a linear term in r, with separate slopes on each side where both sides have at least two birth months (`ll`) and a common slope otherwise (`common`); the fuzzy-RD effect is the ratio τ = reduced form / first stage (two-stage least squares with one instrument). The headline bandwidth is h = `r H_MAIN`; h = 3 and h = 6 and a plain difference in means at h = 3 (`diff`) are the specification checks. Where the first post-cutoff month is partial the month is dropped.
+
+**Inference.** Fay's balanced repeated replication over the 80 PISA replicate weights gives the sampling variance (schools are the sampling clusters); achievement outcomes add the between-plausible-value variance (Rubin, 10 PVs). The running variable is discrete — twelve birth months — so the BRR variance covers sampling error and not functional-form error (Lee & Card 2008); the bandwidths and functional forms, the balance tests and the placebo cutoffs are the specification check.
+
+**Outcomes.** The six SSES-type scales and the belonging scale are standardised within each system on the full national sample (mean 0, SD 1 with final student weights), so τ is in within-system SD units; the three beliefs are binary (growth mindset: disagrees that intelligence / science ability cannot be changed; fatalism: agrees that social status cannot be changed); achievement in PISA points.
+
+**Validity.** Covariates that are fixed before school entry — ESCS, sex, immigrant background, home language — and grade repetition must not jump at the cutoff (balance, reduced form on each covariate). Fake cutoffs three months before and after the true one, estimated on one side of it only, must show nothing (placebo). The weighted number of students by birth month must be smooth across the cutoff (no differential coverage of the PISA target population).
+
+```{r code-rd, eval=FALSE, echo=TRUE}
+# 03_rd.R (excerpt) — one system, one bandwidth, one outcome
+w  <- s[r >= -h & r <= h - 1]; if (donut == 1) w <- w[r != 0]          # window; drop the partial cutoff month
+X  <- cbind(1, Z = w$Z, r = w$r, rZ = w$r * w$Z)                        # local linear, separate slopes ("ll")
+fs <- wls(X, w$D, w$W_FSTUWT)["Z"]                                      # first stage: jump in P(upper grade)
+rf <- wls(X, w$PERSEV_z, w$W_FSTUWT)["Z"]                               # reduced form: jump in the outcome
+tau <- rf / fs                                                          # fuzzy RD = Wald ratio
+# the same three numbers recomputed with each of the 80 replicate weights (BRR) and, for scores, each of the 10 PVs (Rubin)
+# 04_mediation.R: tau_Y (science), tau_M[k] (each skill), beta[k] from WLS of science on the seven skills + D + Z + r + rZ + controls
+# via_k = beta[k] * tau_M[k];  share = sum(via_k) / tau_Y   (reported only where tau_Y is distinguishable from zero)
+```
+
+# Results
+
+## First stage and balance
+
+```{r tbl-fs}
+fs4 <- m4[outcome == "SCIE", .(Region = REGION[CNT], System = SYS_NAMES[CNT], Spec = spec, `Students in window` = n, `Before / after` = paste0(n_left, " / ", n_right), `First stage (SE)` = paste0(f2(fs), " (", f3(fs_se), ")"))][order(match(System, SYS_NAMES[sys_order]))]
+kable(fs4, caption = paste0("First stage at h = ", H_MAIN, ": jump in the probability of being in the upper grade at the cutoff (science-score sample). Spec: ll = separate linear slopes on each side; common = one slope (used where one side has a single birth month)."))
+```
+
+```{r tbl-balance}
+b4 <- bal[h == H_MAIN][order(CNT, covariate, match(spec, c("ll", "common", "diff")))][, .SD[1], by = .(CNT, covariate)]
+bw <- dcast(b4[, .(CNT, covariate, v = star(rf, rf_se, 3))], covariate ~ CNT, value.var = "v"); setcolorder(bw, c("covariate", intersect(sys_order, names(bw))))
+bw[, covariate := c(ESCS = "ESCS (index units)", female = "Female", immigrant = "Immigrant background", lang_other = "Home language ≠ test language", repeated = "Repeated a grade")[covariate]]
+n_bal <- nrow(b4); n_bal_sig <- sum(abs(b4$rf / b4$rf_se) > 1.96)
+kable(bw, caption = paste0("Balance at the cutoff: reduced-form jump in each covariate at h = ", H_MAIN, " (* = |z| > 1.96). ", n_bal_sig, " of ", n_bal, " tests are significant at the 5% level (", round(100 * n_bal_sig / n_bal), "%, against 5% expected)."))
+```
+
+```{r balance-text, results="asis"}
+bs <- b4[abs(rf / rf_se) > 1.96]
+cat("Significant imbalances: ", if (nrow(bs)) paste0(SYS_NAMES[bs$CNT], " (", bs$covariate, " ", formatC(bs$rf, format = "f", digits = 2), ")", collapse = "; ") else "none", ". ",
+    "A positive ESCS jump means students born just before the cutoff are slightly more advantaged than those born just after; the estimates for those systems are read with that in mind.\n", sep = "")
+```
+
+## RQ1 — Skills: does a year of school change what students report about themselves?
+
+```{r fig-rq1, fig.height=9, fig.cap=paste0("Fuzzy-RD effect of one additional year of schooling (in the position of the youngest in the grade) on each scale, in within-system SD units, h = ", H_MAIN, "; 95% CI (BRR). Dotted line = median across the fourteen systems.")}
+gg <- m4[outcome %in% out_skills]; gg[, System := lab(CNT)]; gg[, Region := reg(CNT)]; gg[, Outcome := factor(out_lab(outcome), levels = out_lab(out_skills))]
+md <- gg[, .(median = median(tau)), by = Outcome]
+ggplot(gg, aes(x = tau, y = System, colour = Region)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = tau - 1.96 * tau_se, xmax = tau + 1.96 * tau_se), size = .3) +
+  geom_vline(data = md, aes(xintercept = median), colour = "black", linetype = 3) +
+  facet_wrap(~Outcome, ncol = 4) + scale_colour_manual(values = okabe[1:5], name = NULL) + labs(x = "Effect of one more year of school (SD of the scale)", y = NULL)
+```
+
+```{r tbl-rq1}
+t1 <- s4[outcome %in% c(out_skills, "growth", "growth_sci", "fatalism"), .(Outcome = out_lab(outcome), `Median τ` = f3(median), `IQR` = paste0("[", f2(q25), ", ", f2(q75), "]"), `Significantly negative` = neg, `Significantly positive` = pos, Systems = n_sys)]
+kable(t1, caption = paste0("RQ1–RQ2 summary across the fourteen systems at h = ", H_MAIN, ": median effect of one more year of schooling, interquartile range, and the number of systems with a significant effect in each direction (scales in SD units; beliefs in probability units)."))
+```
+
+```{r rq1-text, results="asis"}
+neg_out <- s4[outcome %in% out_skills & median <= -0.08, outcome]
+cat("**Reading.** The median effect of the extra school year is negative or zero for every scale: perseverance ", f2(g("PERSEV_z")), " SD (significantly negative in ", g("PERSEV_z", "neg"), " systems — ", sig_sys("PERSEV_z"), "; positive in none), cognitive adaptability ", f2(g("COGABIL_z")), " SD (negative in ", g("COGABIL_z", "neg"), ": ", sig_sys("COGABIL_z"), "), self-regulated learning ", f2(g("SELFREG_z")), " SD (negative in ", g("SELFREG_z", "neg"), "), goal setting ", f2(g("GOALSET_z")), ", curiosity ", f2(g("CURIO_z")), ", enjoyment of problem-solving ", f2(g("ENPROBS_z")), " and belonging ", f2(g("BELONG_z")), " SD. ",
+    "No scale shows a positive median, and no scale is raised significantly in more than one system. ",
+    "H1 — that schooling raises self-regulation and belonging — is not supported in any system: self-regulated learning falls where it moves at all, and belonging moves in one system only (Finland, downward). ",
+    "The scales that do move are the two closest to self-concept under pressure, perseverance and cognitive adaptability, and they move in the direction the relative-age literature predicts for the youngest in the grade. The paper therefore cannot attribute the negative estimates to schooling; what it can say is that one more year of school, taken in the position of the youngest in the class, leaves self-reported skills at best unchanged.\n", sep = "")
+```
+
+## RQ2 — Beliefs
+
+```{r fig-rq2, fig.height=4, fig.cap=paste0("Effect of one more year of schooling on the probability of holding each belief (percentage points), h = ", H_MAIN, "; 95% CI.")}
+gb <- m4[outcome %in% out_beliefs]; gb[, System := lab(CNT)]; gb[, Region := reg(CNT)]; gb[, Outcome := factor(out_lab(outcome), levels = out_lab(out_beliefs))]
+ggplot(gb, aes(x = 100 * tau, y = System, colour = Region)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = 100 * (tau - 1.96 * tau_se), xmax = 100 * (tau + 1.96 * tau_se)), size = .3) + facet_wrap(~Outcome, ncol = 3) +
+  scale_colour_manual(values = okabe[1:5], name = NULL) + labs(x = "Percentage points", y = NULL)
+```
+
+The growth-mindset items and status fatalism do not move: median effects of `r f1(100 * g("growth"))`, `r f1(100 * g("growth_sci"))` and `r f1(100 * g("fatalism"))` percentage points, with `r g("growth", "pos") + g("growth", "neg")`, `r g("growth_sci", "pos") + g("growth_sci", "neg")` and `r g("fatalism", "pos") + g("fatalism", "neg")` significant systems respectively — the growth-mindset items fall in Chinese Taipei and rise in Brunei and Serbia, fatalism rises only in Chinese Taipei. H2 is not supported: a year of school does not make 15-year-olds more likely to believe that intelligence or status can change.
+
+## RQ3 — Science achievement and the skill channel
+
+```{r fig-rq3, fig.height=4.5, fig.cap=paste0("Effect of one more year of schooling on the science score (PISA points), h = ", H_MAIN, "; 95% CI (BRR + PV).")}
+gs <- m4[outcome == "SCIE"]; gs[, System := lab(CNT)]; gs[, Region := reg(CNT)]
+ggplot(gs, aes(x = tau, y = System, colour = Region)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(xintercept = median(gs$tau), colour = "black", linetype = 3) +
+  geom_pointrange(aes(xmin = tau - 1.96 * tau_se, xmax = tau + 1.96 * tau_se), size = .3) + scale_colour_manual(values = okabe[1:5], name = NULL) + labs(x = "Science points", y = NULL)
+```
+
+```{r tbl-rq3}
+m4m <- med[h == H_MAIN]
+mw <- dcast(m4m[term %in% c("tau_y", "via_total", "direct", "share_total")], CNT ~ term, value.var = c("est", "se"))
+sc <- merge(m4[outcome == "SCIE", .(CNT, tau, tau_se)], mw, by = "CNT")
+t3 <- sc[, .(Region = REGION[CNT], System = SYS_NAMES[CNT], `τ science (points)` = ci(tau, tau_se, 1), `Via the seven skills (points)` = ci(est_via_total, se_via_total, 1), `Direct (points)` = f1(est_direct),
+             `Share via skills` = ifelse(abs(tau / tau_se) > 1.96, paste0(round(100 * est_share_total), "%"), "— (τ not distinguishable from 0)"))][order(match(System, SYS_NAMES[sys_order]))]
+kable(t3, caption = paste0("RQ3: effect of one more year of schooling on science and its decomposition into the part transmitted by the induced change in the seven skills (Σ β_k τ_Mk) and the remainder, h = ", H_MAIN, ". The share is reported only where the science effect itself is significant."))
+sig_sci <- m4[outcome == "SCIE" & abs(tau / tau_se) > 1.96]
+```
+
+```{r rq3-text, results="asis"}
+cat("The science effect has a median of ", f1(g("SCIE")), " points [IQR ", f1(g("SCIE", "q25")), ", ", f1(g("SCIE", "q75")), "] and is significant in ", nrow(sig_sci), " of ", n_sys, " systems",
+    if (nrow(sig_sci)) paste0(" (", paste0(SYS_NAMES[sig_sci$CNT], " ", f1(sig_sci$tau), collapse = "; "), ")") else "", ". ",
+    "This is far below the 15–35 points that a school year is credited with in cross-sectional grade comparisons, and it is the same message as the Paper E benchmark: at the cutoff, where the comparison is between children of the same age, a year of schooling buys much less than the cross-sectional grade coefficient suggests — because that coefficient also carries the selection of advantaged children into early entry, and because the youngest-in-grade position costs part of what the extra year adds. ",
+    "Where the science effect is significant, the part running through the induced skill change is ", if (nrow(sig_sci)) paste0(paste0(SYS_NAMES[sig_sci$CNT], " ", round(100 * sc[CNT %in% sig_sci$CNT, est_share_total]), "%", collapse = ", ")) else "not computable", "; everywhere else the share is not identified because the science effect itself is not distinguishable from zero. H3 — a small mediated share — is supported where it can be tested, and for a mechanical reason: the extra year does not raise the skills, so there is nothing for the skill channel to carry.\n", sep = "")
+```
+
+## RQ4 — Does the pattern depend on the system?
+
+```{r tbl-rq4}
+rr <- m4[outcome %in% c(out_skills, "growth", "SCIE")][, .(median = median(tau), neg = sum(tau / tau_se < -1.96), pos = sum(tau / tau_se > 1.96), n = .N), by = .(outcome, region = reg(CNT))]
+rr[, cell := paste0(f2(median), " (", neg, "−/", pos, "+ of ", n, ")")]
+rw <- dcast(rr, outcome ~ region, value.var = "cell"); rw <- rw[match(c(out_skills, "growth", "SCIE"), outcome)]; rw[, outcome := out_lab(outcome)]
+kable(rw, caption = "Median effect by region label (count of significantly negative / positive systems in brackets). East Asia: Chinese Taipei, Korea, B-S-J-Z, Hong Kong; Southeast Asia: Brunei, Philippines; Post-Soviet: Georgia; Europe: Finland, Estonia, Slovakia, Croatia, Serbia; Latin America: Peru, Paraguay. Labels, not estimation units.")
+```
+
+The sign is the same everywhere: in no region is any scale raised by the extra year in more than one system. The significant negative effects are concentrated in Georgia (perseverance −0.28, cognitive adaptability −0.26), Chinese Taipei (−0.21, −0.19), B-S-J-Z (−0.17, −0.24) and Peru (adaptability −0.37, self-regulated learning −0.21); Estonia has the largest point estimates (−0.33, −0.51) but with a weak first stage and wide intervals. Finland, Slovakia, Serbia and Hong Kong sit within ±0.1 SD on most scales. Brunei, Paraguay and Peru have positive point estimates on a majority of the scales, but only Brunei's and Serbia's growth-mindset gains and Finland's goal-setting gain are significant. The question "does the pattern hold in East Asia and in the post-Soviet system?" has the same answer as in Europe and Latin America: a year of school does not raise the skills, and where it moves them significantly it moves them down.
+
+## Specification checks
+
+```{r tbl-bw}
+bw2 <- main[outcome %in% c("PERSEV_z", "SELFREG_z", "COGABIL_z", "CURIO_z", "SCIE"), .(median = median(tau), neg = sum(tau / tau_se < -1.96), pos = sum(tau / tau_se > 1.96)), by = .(outcome, h)]
+bw2[, cell := paste0(f2(median), " (", neg, "−/", pos, "+)")]
+bwd <- dcast(bw2, outcome ~ h, value.var = "cell"); bwd[, outcome := out_lab(outcome)]; setnames(bwd, c("Outcome", paste0("h = ", sort(unique(bw2$h)))))
+dd <- rd[h == 3 & spec == "diff" & outcome %in% c("PERSEV_z", "SELFREG_z", "COGABIL_z", "CURIO_z", "SCIE"), .(median = median(tau), neg = sum(tau / tau_se < -1.96), pos = sum(tau / tau_se > 1.96)), by = outcome]
+dd[, lab := out_lab(outcome)]; dd[, cell := paste0(f2(median), " (", neg, "−/", pos, "+)")]
+bwd[, `Difference in means, h = 3` := dd$cell[match(Outcome, dd$lab)]]
+kable(bwd, caption = "Bandwidth and functional form: median τ across systems (significantly negative / positive systems) for three bandwidths with the local-linear specification and for the plain difference in means at h = 3.")
+```
+
+```{r tbl-placebo}
+pl <- plc[, .(`Tests` = .N, `Significant (5%)` = sum(abs(rf / rf_se) > 1.96), `Median jump` = f3(median(rf))), by = .(Outcome = out_lab(outcome))]
+n_pl <- nrow(plc); n_pl_sig <- sum(abs(plc$rf / plc$rf_se) > 1.96)
+kable(pl, caption = paste0("Placebo cutoffs three months before and after the true cutoff, estimated on one side only: reduced-form jumps. ", n_pl_sig, " of ", n_pl, " tests significant (", round(100 * n_pl_sig / n_pl), "%, against 5% expected)."))
+```
+
+For the skill scales the medians are stable across bandwidths and functional forms (perseverance −0.06 to −0.11 SD, cognitive adaptability −0.08 to −0.12), and the counts of significant systems move by one or two. The science effect is not stable: its median rises with the bandwidth (−0.9 points at h = 3, 2.0 at h = 4, 4.2 at h = 6) and the plain difference in adjacent months at h = 3 gives 8.8 points with five significant systems — the linear terms absorb much of the jump, so the science result depends on the functional form and is read as "between zero and about ten points". The placebo rate is above the nominal 5 %, which is the discrete-running-variable problem: with twelve birth months, a linear fit on three or four points on each side leaves functional-form error that the BRR variance does not see. The honest reading is that the standard errors understate uncertainty by a modest factor, so individual-system significance counts are indicative and the medians carry the result.
+
+```{r fig-density, fig.height=7, fig.cap="Weighted number of students by birth month relative to the cutoff (sampling smoothness check). A jump at 0 would indicate differential coverage of the PISA target population across the cutoff."}
+cd <- copy(comp); cd[, System := lab(CNT)]
+ggplot(cd, aes(x = r, y = w)) + geom_vline(xintercept = -0.5, colour = "grey60", linetype = 2) + geom_col(fill = okabe[1], alpha = .8) + facet_wrap(~System, ncol = 4, scales = "free_y") + labs(x = "Birth month relative to the first post-cutoff month", y = "Weighted students")
+```
+
+# Mapping the results to the research questions
+
+```{r tbl-map}
+rows <- list(
+  data.table(RQ = "RQ1", Hypothesis = "H1: schooling raises self-regulation and belonging but not curiosity",
+             Evidence = paste0("median τ: perseverance ", f2(g("PERSEV_z")), ", self-regulated learning ", f2(g("SELFREG_z")), ", goal setting ", f2(g("GOALSET_z")), ", curiosity ", f2(g("CURIO_z")), ", problem-solving ", f2(g("ENPROBS_z")), ", cognitive adaptability ", f2(g("COGABIL_z")), ", belonging ", f2(g("BELONG_z")), " SD; significantly positive in at most one system per scale; significantly negative in ", g("PERSEV_z", "neg"), " (perseverance), ", g("COGABIL_z", "neg"), " (adaptability), ", g("SELFREG_z", "neg"), " (self-regulation) of ", n_sys),
+             Answer = "Not supported. One more year of school, in the position of the youngest in the grade, leaves self-reported skills unchanged or lower; the fall in perseverance and adaptability is the relative-age sign."),
+  data.table(RQ = "RQ2", Hypothesis = "H2: schooling strengthens a growth mindset",
+             Evidence = paste0("median effect ", f1(100 * g("growth")), " pp (intelligence), ", f1(100 * g("growth_sci")), " pp (science ability), ", f1(100 * g("fatalism")), " pp (fatalism); significant systems split in both directions"),
+             Answer = "Not supported: beliefs do not move."),
+  data.table(RQ = "RQ3", Hypothesis = "H3: the mediated share of the schooling effect on achievement is small",
+             Evidence = paste0("median science effect ", f1(g("SCIE")), " points, significant in ", nrow(sig_sci), " of ", n_sys, " systems; where significant, the skill channel carries ", if (nrow(sig_sci)) paste0(round(100 * sc[CNT %in% sig_sci$CNT, est_share_total]), "%", collapse = ", ") else "—"),
+             Answer = "Supported where testable, trivially: the extra year does not raise the skills, so the skill channel carries almost nothing; the science effect itself is far smaller than grade comparisons suggest."),
+  data.table(RQ = "RQ4", Hypothesis = "—", Evidence = "no scale significantly raised in more than one system in any region; significant falls in perseverance and adaptability in Georgia, Chinese Taipei, B-S-J-Z and Peru; positive point estimates in Brunei, Paraguay and Peru on most scales, significant only for growth mindset (Brunei, Serbia) and goal setting (Finland)",
+             Answer = "The result does not depend on the region: it holds in East Asia and in Georgia as in Europe."))
+kable(rbindlist(rows), caption = "Results mapped to the research questions (medians across the fourteen systems; significance from BRR standard errors at h = 4).")
+```
+
+**What the paper can claim.** (1) In the fourteen systems with a sharp entry rule, one more year of schooling by age 15 does not raise the socio-emotional scales: the median effect is zero or negative for every scale and belief, no scale is raised significantly in more than one system (goal setting in Finland; growth mindset in Brunei and Serbia are the only positive effects), and where effects are significant they are falls in perseverance, cognitive adaptability and self-regulated learning. (2) The negative estimates for perseverance, cognitive adaptability and self-regulated learning are what relative-age effects predict for the youngest in the grade, and the design cannot separate that from a schooling effect; so the defensible statement is an upper bound — the schooling effect on these self-reports, net of relative age, is not positive enough to show. (3) The same cutoff gives a science effect of a few points in the median system, significant in `r nrow(sig_sci)` systems; the 15–35-point "grade effect" of cross-sectional production functions is not a learning gain at the margin where age is held fixed. (4) Together with Paper A this closes the loop: skills carry family advantage into achievement (Paper A), but achievement-producing schooling does not, over one year at age 15, produce the skills — the arrow runs one way in these data.
+
+**What it cannot claim, and what is next.** Self-reports in a frame of reference set by classmates: the youngest in the grade may compare himself to older classmates and report lower perseverance without being less persevering; Paper D's revealed-persistence indices from the LDW process data are the natural check. The cutoff identifies a local effect for children at the margin of the entry rule in a single cohort. Honest confidence intervals for a discrete running variable (Kolesár & Rothe 2018) should replace the BRR intervals before submission; the placebo rate says they will be wider.
+
+# Appendix
+
+## Fixed-age contrast versus schooling-plus-age for the skills
+
+Age at test = school-starting age + years of schooling, so the cutoff estimate τ is one bundle (one more year of school, one year younger at school start — youngest instead of oldest in the grade) and the within-grade slope of a scale on birth month, β per year, is another (one year older at test and at school start). Their sum γ = τ + β is the effect of one more year of schooling *with* its year of age, starting age held fixed — the estimand of Avvisati & Givord (2021) for achievement. For the skills the same decomposition says whether the negative τ is the relative-age penalty: if β is positive and about as large, γ is near zero and the extra year itself does nothing; if β is also zero, the skills simply do not move with either.
+
+```{r tbl-bundles-skills}
+agd <- fread(file.path(ROOT, "03_outputs/paperC/age_decomposition.csv"))[CNT %in% SYS_SHARP & h == 6 & domain %in% c(out_skills, "growth")]
+ab <- dcast(agd, CNT + domain ~ term, value.var = c("est", "se"))
+sb <- ab[, .(`τ fixed-age (median)` = f2(median(est_tau)), `β age slope / yr (median)` = f2(median(est_beta)), `γ = τ + β (median)` = f2(median(est_gamma)), `γ sig. −/+` = paste0(sum(est_gamma / se_gamma < -1.96), "/", sum(est_gamma / se_gamma > 1.96)), `β sig. +` = sum(est_beta / se_beta > 1.96), Systems = .N), by = .(Outcome = factor(out_lab(domain), levels = out_lab(c(out_skills, "growth"))))][order(Outcome)]
+kable(sb, caption = "Skills: medians across the fourteen sharp systems of the fixed-age contrast τ, the within-grade age slope β (per year of age) and their sum γ, h = 6, common slope; SD units (growth mindset: probability).")
+```
+
+```{r bundles-skills-text, results="asis"}
+gm <- function(d, v) median(ab[domain == d][[v]])
+cat("The age slope within a grade is small for every scale (median β between ", f2(min(sb[, as.numeric(`β age slope / yr (median)`)])), " and ", f2(max(sb[, as.numeric(`β age slope / yr (median)`)])), " SD per year), so being a year older than one's classmates does not by itself raise reported perseverance or curiosity much, and γ stays close to τ: perseverance γ = ", f2(gm("PERSEV_z", "est_gamma")), ", cognitive adaptability ", f2(gm("COGABIL_z", "est_gamma")), ", self-regulated learning ", f2(gm("SELFREG_z", "est_gamma")), ", curiosity ", f2(gm("CURIO_z", "est_gamma")), " SD. ",
+    "Two things follow. First, for achievement the same exercise turns a fixed-age contrast of a few points into a schooling-plus-age effect of 15–20 points (Paper C); for the self-reported skills it does not — whichever bundle one prefers, a year of schooling at this age does not raise the scales. Second, with the whole cohort and a common slope the fixed-age τ for perseverance is itself only ", f2(gm("PERSEV_z", "est_tau")), " SD against −0.10 at the headline specification (h = 4, separate slopes): the negative skill effects live close to the cutoff and depend on the functional form, which is one more reason to read them as bounded above by zero rather than as a precise negative.\n", sep = "")
+```
+
+## The fuzzy-cutoff systems
+
+Thirteen further systems show a jump in the probability of the upper grade between 0.25 and 0.45 at one birth month, usually on top of a profile that already slopes before the cutoff (families pulling children forward or holding them back around the rule): Mauritius (0.73 but no complete skill set), the United States (0.42, no skill scales), Costa Rica (0.39, no ESCS), Kenya, Cambodia, Kazakhstan, Albania, New Zealand, Brazil, Azerbaijan, Kosovo, Chile and Israel. A weak first stage enters the denominator of the Wald ratio, so their standard errors are three to five times those of the sharp systems, and in Chile, Israel and New Zealand the cutoff sits at the edge of the cohort (one, partial, birth month after it). They are run through the identical pipeline as a consistency check and nothing in the paper rests on them.
+
+```{r tbl-fuzzy-cut}
+cf <- cut_all[CNT %in% FUZZY][order(-jump), .(Region = REGION[CNT], System = SYS_NAMES[CNT], `Grades` = paste0(g_lo, "/", g_hi), `First month after cutoff` = cut_label, `P before / after` = paste0(f2(p_before), " / ", f2(p_first_low)), Jump = f2(jump), `Months before / after` = paste0(n_left, " / ", n_right))]
+kable(cf, caption = "Fuzzy-tier systems: cutoffs re-detected on the analysis sample (all programmes)")
+```
+
+```{r fig-fuzzy, fig.height=6, fig.cap="Fuzzy-tier systems: effect of one more year of schooling on perseverance, curiosity, cognitive adaptability and the science score, h = 4; 95% CI. Dotted line = median of the sharp tier for comparison."}
+mf <- pick(rd_all[CNT %in% FUZZY])[h == H_MAIN & outcome %in% c("PERSEV_z", "CURIO_z", "COGABIL_z", "SCIE") & !is.na(tau)]
+mf[, System := factor(SYS_NAMES[CNT], levels = rev(SYS_NAMES[cut_all[CNT %in% FUZZY][order(-jump), CNT]]))]; mf[, Outcome := factor(out_lab(outcome), levels = out_lab(c("PERSEV_z", "CURIO_z", "COGABIL_z", "SCIE")))]
+ms <- m4[outcome %in% c("PERSEV_z", "CURIO_z", "COGABIL_z", "SCIE"), .(median = median(tau)), by = .(Outcome = factor(out_lab(outcome), levels = levels(mf$Outcome)))]
+ggplot(mf, aes(x = tau, y = System)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(data = ms, aes(xintercept = median), linetype = 3) +
+  geom_pointrange(aes(xmin = tau - 1.96 * tau_se, xmax = tau + 1.96 * tau_se), size = .3, colour = okabe[1]) + facet_wrap(~Outcome, ncol = 4, scales = "free_x") + labs(x = "Effect of one more year of school (SD of the scale; science in points)", y = NULL)
+```
+
+```{r tbl-fuzzy-summ}
+mf_all <- pick(rd_all[CNT %in% FUZZY])[h == H_MAIN & !is.na(tau) & outcome %in% c(out_skills, "growth", "SCIE")]
+sf <- mf_all[, .(`Fuzzy tier: median τ` = f2(median(tau)), `IQR` = paste0("[", f2(quantile(tau, .25)), ", ", f2(quantile(tau, .75)), "]"), `sig. −/+` = paste0(sum(tau / tau_se < -1.96), "/", sum(tau / tau_se > 1.96)), `Systems` = .N), by = .(outcome)]
+ss <- m4[outcome %in% c(out_skills, "growth", "SCIE"), .(`Sharp tier: median τ` = f2(median(tau)), `sig. −/+ (sharp)` = paste0(sum(tau / tau_se < -1.96), "/", sum(tau / tau_se > 1.96))), by = outcome]
+sf <- merge(ss, sf, by = "outcome")[match(c(out_skills, "growth", "SCIE"), outcome)][!is.na(outcome)]; sf[, outcome := out_lab(outcome)]; setnames(sf, "outcome", "Outcome")
+kable(sf, caption = "Sharp versus fuzzy tier at h = 4: medians across systems and counts of significantly negative / positive systems (science in points, the rest in SD or probability units)")
+```
+
+```{r fuzzy-text, results="asis"}
+fz <- function(o, col = "tau") mf_all[outcome == o][[col]]
+cat("The fuzzy tier points the same way as the sharp tier and says nothing on its own: perseverance median ", f2(median(fz("PERSEV_z"))), " SD, cognitive adaptability ", f2(median(fz("COGABIL_z"))), ", curiosity ", f2(median(fz("CURIO_z"))), ", science ", f1(median(fz("SCIE"))), " points, with ", sum(abs(mf_all$tau / mf_all$tau_se) > 1.96), " significant estimates out of ", nrow(mf_all), " and confidence intervals of ±0.5 SD or ±40 points. No fuzzy system contradicts the sharp-tier result; none could.\n", sep = "")
+```
+
+## Mathematics and reading
+
+```{r tbl-domains}
+dm <- m4[outcome %in% PV_DOMS, .(Region = REGION[CNT], System = SYS_NAMES[CNT], Domain = out_lab(outcome), v = ci(tau, tau_se, 1))]
+dw <- dcast(dm, Region + System ~ Domain, value.var = "v")[order(match(System, SYS_NAMES[sys_order]))]
+kable(dw, caption = paste0("Effect of one more year of schooling on the three achievement domains, points, h = ", H_MAIN, " [95% CI]"))
+kable(s4[outcome %in% PV_DOMS, .(Domain = out_lab(outcome), `Median τ` = f1(median), IQR = paste0("[", f1(q25), ", ", f1(q75), "]"), `Significantly negative` = neg, `Significantly positive` = pos)], caption = "Medians across systems by domain")
+```
+
+## Per-system estimates, all outcomes
+
+```{r tbl-all}
+ta <- m4[outcome %in% out_order, .(CNT, Outcome = factor(out_lab(outcome), levels = out_lab(out_order)), v = ifelse(outcome %in% PV_DOMS, star(tau, tau_se, 1), star(tau, tau_se, 2)))]
+tw <- dcast(ta, Outcome ~ CNT, value.var = "v"); setcolorder(tw, c("Outcome", intersect(sys_order, names(tw))))
+kable(tw, caption = paste0("Fuzzy-RD effect τ by system and outcome at h = ", H_MAIN, " (scales in SD, beliefs in probability, scores in points; * = |z| > 1.96)"))
+```
+
+## Skill-channel decomposition in detail
+
+```{r tbl-med-detail}
+md4 <- med[h == H_MAIN & term %like% "^via_" & term != "via_total"]; md4[, skill := out_lab(sub("^via_", "", term))]
+mdw <- dcast(md4[, .(CNT, skill, v = f1(est))], skill ~ CNT, value.var = "v"); setcolorder(mdw, c("skill", intersect(sys_order, names(mdw))))
+kable(mdw, caption = "Points of the science effect transmitted through each skill (β_k × τ_Mk), h = 4. Small everywhere because τ_Mk is small; sign follows the sign of the skill effect.")
+```
+
+## Notes
+
+- **Audit file.** `03_outputs/paperB/cutoff_audit_all.csv` holds the compliance profile of every PISA 2025 system (general programmes only, which is why Serbia and Croatia show smaller samples there than in the analysis, where all programmes are kept). `cutoffs.csv`, `rd_estimates.csv` and the other outputs carry a `tier` column (sharp / fuzzy).
+- **Scale labels** follow the PISA 2025 codebook: ENPROBS = enjoyment of problem-solving, COGABIL = cognitive adaptability.
+- **Edge-of-cohort systems.** Finland and Peru have a single birth month after the cutoff inside the PISA cohort, and Paraguay one usable month once the partial cutoff month is dropped; their estimates rest on a common slope and should be read as a comparison of adjacent months. Korea, Hong Kong and the Philippines have two months after the cutoff, enough for separate slopes but with the slope on that side resting on two points.
+- **Re-estimation.** `02_scripts/paperB/run_all_estimation.sh` (about five minutes); the manuscript reads only the CSVs in `03_outputs/paperB/`.

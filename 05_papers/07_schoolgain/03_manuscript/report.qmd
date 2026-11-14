@@ -1,0 +1,326 @@
+---
+title: "What Makes a School Year Count?"
+subtitle: "School inputs, peers and the causal learning gain from one year of schooling at age 15 — 14 PISA 2025 systems where both grades share schools. Design, estimates and the paper they support (target: *World Development* / *IJED*)"
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: true
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+invisible(Sys.setlocale("LC_CTYPE", "en_US.UTF-8"))
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", "..")); knitr::opts_knit$set(root.dir = ROOT); setwd(ROOT)
+source("02_scripts/schoolgain/00_helpers.R")
+rd <- function(f) if (file.exists(og(f))) fread(og(f)) else NULL
+st <- fread("03_outputs/skillsgain/structure.csv"); SAME <- st[structure == "Same-school", CNT]
+base <- fread("03_outputs/skillsgain/baseline.csv")[sample == "all" & outcome == "ACH" & term == "gamma" & CNT %in% SAME]
+fl <- rd("flow_level.csv"); pf <- rd("pool_flow_level.csv"); tp <- rd("top.csv"); ptp <- rd("pool_top.csv"); loso <- rd("loso_top.csv")
+mc <- rd("mechanism.csv"); pmc <- rd("pool_mechanism.csv"); sk <- rd("skills_levels.csv"); cov <- rd("coverage_inputs.csv")
+f_ate <- rd("forest_ate.csv"); f_blp <- rd("forest_blp.csv"); f_gates <- rd("forest_gates.csv"); f_rate <- rd("forest_rate.csv"); f_vi <- rd("forest_vi.csv")
+dec <- rd("decomp.csv"); dlt <- rd("decomp_delta.csv")
+has_forest <- !is.null(f_blp); has_dec <- !is.null(dec)
+S14 <- "Same-school (14)"; TOP <- unique(tp$top)[1]
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+ci <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), " [", formatC(e - 1.96 * s, format = "f", digits = d), ", ", formatC(e + 1.96 * s, format = "f", digits = d), "]")
+PF <- function(inp, sp = "flow", set_ = S14, col = "re_mean", term_ = NULL) { x <- pf[input == inp & spec == sp & set == set_]; if (!is.null(term_)) x <- x[term == term_]; x[[col]][1] }
+PFC <- function(inp, sp = "flow", set_ = S14, term_ = NULL) ci(PF(inp, sp, set_, term_ = term_), PF(inp, sp, set_, "re_se", term_))
+PT <- function(sp, tm, set_ = S14, col = "re_mean") ptp[spec == sp & term == tm & set == set_][[col]][1]
+PTC <- function(sp, tm, set_ = S14) ci(PT(sp, tm, set_), PT(sp, tm, set_, "re_se"))
+G <- base[, pool(est, se)]
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999", "#000000")
+nm <- function(x) SYS_NAMES[as.character(x)]
+```
+
+::: {.callout-note}
+**Status.** Every number is read from CSV files in `03_outputs/schoolgain/`, produced by the numbered scripts in `02_scripts/schoolgain/`. Nothing is estimated at render time. Causal forest: `r if (has_forest) paste0("included (", f_ate[group == "All", n_pv], " plausible values)") else "**still running**: forest sections are skipped"`. Decomposition: `r if (has_dec) "included" else "**pending** (needs the forest scores)"`.
+:::
+
+# The paper in one page
+
+**Question.** Which school inputs make a year of schooling at 15 more productive? Candidates:
+
+- resources: class size, staff and material shortages;
+- teachers: certification, qualifications, training;
+- organisation: selectivity, ability grouping, testing, leadership;
+- climate: discipline, safety, bullying;
+- peers: schoolmates' SES and achievement.
+
+**Why existing answers are not enough.** Education production functions estimated on PISA regress *achievement levels* on school inputs. A level is ten years of accumulated learning plus selection into schools, so the coefficient of an input mixes its effect with who attends that school. Value-added models fix this with prior test scores, which PISA does not have.
+
+**Design.** In 14 of the 20 systems the two grades of the PISA cohort sit in the *same schools*. Within a school, the school-entry cutoff assigns otherwise similar students to adjacent grades. The grade gain is identified by instrumenting the actual grade with the theoretical grade and holding school-starting age fixed (Avvisati and Givord 2021, OECD Education Working Paper 257). Within a school, that gain is a **causal estimate of what the school adds in one year**, obtained without longitudinal data. School inputs are then *moderators* of this annual flow, estimated three ways:
+
+- input by input, with interacted IV per system, random-effects pooling and Benjamini–Hochberg correction;
+- jointly, with an instrumental causal forest;
+- for the input that matters, with a decomposition and a causal-mediation test of mechanisms.
+
+```{r headline, results="asis"}
+cat("**Findings.**\n\n",
+    "1. **A school year adds ", f1(G$re_mean), " points** (random-effects mean over the 14 systems).\n",
+    "2. **Most inputs that look important in levels do not predict the annual flow.** In levels, a 1 SD difference in peer achievement goes with ", f1(PF("peer_ach", "level")), " points, peer SES with ", f1(PF("peer_SES", "level")), ", a private school with ", f1(PF("PRIVATE", "level")), " and disciplinary climate with ", f1(PF("s_DISC", "level")), ". ",
+    "In the causal annual gain, the same SD changes the gain by ", PFC("peer_ach"), ", ", PFC("peer_SES"), ", ", PFC("PRIVATE"), " and ", PFC("s_DISC"), " points. **Peer effects on learning flows are zero** in every domain.\n",
+    "3. **One input survives: school safety**, the mean sense of feeling safe among a student's schoolmates. A 1 SD safer school raises the year's gain by ", PFC(TOP), " points (BH q = ", f2(PF(TOP, col = "q_bh")), "), about a quarter of the gain. ",
+    "The effect holds:\n",
+    "    - in all three domains;\n",
+    "    - net of the other climate measures (", PTC("climate", paste0("gamma:", TOP)), ");\n",
+    "    - net of peers, urbanity, size and school type (", PTC("context", paste0("gamma:", TOP)), ");\n",
+    "    - when any single system is dropped (", f1(min(loso$re_mean)), " to ", f1(max(loso$re_mean)), ").\n\n",
+    "   It is the school environment that matters, not the student's own perception: own safety ", PTC("own", "gamma:own_SAFE"), " against school safety ", PTC("own", paste0("gamma:", TOP)), ".\n",
+    "4. **Not through student disengagement.** The extra year slightly raises skipping and lateness, but equally in safe and unsafe schools. Skipping, lateness, victimisation, belonging and test effort together carry ", f2(pmc[set == S14 & mediator == "joint" & term == "indT", re_mean]), " of the ", f1(pmc[set == S14 & mediator == "joint" & term == "gT", re_mean]), "-point safety effect.\n\n", sep = "")
+if (has_forest) cat("5. **The causal forest agrees.** ", "The rank-weighted test of the forest's own heterogeneity ranking (honest school split) gives AUTOC = ", ci(f_rate[priority %like% "honest", est], f_rate[priority %like% "honest", se]), ". In the joint projection of the gain on all ", nrow(INPUTS), " inputs, safety's coefficient is ", ci(f_blp[term == TOP, est], f_blp[term == TOP, se]), ".\n\n", sep = "")
+```
+
+**The story.** Inputs that look important in levels mostly reflect who attends advantaged schools; those schools do not teach more per year. What schools *do* control and what pays off within a year is an environment in which students feel safe. The other climate measures, the resource indicators and peer composition do not predict the flow. Safety does not work by reducing skipping or raising effort. That points to the classroom itself: time and order for instruction.
+
+# Design
+
+## From the grade gain to school value added
+
+For a student $i$ in school $j$ of system $s$, the grade gain is the coefficient γ in $y_{ij} = \alpha + \beta\,\mathrm{ssa}_{ij} + \gamma D_{ij} + \delta' x_{ij} + \varepsilon_{ij}$. The upper grade $D$ is instrumented by $Z = 1[\text{born before the cutoff}]$, and school-starting age ssa = const − r − 12D is held fixed. With a school input $M_j$ (standardised within system) as moderator, the 2SLS includes D, D·M (instrumented by Z, Z·M) and r, r·M, M as controls. The quantity of interest is
+
+$$\gamma_M = b_{DM} - 12\, b_{rM},$$
+
+the change in the year's causal gain per SD of the input. Two conditions make this a statement about schools:
+
+1. **Both grades share the school.** In the 14 same-school systems, 55–100% of students attend a school that holds both grades. The school's inputs are the same for the two grades it compares, so they are not consequences of the grade. In the 6 transition systems the school *is* partly the grade (a different, often tracked, upper-secondary school), and they are excluded.
+2. **The moderator is not an outcome of the comparison.** Questionnaire inputs are school attributes. Student-reported climate is the *leave-one-out* school mean of schoolmates' reports. Peer achievement uses only *lower-grade* schoolmates, net of system grade × birth-month means; upper-grade scores contain the school's own grade gain, the outcome. The grade does not move a student's own sense of safety (jump at the cutoff `r PTC("bal_own", "tau")`).
+
+**What is causal.** γ(M) is the causal gain of a year *in schools with input M*. γ<sub>M</sub> compares schools, so it is causal for the flow but not for the input: schools with more of an input may differ in unobserved ways. The design removes the main confounder of level-based production functions, accumulated achievement and selection of students into schools, because every school is compared with itself across adjacent grades. Remaining threats are school-level confounders of the *flow*. They are addressed by:
+
+- conditioning on peers, urbanity, size and school type;
+- other climate measures;
+- a joint causal forest;
+- a Gelbach decomposition.
+
+## Inputs, controls and skills
+
+```{r tbl-inputs}
+kable(INPUTS[, .(Group = group, Input = label, Variable = var)], caption = "School inputs tested. All standardised within system at the student level, so every coefficient is per SD. Questionnaire indices from the PISA 2025 school file; s_* = leave-one-out school means of student scales; PRIVATE and URBAN are binary (SC013, SC001 ≥ city of 100,000).")
+```
+
+**Student controls** (they do not identify anything, but sharpen precision and hold composition fixed):
+
+- *decomposed ESCS*: highest parental occupation (HISEI), parental education in years (PAREDINT) and home possessions (HOMEPOS). PISA 2025 has no separate WEALTH index, and HOMEPOS is its home-possessions counterpart. Costa Rica has none of the three and uses books at home.
+- sex and immigrant background;
+- *the three socio-emotional scales with the strongest cross-sectional association with achievement*, chosen from the six by the table below.
+
+Missing controls are set to the system mean with a missing flag.
+
+```{r tbl-skills}
+if (!is.null(sk)) kable(sk[, .(Scale = c(CURIO = "Curiosity", PERSEV = "Perseverance", ENPROBS = "Enjoyment of problem-solving", SELFREG = "Self-regulation", COGABIL = "Cognitive adaptability", GOALSET = "Goal setting")[scale], Systems = n_sys, `Points per SD` = ci(re_mean, re_se), `Selected` = ifelse(scale %in% SKILL3, "✓", ""))], caption = "Cross-sectional association of each scale with achievement (holding SES, grade, birth month, sex), random-effects mean over the 20 systems [95% CI].")
+```
+
+## Hypotheses
+
+| | Hypothesis | Prediction |
+|---|---|---|
+| H1 | **Peer effects in flows**: students learn more per year among advantaged / high-achieving peers | γ<sub>peer SES</sub>, γ<sub>peer ach.</sub> > 0 |
+| H2 | **Resources** (class size, ratios, shortages): small or no effect on the flow (Hanushek's resource puzzle) | ≈ 0 |
+| H3 | **Teachers** (certification, master's, training) raise the flow | > 0 |
+| H4 | **Climate**: order and safety raise the flow | > 0 |
+| H5 | **Levels ≠ flows**: level coefficients overstate inputs correlated with selection (peers, private, selective) | level ≫ flow for those inputs |
+
+# Results
+
+## Levels versus flows
+
+```{r fig-lf, fig.height=9, fig.cap="Each school input's cross-sectional association with achievement (level, grey) and its effect on the causal annual gain (flow, blue), points per SD; random-effects means over the 14 same-school systems, 95% CI. Stars: flow effects with Benjamini–Hochberg q < 0.05."}
+d <- pf[set == S14 & spec %in% c("flow", "level") & input %in% INPUTS$var]
+d[, what := fifelse(spec == "flow", "Flow: change in a year's causal gain", "Level: cross-sectional association")]
+ordr <- d[spec == "flow"][order(re_mean), input]
+d[, lab := factor(paste0(in_lab(input), ifelse(input %in% d[spec == "flow" & q_bh < .05, input], " ★", "")), levels = paste0(in_lab(ordr), ifelse(ordr %in% d[spec == "flow" & q_bh < .05, input], " ★", "")))]
+d[, grp := in_grp(input)]
+ggplot(d, aes(x = re_mean, y = lab, colour = what)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = re_mean - 1.96 * re_se, xmax = re_mean + 1.96 * re_se), position = position_dodge(width = .6), size = .25) +
+  scale_colour_manual(values = c(okabe[1], okabe[7]), name = NULL) + facet_grid(grp ~ ., scales = "free_y", space = "free_y") +
+  theme(strip.text.y = element_text(angle = 0, hjust = 0)) + labs(x = "Points per SD of the input", y = NULL)
+```
+
+```{r tbl-rank}
+tr <- merge(pf[set == S14 & spec == "flow" & input %in% INPUTS$var, .(input, flow = ci(re_mean, re_se), q = q_bh, p, tau = tau_sd, sp = sig_pos, sn = sig_neg)],
+            pf[set == S14 & spec == "flow_peer" & input %in% INPUTS$var, .(input, flow_peer = ci(re_mean, re_se))], by = "input", all.x = TRUE)
+tr <- merge(tr, pf[set == S14 & spec == "level", .(input, level = ci(re_mean, re_se))], by = "input")
+tr <- tr[order(p)]
+kable(tr[, .(Input = in_lab(input), Group = in_grp(input), `Flow (per SD)` = flow, `BH q` = f2(q), `Flow net of peers` = flow_peer, `Level (per SD)` = level, `Between-system SD` = f1(tau), `Systems +/−` = paste0(sp, "/", sn))],
+      caption = "All inputs ranked by the strength of the flow effect. Flow = change in the causal grade gain per SD (interacted 2SLS); net of peers = with peer SES and peer achievement as additional moderators; level = cross-sectional coefficient (WLS on input, grade, birth month, controls). Random-effects means [95% CI], 14 same-school systems (13 for inputs not fielded everywhere).")
+```
+
+```{r lf-text, results="asis"}
+big <- pf[set == S14 & spec == "level" & input %in% INPUTS$var][order(-abs(re_mean))][1:6, input]
+cat("The six inputs with the largest level associations are ", paste(tolower(in_lab(big)), collapse = ", "), ". ",
+    "Their flow effects are all within a few points of zero. Only one input clears the multiple-testing bar (BH q < 0.05): school safety. ",
+    "Ranked by flow, the next inputs are school size (", PFC("SCHSIZE"), "), use of teacher-developed tests (", PFC("TDTEST"), ") and the share of teachers with a master's degree (", PFC("PROPAT7"), "). None survives correction, and school size disappears net of peers (", PFC("SCHSIZE", "flow_peer"), ").\n\n",
+    "**H1 (peers) is rejected**: peer SES ", PFC("peer_SES", "flow_peer", term_ = "gamma:peer_SES"), " and peer achievement ", PFC("peer_ach", "flow_peer", term_ = "gamma:peer_ach"), " jointly, against level associations of ", f1(PF("peer_SES", "level")), " and ", f1(PF("peer_ach", "level")), ". ",
+    "**H2 (resources ≈ 0) holds. H3 (teachers) finds no support. H4 holds for safety only. H5 holds**: for the selection-laden inputs (peers, private, urban, discipline) the level coefficient is many times the flow.\n", sep = "")
+```
+
+```{r tbl-peers}
+pp <- pf[set == S14 & spec %like% "^flow_peer_" & term %like% ":peer"]
+pp[, Domain := c(SCIE = "Science", MATH = "Mathematics", READ = "Reading")[sub("flow_peer_", "", spec)]]
+kable(dcast(pp[, .(Domain, Peer = fifelse(term %like% "SES", "Peer SES", "Peer achievement"), v = ci(re_mean, re_se))], Domain ~ Peer, value.var = "v"),
+      caption = paste0("Peer effects on the annual gain by domain (peer SES and peer achievement jointly), points per SD. Peer achievement from all schoolmates instead of lower-grade ones (mechanically contaminated by the school's own gain, shown for transparency): ", PFC("peer_ach_all"), "."))
+```
+
+## School safety
+
+```{r tbl-safe}
+rows <- list(c("Overall achievement", "flow"), c("Science", "dom_SCIE"), c("Mathematics", "dom_MATH"), c("Reading", "dom_READ"), c("Net of other climate (discipline, bullying, negative climate)", "climate"),
+             c("Net of context (peer SES, peer achievement, urban, size, private)", "context"), c("Net of climate and context jointly", "all"), c("Alongside the student's own sense of safety", "own"))
+ts <- rbindlist(lapply(rows, function(r) data.table(Specification = r[1], `School safety (per SD)` = if (r[2] == "flow") PFC(TOP) else PTC(r[2], paste0("gamma:", TOP)),
+                                                     Systems = if (r[2] == "flow") PF(TOP, col = "n_sys") else PT(r[2], paste0("gamma:", TOP), col = "n_sys"))))
+ts <- rbind(ts, data.table(Specification = "Student's own sense of safety (same model)", `School safety (per SD)` = PTC("own", "gamma:own_SAFE"), Systems = PT("own", "gamma:own_SAFE", col = "n_sys")))
+for (g in c("Non-European", "European")) ts <- rbind(ts, data.table(Specification = paste0("Systems: ", g), `School safety (per SD)` = PFC(TOP, set_ = g), Systems = PF(TOP, set_ = g, col = "n_sys")))
+kable(ts, caption = "School safety and the annual gain: random-effects means [95% CI], points per SD of schoolmates' mean sense of safety. Germany did not field the scale.")
+```
+
+```{r fig-safe-q, fig.height=3.8, fig.cap="Grade gain by within-system quartile of school safety (interacted 2SLS with quartile indicators; random-effects means, 95% CI)."}
+qq <- rbind(data.table(q = 1, est = PT("quart", "gamma"), se = PT("quart", "gamma", col = "re_se")),
+            rbindlist(lapply(2:4, function(k) data.table(q = k, est = PT("quart", "gamma") + PT("quart", paste0("gamma:q", k)), se = sqrt(PT("quart", "gamma", col = "re_se")^2 + PT("quart", paste0("gamma:q", k), col = "re_se")^2)))))
+ggplot(qq, aes(x = factor(q), y = est)) + geom_col(fill = okabe[6], width = .6) + geom_errorbar(aes(ymin = est - 1.96 * se, ymax = est + 1.96 * se), width = .15) +
+  labs(x = "School safety quartile (1 = least safe)", y = "Points gained in one school year")
+```
+
+```{r fig-safe-sys, fig.height=5, fig.cap="Effect of school safety on the annual gain by system (points per SD), 95% CI; dotted line = random-effects mean. Leave-one-system-out means range from the lowest to the highest value shown in the text."}
+xs <- fl[spec == "flow" & input == TOP & term == paste0("gamma:", TOP)]; xs[, System := factor(nm(CNT), levels = nm(xs[order(est), CNT]))]
+ggplot(xs, aes(x = est, y = System)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(xintercept = PF(TOP), linetype = 3) +
+  geom_pointrange(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), colour = okabe[1], size = .3) + labs(x = "Points per year per SD of school safety", y = NULL)
+```
+
+```{r safe-text, results="asis"}
+cat("The least-safe quarter of schools adds ", f1(qq[q == 1, est]), " points in a year and the safest quarter ", f1(qq[q == 4, est]), ". The gradient is monotone at the top. ",
+    "The effect does not differ between regions (non-European ", PFC(TOP, set_ = "Non-European"), ", European ", PFC(TOP, set_ = "European"), "). The between-system SD of the true effect is ", f1(PF(TOP, col = "tau_sd")), ", so the same relation holds from Brazil and the Philippines to Finland and Estonia. ",
+    "Dropping any one system leaves it between ", f1(min(loso$re_mean)), " and ", f1(max(loso$re_mean)), ".\n", sep = "")
+```
+
+## The causal forest: all inputs jointly
+
+```{r tbl-forest, eval=has_forest}
+kable(f_ate[, .(Group = group, `Average grade gain` = ci(est, se))], caption = "Average grade gain from the forest's doubly robust scores.")
+fb <- f_blp[term != "(Intercept)"][order(-abs(est / se))]
+kable(fb[, .(Input = in_lab(term), Group = in_grp(term), `Coefficient (per SD)` = ci(est, se), z = f1(est / se))],
+      caption = "Best linear projection of the forest's conditional grade gains on all school inputs jointly, with system fixed effects (doubly robust, school-clustered, Rubin over PVs).")
+fr <- f_rate[order(-est / se)]
+kable(fr[, .(Ranking = ifelse(priority %in% INPUTS$var, in_lab(priority), priority), `AUTOC` = ci(est, se), z = f1(est / se))],
+      caption = "Rank-weighted average treatment effect (AUTOC): does ranking schools by this quantity pick out students with larger gains? Forest CATE: ranking learned on half the schools, evaluated on the other half. Inputs: schools ranked by the input itself (positive = more of the input, larger gains).")
+```
+
+```{r fig-vi, fig.height=4.5, fig.cap="Variable importance in the forest (top 15).", eval=has_forest}
+vv <- f_vi[order(-vi)][1:15]; vv[, lab := ifelse(grepl("^sys_", var), paste("System:", nm(sub("sys_", "", var))), in_lab(var))]; vv[, lab := factor(lab, levels = rev(lab))]
+ggplot(vv, aes(x = vi, y = lab)) + geom_col(fill = okabe[1]) + labs(x = "Importance", y = NULL)
+```
+
+```{r forest-text, results="asis", eval=has_forest}
+r1 <- f_rate[priority %like% "honest"]
+cat("The forest answers two questions. *Is there heterogeneity in the annual gain that observed inputs can find?* The honest-split RATE is ", ci(r1$est, r1$se), ": ",
+    ifelse(abs(r1$est / r1$se) > 1.96, "yes, the forest's ranking picks out students with larger gains in held-out schools.", "no detectable targeting gain. Most of the variation the forest fits does not replicate in held-out schools, which is the multi-input version of the flat flows above."), " ",
+    "*Which inputs carry it, holding the others fixed?* School safety's joint coefficient is ", ci(f_blp[term == TOP, est], f_blp[term == TOP, se]), "; ranking schools by safety alone gives AUTOC ", ci(f_rate[priority == TOP, est], f_rate[priority == TOP, se]), ".\n", sep = "")
+```
+
+## What does school safety carry? Decomposition
+
+```{r tbl-dec, eval=has_dec}
+dg <- dec[level %in% c("total", "group")]
+dg[, Component := fifelse(term == "b_base", "Safety effect, system FE only (base)", fifelse(term == "b_full", "Safety effect net of all other inputs (unexplained)", paste0("Accounted for by: ", term)))]
+kable(dg[, .(Component, `Points per SD` = ci(est, se))], caption = "Gelbach (2016) decomposition of the safety moderation on the forest's doubly robust scores: base − full = Σ_k δ_k β_k, grouped by input family. School-cluster bootstrap within PV, Rubin across PVs; group SEs are root-sum-of-squares upper bounds.")
+di <- dec[level == "input"][order(-abs(est))][1:8]
+kable(di[, .(Input = in_lab(term), Group = group, `Contribution` = ci(est, se, 2))], caption = "Largest single-input contributions to the safety effect.")
+kable(dlt[order(-abs(delta / se))][1:10, .(Input = in_lab(input), `Co-movement with safety (δ)` = ci(delta, se, 2))], caption = "What goes with school safety: coefficient of each input (SD) on safety (SD), system fixed effects.")
+```
+
+## Why? Mechanism tests (moderated causal mediation)
+
+```{r tbl-mech}
+mm <- dcast(pmc[set == S14 & term %in% c("a0", "aT", "b", "gT", "indT")], mediator ~ term, value.var = c("re_mean", "re_se"))
+lab_m <- c(SKIPPING = "Skipping school", TARDYSD = "Arriving late", BULLIED = "Own victimisation (bullied)", BELONG = "Sense of belonging", EFFORT1 = "Test effort", joint = "Joint (skipping, late, bullied, belonging)")
+kable(mm[match(names(lab_m), mediator), .(Mediator = lab_m[mediator], `a: grade → m (SD)` = ci(re_mean_a0, re_se_a0, 2), `a varies with safety` = ci(re_mean_aT, re_se_aT, 2),
+                                          `b: m → score` = ci(re_mean_b, re_se_b), `Safety effect (total)` = ci(re_mean_gT, re_se_gT), `…carried by m` = ci(re_mean_indT, re_se_indT, 2))],
+      caption = "Moderated mediation. a: causal effect of the extra grade on the mediator (same instrument), and how it varies with school safety; b: association of the mediator with achievement given the grade (requires sequential ignorability); last column: part of the safety moderation of the grade gain that runs through the mediator (total minus direct). Random-effects means [95% CI].")
+```
+
+```{r mech-text, results="asis"}
+g <- function(m, t) pmc[set == S14 & mediator == m & term == t, re_mean]
+cat("The candidate mechanism was student disengagement. In unsafe schools an extra year might raise skipping, lateness and victimisation and lower belonging and effort, eating into learning. ",
+    "The causal a-paths show the extra year does raise skipping (", f2(g("SKIPPING", "a0")), " SD) and lateness (", f2(g("TARDYSD", "a0")), " SD) slightly. ",
+    "But these effects do not vary with safety (", f2(g("SKIPPING", "aT")), ", ", f2(g("TARDYSD", "aT")), "), and together the engagement measures carry ", f2(g("joint", "indT")), " of the ", f1(g("joint", "gT")), "-point safety effect. ",
+    "**The disengagement channel is rejected.** Safety pays off through something the student questionnaire does not record. The natural candidate is the classroom: instructional time and order. The students who feel unsafe are not the ones who learn less (own-safety coefficient ≈ 0); everyone in an unsafe school does.\n", sep = "")
+```
+
+# Contribution and positioning
+
+**Relative to Avvisati and Givord.** Their OECD working paper (2021, WP 257) uses the cutoff design in 18 systems and reports one average gain per system, for test scores only. Their *Labour Economics* (2023) paper uses a different design, shifts in PISA test dates in five countries. This paper:
+
+1. turns the grade gain into a **school-level causal flow** by restricting to systems where both grades share schools;
+2. uses it to estimate an **education production function on flows rather than stocks**, for 27 inputs;
+3. shows that peers and selection-laden inputs drop out while school safety remains;
+4. tests the mechanism with **causal mediation** where the first stage is causal.
+
+Check the full text of WP 257 for any subgroup analysis before submission.
+
+**Literatures** (verify every citation before submission):
+
+- *School inputs and production functions*: Hanushek's resource puzzle and the PISA production-function tradition (e.g. Woessmann's cross-country work). This paper re-estimates the canon on causal flows.
+- *Peer effects*: much of the evidence is on levels. This paper gives a within-school, flow-based test across 14 systems, and it is null.
+- *School safety, violence and learning*: evidence from violence exposure and school-climate studies, often in Latin America and Africa. This paper gives quasi-experimental, multi-country evidence that safety is the climate input that converts time in school into learning. That directly serves *World Development*: 10 of the 14 systems are outside Europe, and the effect is as large there.
+
+## Title options
+
+1. *What Makes a School Year Count? School Safety and the Causal Learning Gain at Age 15*
+2. *Safe Schools Teach More: Evidence from School-Entry Cutoffs in 14 Education Systems*
+3. *Flows, Not Stocks: Re-estimating the Education Production Function with Causal Annual Gains*
+
+## Draft abstract
+
+```{r abstract, results="asis"}
+cat("> Education production functions relate achievement *levels* to school inputs, so their coefficients mix the effect of inputs with ten years of accumulated learning and selection into schools. ",
+    "I use school-entry cutoffs in 14 PISA 2025 systems where adjacent grades share schools to estimate, school by school, the causal learning gain from one year of schooling at age 15, and relate it to 27 school inputs. ",
+    "A year adds ", round(G$re_mean), " points. Inputs with large level associations, including peer achievement (", round(PF("peer_ach", "level")), " points per SD) and peer socio-economic status (", round(PF("peer_SES", "level")), "), do not predict the annual gain. ",
+    "One input does: in schools where students feel safer, a year adds ", f1(PF(TOP)), " more points per SD, about a quarter of the gain. The effect holds net of peers, discipline, bullying and school type, and appears in every region. ",
+    "It does not run through student skipping, lateness or effort.\n", sep = "")
+```
+
+# Limits and next steps
+
+- **Inputs are not randomised.** The flow removes selection on accumulated achievement, but a school-level confounder of the flow itself (e.g. teacher quality not captured by certification) could correlate with safety. The joint forest, the context controls and the decomposition bound this; they do not eliminate it.
+- **Safety is student-reported.** The leave-one-out mean removes the student's own report, and the student's own perception has no effect. But reports could reflect a school culture that also raises learning. A principal-reported measure (negative school climate) is in the models and does not carry the effect.
+- **Discrete running variable.** Twelve birth months, linear in age. Honest CIs for discrete running variables (Kolesár and Rothe 2018) are a pre-submission step.
+- **Weak first stages** in the UAE and Ecuador (≈ 0.2) and Brazil (0.3) make their interacted estimates noisy. Random-effects pooling down-weights them, and leave-one-out results are stable.
+- **Next layer.** The teacher questionnaire (PISA 2025 TCH file) could test the classroom-order mechanism directly: time lost to disruption, teacher-reported discipline.
+
+# Appendix
+
+```{r tbl-sys}
+xt <- fl[spec == "flow" & input %in% c(TOP, "peer_SES", "peer_ach") & term == paste0("gamma:", input)]
+xt[, v := paste0(f1(est), ifelse(abs(est / se) > 1.96, "*", ""), " (", f1(se), ")")]
+tw <- dcast(xt, CNT ~ input, value.var = "v"); tw <- merge(tw, base[, .(CNT, gain = paste0(f1(est), " (", f1(se), ")"))], by = "CNT")
+kable(tw[, .(System = nm(CNT), Group = GROUP[CNT], `Grade gain` = gain, `× school safety` = get(TOP), `× peer SES` = peer_SES, `× peer achievement` = peer_ach)][order(Group, System)],
+      caption = "Per system: grade gain and its change per SD of school safety and of each peer variable (separate models), estimate (SE); * = |z| > 1.96.")
+kable(cov, caption = "Coverage of each input (share of students), same-school systems.")
+```
+
+| Step | Script | Output |
+|---|---|---|
+| 1 | `01_build.py` (pyreadstat) | `schoolgain_school.csv`, `schoolgain_stu.csv.gz` |
+| 2 | `02_prepare.R` | `schoolgain_analytic.rds`, `coverage_inputs.csv`, `input_corr.csv` |
+| 2b | `02b_skills.R` | `skills_levels.csv` (choice of skill controls) |
+| 3 | `03_flow_level.R` | `flow_level.csv` (flow, flow net of peers, level, per input and system) |
+| 3b | `03b_top.R` | `top.csv` (stress tests of the top input) |
+| 4 | `04_forest.R` | `forest_{ate,blp,gates,rate,vi}.csv`, `forest_scores.rds` |
+| 5 | `05_decompose.R` | `decomp.csv`, `decomp_delta.csv` |
+| 6 | `06_mechanism.R` | `mechanism.csv` |
+| 7 | `07_pool.R` | `pool_*.csv`, `loso_top.csv` |
+| — | `run_all.sh` | steps 2–7 |

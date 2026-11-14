@@ -1,0 +1,57 @@
+{
+  "requested_country_count": 14,
+  "original_tables": [
+    "tbl-sample",
+    "tbl-scales",
+    "tbl-corr",
+    "tbl-gradients",
+    "tbl-main",
+    "tbl-pathways",
+    "tbl-econ",
+    "tbl-domains",
+    "tbl-skills",
+    "tbl-exposures",
+    "tbl-econ-dep",
+    "tbl-robust",
+    "tbl-main-escs"
+  ],
+  "original_figures": [
+    "fig-gradients",
+    "fig-acme",
+    "fig-econ",
+    "fig-domains",
+    "fig-sens"
+  ],
+  "main_estimators": [
+    "weighted single-mediator mediate/medsens",
+    "joint coefficient change",
+    "Gelbach allocation",
+    "joint index sensitivity",
+    "modal-grade and inverse-response-weight checks"
+  ],
+  "outcomes": [
+    "READ",
+    "MATH",
+    "SCIE"
+  ],
+  "exposures": {
+    "ESCS_PCT": [
+      "READ",
+      "MATH",
+      "SCIE"
+    ],
+    "DEP": [
+      "READ"
+    ],
+    "ESCS": [
+      "READ",
+      "MATH",
+      "SCIE"
+    ]
+  },
+  "specifications": [
+    "student controls",
+    "student + measured school controls"
+  ],
+  "estimation_note": "Reproduce original substantive specifications and full/reduced simulation settings; do not introduce school fixed effects. Document data-availability exceptions and reporting corrections."
+}

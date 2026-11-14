@@ -1,0 +1,203 @@
+---
+title: "Grade Gain Report — what a year of schooling adds at age 15 in every eligible PISA 2025 system"
+subtitle: "Science, mathematics, reading and seven socio-emotional scales. Method aligned with Avvisati & Givord (2021): actual grade instrumented by the theoretical grade from the school-entry cutoff, school-starting age as a linear control, covariates, whole cohort. One model per system; medians and a random-effects meta-analysis across systems. All estimates are read from CSV outputs produced by numbered R scripts; nothing is re-estimated at render time."
+author: "Garen Avanesian"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    fig-width: 9
+    fig-height: 5.5
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
+ROOT <- normalizePath(file.path(getwd(), "..", "..")); setwd(ROOT); source("02_scripts/gradegain/00_helpers.R")
+est <- fread(file.path(ROOT, op("estimates.csv"))); elig <- fread(file.path(ROOT, op("eligibility.csv"))); comp <- fread(file.path(ROOT, op("compliance.csv")))
+summ <- fread(file.path(ROOT, op("summary.csv"))); summ_clean <- fread(file.path(ROOT, op("summary_clean_only.csv"))); reg <- fread(file.path(ROOT, op("summary_region.csv"))); shr <- fread(file.path(ROOT, op("shrunken.csv")))
+audit <- fread(file.path(ROOT, op("cutoff_audit_all.csv")))
+est <- merge(est, elig[, .(CNT, edge, jump)], by = "CNT")
+el <- elig[eligible == TRUE]; n_el <- nrow(el); n_edge <- sum(el$edge); n_cand <- nrow(elig); n_all <- nrow(audit)
+wide <- function(spec_, outs) dcast(est[spec == spec_ & outcome %in% outs], CNT + name + region + edge + jump + outcome ~ term, value.var = c("est", "se"))
+ag <- wide("ag_cov", OUTCOMES); ls <- est[spec == "lsdv", .(CNT, outcome, lsdv = est, lsdv_se = se)]; ag <- merge(ag, ls, by = c("CNT", "outcome"), all.x = TRUE)
+sys_order <- ag[outcome == "SCIE"][order(est_gamma), CNT]                 # systems ordered by the science grade gain
+lab <- function(x) factor(SYS_NAMES[as.character(x)], levels = SYS_NAMES[sys_order])
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+ci  <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), " [", formatC(e - 1.96 * s, format = "f", digits = d), ", ", formatC(e + 1.96 * s, format = "f", digits = d), "]")
+star <- function(e, s, d = 1) paste0(formatC(e, format = "f", digits = d), ifelse(abs(e / s) > 1.96, "*", ""))
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), legend.position = "bottom"))
+okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#999999", "#000000")
+g <- function(o, col, spec_ = "ag_cov", term_ = "gamma") summ[outcome == o & spec == spec_ & term == term_][[col]]
+```
+
+::: {.callout-note}
+**Status.** `r n_el` eligible systems out of the `r n_all` PISA 2025 participants (`r n_edge` of them with the cutoff at the edge of the birth cohort, flagged "edge"). Outcomes: science, mathematics, reading (PISA points, 10 plausible values); perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving, cognitive adaptability, sense of belonging (within-system SD units); growth mindset (probability). Inference: Fay BRR over 80 replicate weights + Rubin. Pipeline: `02_scripts/gradegain/` (`01_build.py` on the Mac, then `run_all_estimation.sh` ≈ 10 minutes); outputs in `03_outputs/gradegain/`.
+:::
+
+# The question and the method
+
+**Question.** How many points — and how much of each socio-emotional scale — does one additional year of schooling add by the age of 15, in every education system where that can be estimated causally from PISA 2025?
+
+**Identification.** PISA samples an age cohort (born in one 12-month window), which in most systems straddles two school grades. Where a school-entry rule assigns children to grades by birth date, the month of birth relative to the cutoff determines the *theoretical* grade, and the theoretical grade is a valid instrument for the actual grade: it moves grade (and nothing else, once age is accounted for), it is not chosen by the family, and it is not related to ability. Following Avvisati and Givord (2021, OECD Education Working Paper 257; *Labour Economics* 2023) the model is
+
+$$y_{i} = \alpha + \beta\,\mathrm{ssa}_{i} + \gamma\,\mathrm{grade}_{i} + \delta' x_{i} + \varepsilon_{i},$$
+
+with the actual grade instrumented by the theoretical grade, school-starting age (ssa, months) as a linear control, and $x$ = sex, immigrant background and ESCS. The coefficient $\gamma$ is **the grade gain**: the effect of one more year of schooling, with its year of age, on a child whose school-starting age is held fixed. It is the quantity the OECD reports as "the learning gain over one school year", and the quantity a production function means by a school year.
+
+**What else the same regression contains.** Within a one-year cohort, ssa = constant − r − 12·D (r = birth month relative to the cutoff, D = upper grade), so the two-stage least squares of $y$ on [D, r, x] with instrument Z = 1[born before the cutoff] delivers three numbers at once: the coefficient on D is **τ**, the fixed-age contrast (one more year of school for a child of the same age — who is then the youngest in the grade instead of the oldest); −12 × the coefficient on r is **β**, the within-grade slope on age (one year older at test and at school start); and **γ = τ + β**. The report leads with γ, shows τ and β alongside, and adds the cross-sectional grade coefficient (score on grade with birth-month dummies and the same covariates, whole cohort — the "LSDV" of production functions) as the benchmark that includes selection into early entry and out of repetition.
+
+**Eligibility** (applied to every PISA 2025 system, all programmes). The share of the cohort in the upper of its two grades, by birth month, must show (i) a drop of at least 0.20 between adjacent months — or across two months when the cutoff falls inside a month, which is then dropped; (ii) no other adjacent change larger than half that drop (one cutoff, monotone elsewhere); (iii) at least one birth month on each side of the cutoff within the cohort. Where the only month on one side is partial (the cutoff sits at the edge of the cohort) the month is kept, the fuzzy first stage absorbs it, and the system is flagged *edge*: its estimate rests on a single birth month on one side and is reported with that warning.
+
+```{r tbl-elig}
+te <- elig[order(-eligible, -jump), .(Region = REGION[CNT], System = SYS_NAMES[CNT], Verdict = fifelse(eligible, fifelse(edge, "eligible (edge)", "eligible"), reason), Grades = paste0(g_lo, "/", g_hi), `First month after cutoff` = cut_label,
+                                     `P(upper) before / after` = paste0(f2(p_before), " / ", f2(p_first_low)), Jump = f2(jump), `Largest other change` = f2(max_other), `Months before / after` = paste0(n_left, " / ", n_right))]
+kable(te, caption = paste0("Every PISA 2025 system with a candidate cutoff (", n_cand, " of ", n_all, "; the rest have no two-grade split or a jump below 0.15 in the audit): the detected cutoff and the eligibility verdict."))
+```
+
+```{r fig-compliance, fig.height=11, fig.cap="Compliance: share of students in the upper grade by birth month relative to the first post-cutoff month, eligible systems (hollow points: dropped partial month)."}
+cc <- comp[eligible == TRUE]; cc <- merge(cc, elig[, .(CNT, drop_month)], by = "CNT"); cc[, dropped := !is.na(drop_month) & t == drop_month]; cc[, System := lab(CNT)]
+ggplot(cc, aes(x = r, y = p)) + geom_vline(xintercept = -0.5, colour = "grey60", linetype = 2) + geom_line(colour = "grey70") + geom_point(aes(shape = dropped), size = 1.8, colour = okabe[1]) +
+  scale_shape_manual(values = c(16, 1), guide = "none") + facet_wrap(~System, ncol = 6) + scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + labs(x = "Birth month relative to the cutoff", y = "Share in the upper grade")
+```
+
+# Results — achievement
+
+```{r fig-gain, fig.height=10, fig.cap="The grade gain γ (one more year of schooling with its year of age, starting age fixed) in PISA points, by system and domain; 95% CI (BRR + PV). Dotted line = median across systems. Triangles = edge systems (one partial birth month on one side of the cutoff)."}
+gg <- ag[outcome %in% PV_DOMS]; gg[, System := lab(CNT)]; gg[, Domain := factor(out_lab(outcome), levels = out_lab(PV_DOMS))]; gg[, Edge := ifelse(edge, "edge", "clean")]
+md <- gg[, .(median = median(est_gamma)), by = Domain]
+ggplot(gg, aes(x = est_gamma, y = System, shape = Edge)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(data = md, aes(xintercept = median), linetype = 3) +
+  geom_pointrange(aes(xmin = est_gamma - 1.96 * se_gamma, xmax = est_gamma + 1.96 * se_gamma), size = .3, colour = okabe[1]) + scale_shape_manual(values = c(16, 17), name = NULL) +
+  facet_wrap(~Domain) + labs(x = "Points per year of schooling", y = NULL)
+```
+
+```{r tbl-gain}
+tg <- ag[outcome %in% PV_DOMS, .(Region = REGION[CNT], System = ifelse(edge, paste0(name, " †"), name), Domain = factor(out_lab(outcome), levels = out_lab(PV_DOMS)), v = ci(est_gamma, se_gamma))]
+tg <- dcast(tg, Region + System ~ Domain, value.var = "v")[order(match(sub(" †$", "", System), SYS_NAMES[rev(sys_order)]))]
+kable(tg, caption = "Grade gain γ by system and domain, points [95% CI]. † = edge system. Ordered by the science gain.")
+```
+
+```{r tbl-summ}
+ts <- summ[spec == "ag_cov" & term == "gamma" & outcome %in% PV_DOMS, .(Domain = out_lab(outcome), Systems = n_sys, `Median γ` = f1(median), IQR = paste0("[", f1(q25), ", ", f1(q75), "]"), `Significantly positive` = sig_pos, `Significantly negative` = sig_neg,
+                                                                           `RE mean (SE)` = paste0(f1(re_mean), " (", f1(re_se), ")"), `Between-system SD` = f1(tau_sd), `I²` = paste0(round(I2), "%"))]
+tc <- summ_clean[spec == "ag_cov" & term == "gamma" & outcome %in% PV_DOMS, .(Domain = out_lab(outcome), `Clean systems only: n` = n_sys, `median γ` = f1(median), `sig. +` = sig_pos)]
+kable(merge(ts, tc, by = "Domain")[match(out_lab(PV_DOMS), Domain)], caption = "Summary across systems: median and IQR of the per-system grade gains; random-effects meta-analysis (REML) of the same estimates with their BRR standard errors; and the medians over the clean (non-edge) systems only.")
+```
+
+```{r gain-text, results="asis"}
+nsig <- function(o) g(o, "sig_pos"); nneg <- function(o) g(o, "sig_neg")
+top <- ag[outcome == "SCIE"][order(-est_gamma)][1:5]; low <- ag[outcome == "SCIE" & est_gamma / se_gamma < 1.96 & !edge][order(est_gamma)]
+cat("**Reading.** In the median eligible system one more year of schooling adds ", f1(g("SCIE", "median")), " science points [IQR ", f1(g("SCIE", "q25")), ", ", f1(g("SCIE", "q75")), "], ", f1(g("MATH", "median")), " mathematics points [", f1(g("MATH", "q25")), ", ", f1(g("MATH", "q75")), "] and ", f1(g("READ", "median")), " reading points [", f1(g("READ", "q25")), ", ", f1(g("READ", "q75")), "] — about a sixth of a standard deviation on each scale. ",
+    "The random-effects means are ", f1(g("SCIE", "re_mean")), " ± ", f1(g("SCIE", "re_se")), ", ", f1(g("MATH", "re_mean")), " ± ", f1(g("MATH", "re_se")), " and ", f1(g("READ", "re_mean")), " ± ", f1(g("READ", "re_se")), " points, with a between-system standard deviation of ", f1(g("SCIE", "tau_sd")), "–", f1(g("MATH", "tau_sd")), " points: systems differ in how much a year buys, and the difference is real (I² ", round(g("SCIE", "I2")), "–", round(g("MATH", "I2")), "%). ",
+    "The gain is significantly positive in ", nsig("SCIE"), " / ", nsig("MATH"), " / ", nsig("READ"), " of ", n_el, " systems for science / mathematics / reading and significantly negative in ", nneg("SCIE") + nneg("MATH") + nneg("READ"), ". ",
+    "Avvisati and Givord's PISA 2018 averages over 18 systems were 18.8 / 19.9 / 19.4; the 2025 medians over twice as many systems are a few points lower and within their range. ",
+    "The largest science gains are in ", paste0(top$name, " (", f1(top$est_gamma), ")", collapse = ", "), ". ",
+    "Among the clean systems the gain is not distinguishable from zero in ", nrow(low), ": ", paste0(low$name, " (", f1(low$est_gamma), " ± ", f1(low$se_gamma), ")", collapse = ", "), ". ",
+    "Neither region nor income level sorts the two groups, and the report does not test what does; the explanation of why a school year buys thirty points in some systems and nothing in others is the question for the paper that follows.\n", sep = "")
+```
+
+## The three bundles and the grade coefficient
+
+```{r tbl-bundles}
+tb <- ag[outcome == "SCIE", .(Region = REGION[CNT], System = ifelse(edge, paste0(name, " †"), name), `First stage` = f2(est_fs), `τ fixed-age` = star(est_tau, se_tau), `β age slope / yr` = star(est_beta, se_beta), `γ grade gain` = star(est_gamma, se_gamma), `Grade coefficient (LSDV)` = star(lsdv, lsdv_se))][order(match(sub(" †$", "", System), SYS_NAMES[rev(sys_order)]))]
+kable(tb, caption = "Science: the three bundles and the cross-sectional benchmark, points (* = |z| > 1.96). τ = one more year of school at the same age (youngest in the grade); β = one more year of age inside a grade; γ = τ + β = the grade gain; LSDV = score on grade with birth-month dummies and covariates, whole cohort.")
+sb <- rbindlist(lapply(PV_DOMS, function(o) data.table(Domain = out_lab(o), `τ fixed-age` = f1(g(o, "median", "ag_cov", "tau")), `β age slope` = f1(g(o, "median", "ag_cov", "beta")), `γ grade gain` = f1(g(o, "median", "ag_cov", "gamma")), `Grade coefficient (LSDV)` = f1(g(o, "median", "lsdv", "lsdv")), `γ without covariates` = f1(g(o, "median", "ag_nocov", "gamma")))))
+kable(sb, caption = "Medians across the eligible systems")
+```
+
+```{r bundles-text, results="asis"}
+rat <- ag[outcome %in% PV_DOMS & !is.na(lsdv) & abs(lsdv / lsdv_se) > 1.96, .(ratio = median(est_gamma / lsdv)), by = outcome]
+cat("The fixed-age contrast τ is small almost everywhere (median ", f1(g("SCIE", "median", "ag_cov", "tau")), " / ", f1(g("MATH", "median", "ag_cov", "tau")), " / ", f1(g("READ", "median", "ag_cov", "tau")), " points): at a given age, being a grade ahead buys little, because the child who is a grade ahead is also the youngest in the class and the youngest-in-grade penalty is about as large as the schooling gain. ",
+    "The within-grade age slope β is ", f1(g("SCIE", "median", "ag_cov", "beta")), " / ", f1(g("MATH", "median", "ag_cov", "beta")), " / ", f1(g("READ", "median", "ag_cov", "beta")), " points per year. Their sum is the grade gain. ",
+    "The cross-sectional grade coefficient is larger still — median ", f1(g("SCIE", "median", "lsdv", "lsdv")), " / ", f1(g("MATH", "median", "lsdv", "lsdv")), " / ", f1(g("READ", "median", "lsdv", "lsdv")), " points — so the grade gain recovers a median of ", round(100 * rat[outcome == "SCIE", ratio]), "% (science), ", round(100 * rat[outcome == "MATH", ratio]), "% (mathematics) and ", round(100 * rat[outcome == "READ", ratio]), "% (reading) of what a production function would attribute to a school year; the remainder is the selection of advantaged, early-entering, non-repeating children into the upper grade. ",
+    "Without covariates the median grade gain is ", f1(g("SCIE", "median", "ag_nocov", "gamma")), " / ", f1(g("MATH", "median", "ag_nocov", "gamma")), " / ", f1(g("READ", "median", "ag_nocov", "gamma")), ": the covariates matter little, as they should when the instrument is valid.\n", sep = "")
+```
+
+## By region and by first-stage strength
+
+```{r tbl-region}
+rr <- reg[spec == "ag_cov" & term == "gamma" & outcome %in% PV_DOMS, .(Domain = out_lab(outcome), Region = region, Systems = n_sys, `Median γ` = f1(median), `Sig. +/−` = paste0(sig_pos, "/", sig_neg))]
+kable(dcast(rr, Region + Systems ~ Domain, value.var = c("Median γ", "Sig. +/−"))[order(Region)], caption = "Medians by region label (labels only; nothing is pooled by region)")
+```
+
+```{r fig-fs, fig.height=4.5, fig.cap="Grade gain in science against the strength of the first stage (jump in the probability of the upper grade at the cutoff). Weak first stages give wide intervals, not different means."}
+gf <- ag[outcome == "SCIE"]; gf[, Edge := ifelse(edge, "edge", "clean")]
+ggplot(gf, aes(x = est_fs, y = est_gamma, shape = Edge)) + geom_hline(yintercept = 0, colour = "grey60") + geom_pointrange(aes(ymin = est_gamma - 1.96 * se_gamma, ymax = est_gamma + 1.96 * se_gamma), colour = okabe[1], size = .3) +
+  geom_text(aes(label = CNT), size = 2.6, vjust = -0.9) + scale_shape_manual(values = c(16, 17), name = NULL) + labs(x = "First stage (jump in P(upper grade))", y = "Science grade gain, points")
+```
+
+# Results — socio-emotional skills
+
+```{r fig-skills, fig.height=11, fig.cap="Grade gain γ for the seven scales (within-system SD) and growth mindset (probability), by system; 95% CI. Dotted line = median across systems."}
+gs <- ag[!outcome %in% PV_DOMS]; gs[, System := lab(CNT)]; gs[, Outcome := factor(out_lab(outcome), levels = out_lab(c(out_skills, "growth")))]
+ms <- gs[, .(median = median(est_gamma)), by = Outcome]
+ggplot(gs, aes(x = est_gamma, y = System)) + geom_vline(xintercept = 0, colour = "grey60") + geom_vline(data = ms, aes(xintercept = median), linetype = 3) +
+  geom_pointrange(aes(xmin = est_gamma - 1.96 * se_gamma, xmax = est_gamma + 1.96 * se_gamma), size = .25, colour = okabe[2]) + facet_wrap(~Outcome, ncol = 4) + labs(x = "Effect of one more year of schooling (SD of the scale; growth mindset in probability)", y = NULL)
+```
+
+```{r tbl-skills}
+tk <- summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, .(Outcome = out_lab(outcome), Systems = n_sys, `Median γ` = f2(median), IQR = paste0("[", f2(q25), ", ", f2(q75), "]"), `Sig. +` = sig_pos, `Sig. −` = sig_neg, `RE mean (SE)` = paste0(f2(re_mean), " (", f2(re_se), ")"), `Between-system SD` = f2(tau_sd), `Median τ (fixed-age)` = f2(summ[spec == "ag_cov" & term == "tau"][match(outcome, outcome), median]))]
+tk[, `Median τ (fixed-age)` := sapply(sub("_z$", "", names(c(setNames(out_skills, out_skills), growth = "growth")))[match(Outcome, out_lab(c(out_skills, "growth")))], function(o) f2(summ[spec == "ag_cov" & term == "tau" & sub("_z$", "", outcome) == o, median]))]
+kable(tk[match(out_lab(c(out_skills, "growth")), Outcome)], caption = "Socio-emotional scales: summary across systems of the grade gain γ (SD units; growth mindset in probability), with the fixed-age contrast τ for comparison")
+```
+
+```{r skills-text, results="asis"}
+sk <- ag[!outcome %in% PV_DOMS]; sk[, z := est_gamma / se_gamma]
+neg_sys <- sk[, .(n_neg = sum(z < -1.96), n_pos = sum(z > 1.96)), by = .(CNT, name)][order(-n_neg)]
+cat("**Reading.** A year of schooling leaves the socio-emotional scales essentially where they were: every median is within ±", f2(max(abs(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, median]))), " SD of zero and the random-effects means are all between ", f2(min(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, re_mean])), " and ", f2(max(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, re_mean])), " SD. ",
+    "The one scale with a consistent sign is curiosity: +", f2(g("CURIO_z", "median")), " SD in the median system, ", g("CURIO_z", "sig_pos"), " systems significantly positive and none negative. ",
+    "Significant effects elsewhere are scattered and run in both directions (", sum(sk$z > 1.96), " positive and ", sum(sk$z < -1.96), " negative out of ", nrow(sk), " system-by-scale estimates, against about ", round(0.05 * nrow(sk)), " expected by chance). ",
+    "Two systems account for a large share of the negative ones: ", paste0(neg_sys[1:2, name], " (", neg_sys[1:2, n_neg], " scales down", collapse = ") and "), "). In B-S-J-Z the same year that adds 30 points to every score lowers reported perseverance, goal setting, problem-solving enjoyment, cognitive adaptability, belonging and growth mindset by 0.1–0.2 SD; in Chinese Taipei perseverance, goal setting, problem-solving enjoyment, self-regulated learning, belonging and growth mindset fall. These are the two systems with the largest achievement gains and a selective transition between the two grades, which points to a frame-of-reference reading — students rate their dispositions against stronger classmates after the move — rather than to erosion; the revealed-persistence measures in the PISA 2025 process data are the test. ",
+    "The fixed-age contrast τ tells the same story for the scales as γ does (medians within ±0.02 SD): unlike achievement, the self-reported dispositions do not carry an age gradient inside a grade.\n", sep = "")
+```
+
+# Summary
+
+```{r tbl-map}
+rows <- list(
+  data.table(Question = "How much does a year of schooling add to achievement by age 15?",
+             Answer = paste0("Median ", f1(g("SCIE", "median")), " science, ", f1(g("MATH", "median")), " mathematics, ", f1(g("READ", "median")), " reading points across ", n_el, " systems (random-effects means ", f1(g("SCIE", "re_mean")), " / ", f1(g("MATH", "re_mean")), " / ", f1(g("READ", "re_mean")), ", all with SE < 2); about a sixth of a standard deviation; significantly positive in ", g("SCIE", "sig_pos"), "–", g("MATH", "sig_pos"), " systems, negative in none. Consistent with Avvisati & Givord's 18–20 points on PISA 2018.")),
+  data.table(Question = "Does it vary across systems?",
+             Answer = paste0("Yes: between-system SD ", f1(g("SCIE", "tau_sd")), "–", f1(g("MATH", "tau_sd")), " points, from about zero (Georgia, Albania, Kosovo, Romania, Ukraine, Kazakhstan) to 25–37 points (B-S-J-Z, Chinese Taipei, Mauritius, Kenya, Czechia, Estonia, Paraguay). Not sorted by region or income; the report does not test why.")),
+  data.table(Question = "How does it compare with the grade coefficient of production functions?",
+             Answer = paste0("The grade coefficient (median ", f1(g("SCIE", "median", "lsdv", "lsdv")), " points) is about twice the grade gain; the difference is selection into early entry and out of repetition, and should not be read as learning.")),
+  data.table(Question = "Does a year of schooling change socio-emotional skills?",
+             Answer = paste0("No, on average: every scale's median is within ±", f2(max(abs(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, median]))), " SD of zero. Curiosity rises slightly (+", f2(g("CURIO_z", "median")), " SD, ", g("CURIO_z", "sig_pos"), " systems). In B-S-J-Z and Chinese Taipei several scales fall while achievement rises most — a frame-of-reference effect to be tested with revealed measures.")))
+kable(rbindlist(rows), caption = "The report in four answers")
+```
+
+**Limits.** The running variable is discrete (twelve birth months) and the model is linear in age on each side of the cutoff; the BRR standard errors cover sampling error, not functional-form error, and are somewhat too small — honest confidence intervals for discrete running variables (Kolesár & Rothe 2018) are the next step before publication. The grade gain is identified for children at the margin of the entry rule in one cohort. Edge systems (†) rest on one partial birth month on one side of the cutoff. The self-report scales are judged in a frame of reference set by classmates, which the design cannot hold fixed.
+
+# Appendix
+
+## Per-system estimates for the socio-emotional scales
+
+```{r tbl-skills-sys}
+ts2 <- ag[!outcome %in% PV_DOMS, .(CNT, Outcome = factor(out_lab(outcome), levels = out_lab(c(out_skills, "growth"))), v = star(est_gamma, se_gamma, 2))]
+tw <- dcast(ts2, Outcome ~ CNT, value.var = "v"); setcolorder(tw, c("Outcome", intersect(rev(sys_order), names(tw))))
+kable(tw, caption = "Grade gain γ by scale and system (SD units; growth mindset in probability; * = |z| > 1.96; systems ordered by the science gain)")
+```
+
+## Shrunken estimates
+
+```{r tbl-shrunk}
+sh <- shr[outcome == "SCIE", .(System = SYS_NAMES[CNT], `Raw γ (SE)` = paste0(f1(raw), " (", f1(raw_se), ")"), `Shrunken γ (SE)` = paste0(f1(shrunk), " (", f1(shrunk_se), ")"))][order(match(System, SYS_NAMES[rev(sys_order)]))]
+kable(sh, caption = "Science grade gain: per-system (raw) estimates and empirical-Bayes shrunken estimates from the random-effects meta-analysis. The raw estimates are the estimates of record; the shrunken ones show how much each rests on its own data.")
+```
+
+## Notes
+
+- **Scripts.** `01_build.py` (Mac) extracts every system whose audit jump is ≥ 0.15; `02_prepare.R` detects the cutoff on the all-programme sample and applies the eligibility rule; `03_gradegain.R` estimates the 2SLS (with and without covariates) and the LSDV benchmark per system; `04_summary.R` computes medians and the meta-analysis; `run_all_estimation.sh` runs 2–4 with timestamp checks.
+- **Covariates** are sex, immigrant background and ESCS standardised within system; where a covariate is missing for most students it is dropped for that system (`covariates` column in `estimates.csv`).
+- **Scale labels** follow the PISA 2025 codebook: ENPROBS = enjoyment of problem-solving, COGABIL = cognitive adaptability. Perseverance was not fielded in Kazakhstan, Albania, Brazil and Kenya; the United States and Cambodia have no skill scales.
+- **Audit file.** `cutoff_audit_all.csv` holds the compliance profile of all 91 systems on general programmes; `eligibility.csv` the verdict for the 44 candidates on all programmes.

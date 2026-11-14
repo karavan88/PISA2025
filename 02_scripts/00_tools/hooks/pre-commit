@@ -1,0 +1,2 @@
+#!/bin/sh
+exec python3 02_scripts/00_tools/check_repo.py

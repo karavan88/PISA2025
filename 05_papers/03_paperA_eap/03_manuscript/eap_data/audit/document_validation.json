@@ -1,0 +1,10 @@
+{
+  "tables": 21,
+  "figures": 5,
+  "references": 18,
+  "missing_cross_references": 0,
+  "duplicate_ids": 0,
+  "portable_html_render": "passed",
+  "pdf_pages": 23,
+  "visual_check": "All pages inspected; missing-value glyphs corrected and checked at full size"
+}

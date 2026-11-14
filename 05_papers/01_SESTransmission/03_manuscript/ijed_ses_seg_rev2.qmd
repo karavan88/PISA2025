@@ -1,0 +1,343 @@
+---
+title: "Do socio-emotional skills transmit socio-economic (dis)advantage? Evidence from PISA 2025 data"
+author:
+  - name: Garen Avanesian
+abstract: |
+  Do socio-emotional skills transmit socio-economic advantage in learning, and how does school composition change that pathway? Model-based multilevel mediation estimates using PISA 2025 cover 428,040 pupils in 67 systems. The joint pathway through 6 skills is positive and statistically significant in 52 systems; 48 retain support after multiple-testing adjustment. School sorting enlarges the pathway in 27 systems, although a large between-school reading gradient need not have a large skills component. Equalizing disadvantaged pupils' skill profiles with those of advantaged pupils projects an average gap reduction of 7.94 reading points across systems. Recipient gains exceed gap reduction when advantaged classmates also gain through updated school skill means: in Korea, the respective projections are 28.21 and 20.74 points. Skills contribute to unequal learning, but their distributional importance depends on school composition and on who benefits beyond recipients.
+keywords: [socio-emotional skills, socio-economic inequality, education production, multilevel mediation, school sorting, skill equalization]
+lang: en-US
+bibliography: references_rev2.bib
+csl: elsevier-harvard.csl
+link-citations: true
+tbl-cap-location: top
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.5cm
+    mainfont: PT Serif
+    fontsize: 11pt
+    linestretch: 1.15
+    number-sections: true
+    toc: false
+    keep-tex: true
+    colorlinks: true
+    linkcolor: blue
+    citecolor: blue
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox}
+        \newcommand{\tblsize}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
+        \floatplacement{figure}{H}
+        \setlength{\emergencystretch}{3em}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source('../01_code/reporting_rev2.R')
+source('../01_code/13_counterfactual_robustness_reporting.R')
+source('../01_code/25_within_between_reporting_rev2.R')
+source('../01_code/27_country_gradients_rev2.R')
+```
+
+
+# Introduction
+
+In 1976, Bowles and Gintis argued that schooling reproduces economic inequality partly through the non-cognitive traits it cultivates and rewards [@bowles1976; @bowles2002schooling]. Family advantage can be transmitted through dispositions, money, qualifications, and cognitive ability. Children encounter different conditions for developing the behaviors valued in school and, later, in employment. Their correspondence argument placed the organization of schooling and work at the center of this process. The question behind today's interest in socio-emotional skills is therefore not new. It is whether characteristics that appear personal help convert unequal family circumstances into unequal educational outcomes.
+
+Modern economics of skill formation gives this question a production interpretation. Families invest time and resources. Schools supply instruction and learning environments, and existing capabilities affect what children gain from subsequent investment [@cunha2007]. Curiosity can encourage exploration, while perseverance can sustain effort. Advantaged families may have more opportunities to cultivate these dispositions and secure access to settings in which they support learning. This account differs from explaining rewards through conformity to workplace hierarchies, but it shares the concern that non-cognitive characteristics help transmit economic advantage. The present study examines the learning pathway, with school composition retained as part of the comparison.
+
+This paper asks how much socio-economic advantage in learning is transmitted through socio-emotional skills and which skills contribute. It then locates the total gradient and its skills pathway within and between schools, distinguishing that allocation from the additional pathway associated with school sorting. Finally, it asks how much equalizing skill profiles would narrow the achievement gap. These questions connect the distribution of educational inputs to their contribution to learning inequality.
+
+Previous research already establishes that socio-emotional characteristics contribute to socio-economic achievement gaps. @hofer2024 estimate joint and separate self-perception mediation in reading, while @gruijters2024 distinguish skill endowments from their achievement returns in a counterfactual decomposition of the science gap. The unresolved issue addressed here is how school composition changes the interpretation of that contribution. A large reading gap between school intakes can coexist with a small measured skills pathway. Predicted gains for disadvantaged pupils can also exceed the reduction in their disadvantage. I connect these questions by locating the skills pathway within the wider school gradient and accounting for predicted changes among both recipients and their advantaged classmates under skill equalization. Within each country, I hold the fitted reading response common across SES groups and examine school composition. This differs from decomposing group-specific returns to skills.
+
+I use the student and school files from PISA 2025 and estimate each education system separately. The main comparison covers 67 systems that provide reading scores as a measure of learning and measure all 6 skills: perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, goal setting, and self-regulated help seeking. Together they contribute 428,040 pupils in 18,836 schools.
+
+The joint skills pathway is positive and statistically significant in 52 of the 67 systems; 48 retain support after correction for multiple testing. The 3 largest point estimates are Korea (`r fmt(est('KOR','skills_sorting'))` reading points per 10 national SES rank points), Japan (`r fmt(est('JPN','skills_sorting'))`), and Ecuador (`r fmt(est('ECU','skills_sorting'))`). Curiosity is the most widespread individual contributor, but Korea's strongest positive contributions include enjoyment of problem solving and goal setting.
+
+In a counterfactual manner, I also ask a distributional question: how much would the reading gap change if pupils in the lower national SES quartile received the joint skill distribution of the upper quartile, while their socio-economic circumstances and school membership stayed fixed? I update school-average skills along with individual skills. The projected gap significantly narrows in 57 systems; 56 retain support after a separate adjustment across these country comparisons. In Korea, the recipient group's predicted gain is `r fmt(cfest('KOR','recipient_change'))` points, but the upper-quartile group also gains `r fmt(cfest('KOR','reference_change'))` points through the change in school skill composition. The gap consequently narrows by `r fmt(cfest('KOR','gap_reduction'))` points. This distinguishes the size of a recipient gain from its equalizing effect.
+
+
+The between-school contribution exceeds the within-school contribution to the total gradient, with a statistically significant difference in 46 systems. The corresponding count for the skills pathway is 14. These counts compare contributions at 2 levels; they do not measure the fraction of inequality explained by skills. Germany illustrates the substantive distinction: a large between-school gradient coexists with a small, uncertain skills-mediated component. Skills can transmit advantage while accounting for only part of school-level inequality.
+
+The development-policy question is how support directed at pupils' skills should relate to investment in the schools they attend. This distinguishes 2 margins for allocating scarce educational resources: helping disadvantaged pupils acquire and use skills, and improving the environments in which those pupils learn. The estimates diagnose how much of the observed inequality a skills account can explain and whether projected benefits extend beyond recipients. Comparing programs still requires evidence on achievable skill changes, causal learning responses, and costs. Country-specific estimates show how the relevance of skills policies varies across systems.
+
+# Previous evidence and research questions
+
+## Skill formation and the transmission of advantage
+
+The economics of skill formation treats skills as products of cumulative investment and as inputs into subsequent learning. Family resources influence the time, materials, and experiences available to children; existing capabilities influence what children gain from later investment [@cunha2007]. Socio-emotional skills can enter this process through attention, persistence, and engagement with difficult tasks. A pupil's capacity to organize study may therefore reflect past opportunities while also affecting the use of current educational inputs.
+
+Economic research emphasizes that these capabilities are multidimensional and that their measurement depends on behavior and context [@almlund2011]. I use “socio-emotional skills” for 6 questionnaire scales: perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, goal setting, and self-regulated help seeking. Cognitive adaptability is a self-report measure of how pupils adapt their approach. Keeping the scales separate allows family advantage to have different relationships with each disposition.
+
+The OECD's SSES framework organizes socio-emotional skills as facets of the Big Five personality domains [@kankaras2019]. The 6 PISA indices cover task-performance and open-mindedness facets alongside related learning strategies. They provide partial coverage of the Big Five domains.
+
+
+Evidence from a randomized intervention in Colombia connects parental investments to improvements in early development [@attanasio2020]. At school age, teachers affect outcomes beyond test scores that predict later educational attainment [@jackson2018]. These findings give families and schools a role in producing capabilities, although neither establishes the size of adolescent skill inequalities in the present sample. In cross-country evidence, @gruijters2024 find socio-economic differences in the socio-emotional characteristics measured in PISA 2018. Their contribution to achievement inequality varies substantially.
+
+The investment account predicts that socio-economic advantage accompanies opportunities to develop skills that support learning. Family position can also shape access to schools with different skill profiles. I therefore estimate the social gradient in each skill separately among classmates and between school intakes, using national socio-economic rank to define a common relative-position contrast.
+
+> *RQ1a. How is socio-economic rank related to each socio-emotional skill within and between schools?*
+
+A socially stratified skill contributes to the achievement gradient only if it also enters the learning relationship. Circumstances must predict skills. Those skill differences must also predict achievement when the other skills are included. @hofer2024 document joint and separate mediation through 5 self-perceptions in the socio-economic reading relationship across 70 PISA 2018 countries. Using a different set of measures and a decomposition of the socio-economic science gap, @gruijters2024 find a modest contribution from the measured skills. Their group contrast uses a different denominator from the 10-SES-rank-point reading contrast in the present study. Estimating transmission requires the skill's social gradient and its achievement relationship.
+
+> *RQ1b. How much socio-economic advantage in reading is transmitted jointly through the 6 skills?*
+
+The economic distinction is between capabilities that sustain investment in learning and those that influence how learning opportunities are used. Task-performance dispositions, including perseverance, can help pupils maintain effort when immediate rewards are small or tasks are difficult. Open-mindedness, including curiosity, can encourage information seeking and engagement with unfamiliar ideas. Different dispositions may affect time spent studying and the learning gained from that time [@cunha2007; @almlund2011]. The joint model therefore retains a separate contribution for each skill.
+
+A skill's contribution also requires a socio-economic gradient in its distribution. An evenly distributed skill contributes little to the gradient even if it strongly predicts reading. A strongly stratified skill also contributes little when its reading relationship is weak after other skills enter. Earlier decomposition work distinguishes such differences in endowments from differences in returns [@gruijters2024]. I therefore compare the joint-model contributions across skills and systems without imposing a universal ranking or assuming every contribution is positive.
+
+> *RQ1c. Which skills contribute to this transmission?*
+
+## School allocation and the location of the gradient
+
+Families transmit access to educational environments alongside individual capabilities [@bowles2002inheritance]. School resources and the organization of instruction can affect learning through several inputs. @leon2015 document unequal school resources and achievement in Peru. Cross-country evidence from @hanushek2006 suggests that early tracking increases achievement inequality. These studies establish school allocation as a potential channel of socio-economic inequality.
+
+@asadullah2021 examine effort, preferences, and family circumstances in rural Bangladesh, allocating predicted achievement variance within and between schools. Their analysis shows why individual learning inputs and school-level inequality should be considered together. The present question concerns a different object: the reading gradient accompanying a change in national SES rank and the gap projected under skill equalization. Separating these objects matters because the location of overall achievement variation does not establish how much of a socio-economic gradient is carried by particular skills. Socio-emotional measures are treated here as potentially unequal learning inputs, without attributing responsibility for those inequalities to pupils.
+
+School production involves several inputs, and schools' contributions to achievement and socio-emotional development need not coincide. Using value-added models for Chicago high schools, @jackson2020school find that schools' contributions to social well-being and hard work predict later attainment beyond their contributions to test scores. Instruction also responds to pupil composition. In a randomized tracking experiment in Kenya, @duflo2011tracking find that lower-achieving pupils benefit when teachers adapt instruction to their level, despite separation from higher-achieving peers. Together, these findings motivate examining measured skills alongside the other inputs through which schools support learning. A large between-school reading gradient may therefore contain a substantial component outside the measured skills pathway. What remains unclear is how much of the inequality between school intakes is carried by socio-emotional skills, compared with the skills pathway among pupils attending the same school.
+
+> *RQ2a. How are the total reading gradient and its skills-mediated component distributed within and between schools?*
+
+School sorting concerns how these learning inputs are distributed across pupils. In Romania, @popeleches2013 find that access to higher-achieving secondary schools improves graduation-test performance, while their evidence also reveals teacher sorting and reduced parental effort when children enter better schools. School allocation thus brings together differences in pupil characteristics, teaching, and family responses. For socio-emotional skills, the implication is that family advantage may be transmitted through both a pupil's own capabilities and access to school environments with different skill profiles. Existing evidence on school effectiveness and tracking does not establish the size of this particular pathway. It leaves 2 related questions: where the skills contribution to the reading gradient is concentrated, and whether the school composition accompanying family advantage amplifies that contribution.
+
+> *RQ2b. How much does observed school sorting add to the skills pathway?*
+
+## Skill endowments and the achievement gap
+
+@avanesian2025 provide relevant evidence using OECD SSES data on 44,394 pupils aged 10 and 15 in 8 cities. Their mixed-effects models relate 5 broad skill domains to a grade-based high-achievement indicator. Task performance and open-mindedness are the strongest positive predictors; the relationships for other domains are less uniform, including a nonlinear collaboration pattern. Their comparison of SES groups also shows why similar skill levels need not eliminate an achievement gap: the high-SES advantage persists, and the plotted task-performance and open-mindedness slopes are largely parallel. These results motivate distinguishing the contribution of particular skills from a general claim that more non-cognitive skill necessarily equalizes achievement.
+
+@gruijters2024 distinguish differences in skill endowments from differences in their achievement returns. Their counterfactual decomposition attributes a modest part of the socio-economic science gap to the measured skills, predominantly through endowment differences. A skill can therefore contribute to achievement while equalizing that skill leaves much of the gap intact. In the production framework of @cunha2007, equalizing 1 input leaves other inputs and earlier investments unequal.
+
+> *RQ3a. How would disadvantaged pupils' reading change if their skill profiles matched those of advantaged pupils?*
+
+The distributional case for skills development therefore depends on how improvements translate into learning under unequal educational conditions. Complementarity between capabilities and subsequent investment implies that similar skill gains need not produce similar achievement gains across learning environments [@cunha2007]. Evidence that peer composition and the organization of instruction jointly affect learning adds a further consideration: benefits may extend beyond the pupils whose capabilities improve [@duflo2011tracking]. Whether those benefits mainly reach disadvantaged pupils or are shared with more advantaged classmates matters for the achievement gap. The unresolved question is how much reducing skill inequalities could narrow that gap when learning takes place in socially differentiated schools.
+
+> *RQ3b. How much would the socio-economic reading gap narrow after accounting for predicted changes among advantaged classmates?*
+
+# Data and empirical strategy
+
+## Sample, outcome, and socio-economic rank
+
+**Sample.** I use the PISA 2025 student and school files [@oecd2026data], retaining 67 systems with all 6 skill indices. Models require valid reading scores, ESCS, age, gender, school identifiers, and survey weights, with at least 100 complete pupils and 30 schools. The analytic sample contains 428,040 pupils in 18,836 schools. All skill and achievement equations use the same pupils within each system. Complete-case coverage is lowest in Armenia (21.6%) and Lebanon (30.1%); retained pupils score approximately 40 and 52 reading points higher than excluded pupils with observed reading. Appendix Table A2 reports country coverage; Tables A5–A6 document complete-case selection in Armenia and Lebanon.
+
+```{r}
+#| label: tbl-descriptives
+#| results: asis
+ids<-A[exposure=='SES'][order(economy),CNT]
+z<-rbindlist(lapply(ids,function(cc){
+ ms<-function(v,ex='SES'){a<-DS[CNT==cc&exposure==ex&variable==v];if(!nrow(a))return('—');paste0(fmt(a$mean,if(v=='ESCS')2 else 1),' (',fmt(a$SD,if(v=='ESCS')2 else 1),')')}
+ data.table(System=G[CNT==cc,economy],Pupils=num(A[CNT==cc&exposure=='SES',N]),Schools=num(A[CNT==cc&exposure=='SES',schools]),Reading=ms('Reading'),ESCS=ms('ESCS'))
+}))
+tbl(z,'Country descriptive statistics for the socio-economic-rank analysis. Reading and ESCS: weighted mean (SD). Pupil and school counts are unweighted. Reading descriptives use each pupil’s average of 10 plausible values.',size=8,widths=c('3.8cm','1.8cm','1.8cm','3cm','2.7cm'))
+```
+
+**Outcome: reading achievement.** The outcome is the PISA reading score, represented by 10 plausible values that are analyzed separately and then combined. In the socio-economic-rank analytic samples, student-weighted country means range from `r fmt(DS[CNT=='MAR' & exposure=='SES' & variable=='Reading',mean],1)` points in Morocco to `r fmt(DS[CNT=='SGP' & exposure=='SES' & variable=='Reading',mean],1)` in Singapore. Within-country standard deviations range from `r fmt(min(DS[exposure=='SES' & variable=='Reading',SD]),1)` to `r fmt(max(DS[exposure=='SES' & variable=='Reading',SD]),1)` points. Descriptive means and standard deviations are calculated from each pupil's average across the 10 reading plausible values. @tbl-descriptives reports the weighted reading mean and SD for every system. All models retain the original reading-point scale.
+
+**Exposure: socio-economic rank.** Family status is measured by PISA's index of economic, social, and cultural status (ESCS). I convert ESCS to a weighted midpoint percentile rank within each system, using all pupils with valid ESCS and final student weights before complete-case selection. Dividing by 10 makes 1 unit a 10-percentile-point difference in national socio-economic position, rather than an income percentage or a common absolute resource difference across countries.
+
+**Mediators: 6 socio-emotional skills.** The OECD's Survey on Social and Emotional Skills (SSES) organizes skills as facets of a Big Five-based taxonomy [@kankaras2019]. Perseverance and goal setting concern conscientiousness (task performance); curiosity and enjoyment of problem solving concern openness (open-mindedness). Cognitive adaptability overlaps openness and emotional stability, while help seeking combines self-regulation with cooperation, conceptually related to conscientiousness and agreeableness. For the latter 4 PISA scales these are content-based correspondences, not validated 1-to-1 Big Five subscales; the 6 indices do not measure a full Big Five inventory. I use the released weighted-likelihood indices, standardized to mean 0 and SD 1 in each country's weighted analytic sample. All 6 enter jointly, with no imputation of missing indices. Appendix Table A4 maps the indices to questionnaire items [@oecd2025questionnaire; @oecd2025codebook].
+
+## Econometric strategy
+
+### Models and research questions
+
+For each country, I estimate random-intercept models with pupils nested in schools. Every exposure, skill, and control enters as a within-school deviation ($Z^W_{ij}=Z_{ij}-\bar Z_j$) and a weighted school mean ($\bar Z_j$). This correlated-effects specification [@mundlak1978] separates comparisons among classmates from comparisons between school intakes. It retains the observed composition associated with non-random school allocation instead of absorbing all between-school variation into fixed effects.
+
+**Exposure-to-skill gradients.** I fit a separate equation for each skill $k$, with $X$ denoting socio-economic rank divided by 10:
+
+$$
+M_{kij}=\alpha_k+a_{Wk}X^W_{ij}+a_{Bk}\bar X_j+
+\gamma_{Wk}'C^W_{ij}+\gamma_{Bk}'\bar C_j+u_{kj}+e_{kij}.
+$$ {#eq-m1}
+
+The $a_W$ and $a_B$ coefficients measure the exposure-to-skill gradients within and between schools. Controls $C$ comprise age and the recorded non-male gender indicator, entered at both levels. All equations use the same pupils and school means within each system.
+
+**Joint skills pathway.** The achievement equation includes all 6 skills jointly:
+
+$$
+\begin{split}
+Y_{ij}={}&\alpha+c'_WX^W_{ij}+c'_B\bar X_j+
+\sum_{k=1}^{6}\{b_{Wk}M^W_{kij}+b_{Bk}\bar M_{kj}\}\\
+&+\beta_W'C^W_{ij}+\beta_B'\bar C_j+v_j+\epsilon_{ij}.
+\end{split}
+$$ {#eq-m2}
+
+Here $b_W$ and $b_B$ are reading points per skill standard deviation at each level; $c'$ is the exposure gradient remaining after skills enter. I label the skill equations M1 and the joint achievement equation M2. A baseline achievement model, M0, omits the skill terms. To incorporate sorting, a separate student-weighted projection of school-average exposure on individual exposure, individual controls, and school-average controls supplies $\delta$: the school-exposure difference accompanying a 1-unit individual difference.
+
+The joint pathway among classmates is $I_W=\sum_k a_{Wk}b_{Wk}$; its between-school counterpart is $I_B=\sum_k a_{Bk}b_{Bk}$. A 1-unit individual exposure contrast carries a school-mean difference of $\delta$ and a within-school difference of $1-\delta$. The sorting-inclusive pathway and its addition to the within-school estimate are therefore
+
+$$
+I_S=(1-\delta)I_W+\delta I_B,\qquad \Delta_S=\delta(I_B-I_W).
+$$ {#eq-joint}
+
+$I_S$ compares predicted reading at the higher socio-economic profile under its own fitted skill profile and the profile accompanying 10 SES rank points less advantage, holding the outcome equation's exposure, and controls fixed. In the additive model, integration over the joint skill distribution reduces exactly to these products of mean differences and reading coefficients [@imai2010; @preacher2010; @vansteelandt2017]. The 6 skills need not have independent residuals.
+
+**Individual skill contributions.** The joint pathway is allocated across skills: $I_{S,k}=(1-\delta)a_{Wk}b_{Wk}+\delta a_{Bk}b_{Bk}$. These contributions sum to $I_S$. The remaining component is $D=(1-\delta)c'_W+\delta c'_B$, giving a coherent total $T=D+I_S$. Mediated shares use this total, not the M0 coefficient; I withhold shares with unstable denominators, opposing components, or intervals spanning both zero and 100%. Reading-point estimates remain available for all systems.
+
+**Within--between decomposition.** For the same 10-SES-rank-point individual contrast, the total-gradient contributions are $G_W=(1-\delta)(c'_W+I_W)$ and $G_B=\delta(c'_B+I_B)$, with $T=G_W+G_B$. Their skills-mediated parts are $K_W=(1-\delta)I_W$ and $K_B=\delta I_B$, which sum to $I_S$. These components locate the combined gradient within and between schools. I calculate them and the differences $G_B-G_W$ and $K_B-K_W$ in each bootstrap/plausible-value draw. The allocation concerns reading-point contributions, rather than shares of achievement variance.
+
+**School sorting.** The sorting increment compares the combined skills pathway with a full 10-SES-rank-point contrast entirely among classmates: $\Delta_S=I_S-I_W=K_B-\delta I_W$. I calculate its interval from the difference in each draw. A positive increment means that incorporating observed school composition enlarges the pathway; it does not require $K_B$ to exceed $K_W$.
+
+**Recipient gains.** The equalization exercise replaces the skill profiles of pupils in the bottom national SES quartile with the student-weighted joint distribution among top-quartile pupils. Donor profiles preserve the 6 skills' observed combinations. Under the additive model, the expected reading change depends on changes in individual and school skill means; the replacement does not estimate complementarities between skills. Socio-economic rank, controls, and school membership remain fixed, while school-average skills are updated consistently. If $d_{ik}$ is a pupil's expected skill change and $\bar d_{jk}$ its weighted school average, M2 gives
+
+$$
+\Delta\widehat Y_{ij}=\sum_k\{b_{Wk}(d_{ik}-\bar d_{jk})+b_{Bk}\bar d_{jk}\}.
+$$ {#eq-equalize}
+
+**Gap reduction.** Non-recipients can also experience a predicted change through school composition. I report the recipient gain minus the reference-group gain as the reduction in their reading gap, subtracting it from the observed weighted gap to obtain the projected gap. This equalizes observed group skill profiles; the mediation contrast instead isolates skill differences associated with a specified exposure increment. Appendix Tables A11 and A25–A26 report the country mediation and equalization estimates, respectively.
+
+### Statistical implementation
+
+All analyses use R 4.4.1 [@rcore2024]. Survey-weighted random-intercept models use a custom R implementation checked against WeMix 4.0.3 [@wemix]; unweighted sensitivity models use `lme4::lmer()` [@bates2015]. Custom R routines calculate mediation, individual skill contributions, within--between decomposition, and equalization from the fitted models. Confidence intervals incorporate 499 school-bootstrap resamples and 10 reading plausible values. To account for testing many hypotheses, Benjamini--Hochberg adjustments target a 5% false discovery rate---the expected proportion of false positives among rejected hypotheses---within each test family [@benjamini1995]. These adjustments use `p.adjust(method = "BH")` in R's bundled `stats` package. Statistical significance in the text refers to the unadjusted 5% level unless stated otherwise. Charts report unadjusted significance and equal-weight system means; adjusted support is identified separately. Appendix Table A1 summarizes uncertainty estimation, test-family definitions, and numerical validation.
+
+# Results
+
+## Socio-economic gradients and reading relationships
+
+Socially advantaged pupils can report more of a skill even when that skill has a weak or negative reading relationship after the other skills enter. @tbl-country-gradients reports the first link—the socio-economic gradient in each skill—for all 67 systems. The reading relationships and joint pathway below show how those gradients contribute to achievement inequality. Each cell distinguishes comparisons among classmates from comparisons between school intakes. The within-school gradient is positive with a 95% interval excluding zero in `r supported('aW_CURIO')` systems for curiosity and `r supported('aW_PERSEV')` for perseverance. Appendix Table A9 illustrates how the 2 links combine, and Table A10 defines the coefficient index supplied with the saved country results.
+
+```{r}
+#| label: tbl-country-gradients
+#| results: asis
+country_gradient_table()
+```
+
+The equal-weight mean within-school gradient for curiosity is `r mean_ci('aW_CURIO',digits=3)` skill SD per 10 SES rank points. Goal setting has a mean gradient of `r mean_ci('aW_GOALSET',digits=3)`. Their mean reading relationships differ: `r mean_ci('bW_CURIO')` points per skill SD for curiosity and `r mean_ci('bW_GOALSET')` for goal setting, conditional on the other 5 skills. A socially stratified disposition therefore need not contribute positively to reading inequality.
+
+@fig-gap-link displays both links for every system. Moving right indicates a larger socio-economic skill gradient among classmates; moving up indicates a stronger reading relationship. The dashed curves mark equal products of those 2 links. Black diamonds locate their equal-weight means, while the country points show the variation around them. Appendix Figure A1 shows the corresponding between-school relationships.
+
+![Socio-economic skill gradients and their reading relationships within schools. Each panel contains all 67 systems. Black diamonds show the equal-weight means of the 2 coefficients; their product is not the mean mediation pathway. Dashed curves mark products of 0.25, 0.5, and 1 reading point per 10 SES rank points. Korea, Japan, and Ecuador have the largest sorting-inclusive joint pathway point estimates.](../04_output/rev2/figures/ses_gap_link_w.pdf){#fig-gap-link width=100% fig-pos='H'}
+
+## The combined skills pathway carries advantage in most systems
+
+@fig-ses displays all 67 country estimates, with and without the school component; Appendix Table A11 reports the estimates and sorting increments. The pathway allowing for sorting is positive and statistically significant in 52 systems and uncertain in 15; none has a negative interval excluding zero. After adjustment for multiple testing, 48 retain support. The result is broad evidence for a skills route, alongside meaningful variation in its magnitude and precision.
+
+The equal-weight mean joint pathway is `r mean_ci('skills_sorting')` reading points per 10 SES rank points. The worked examples show how its size differs across systems. Denmark's pathway is `r ci('DNK','skills_sorting')` reading points per 10 SES rank points, accounting for `r fmt(est('DNK','share'),1)`% of its model-implied total gradient. Malaysia's pathway is `r ci('MYS','skills_sorting')` points and `r fmt(est('MYS','share'),1)`%. Korea's is `r ci('KOR','skills_sorting')` points and `r fmt(est('KOR','share'),1)`%. For Malaysia, the `r fmt(est('MYS','skills_sorting'))`-point contrast means that predicted reading at the higher socio-economic profile falls by that amount when its joint skill profile is replaced by the one accompanying a profile 10 SES rank points lower, with the other inputs held fixed. These percentages concern different national gradients. They do not imply that Korea has the largest overall SES gap or that its schools generate the largest causal return to a skills program.
+
+Germany provides a useful counterpoint: its combined pathway is `r ci('DEU','skills_sorting')` points. Mongolia's is `r ci('MNG','skills_sorting')`. Both intervals include zero. A small or uncertain net pathway can arise from weak links or from offsetting skill contributions; it does not require every skill to be unrelated to achievement. I retain these estimates alongside the positive cases.
+
+\clearpage
+
+![Country-specific joint skills pathways for socio-economic rank. Colors distinguish the fixed-school and sorting-inclusive contrasts; circles denote p < 0.05, triangles p < 0.10, and open circles not significant. Symbols indicate the strongest threshold met; not significant refers to the 10% level. Mean rows average all 67 country estimates with equal weights. Both are M1--M2 mediation contrasts, with S supplying the sorting profile. Bars are individual 95% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.](../04_output/rev2/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
+
+\clearpage
+
+## Which skills carry the pathway?
+
+Curiosity is the most widespread positive contributor: its individual pathway is positive with an interval excluding zero in `r supported('indS_CURIO')` systems, compared with `r supported('indS_PERSEV')` for perseverance. The corresponding counts are `r supported('indS_COGABIL')` for cognitive adaptability, `r supported('indS_ENPROBS')` for enjoyment of problem solving, `r supported('indS_SELFREG')` for self-regulated help seeking, and `r supported('indS_GOALSET')` for goal setting. These counts concern contributions after all 6 skills enter together, rather than separate regressions giving each skill credit for shared variation.
+
+@fig-ses-skills shows the complete country pattern; Appendix Table A19 reports each contribution and its interval. Curiosity contributes `r ci('DNK','indS_CURIO')` reading points in Denmark and `r ci('MYS','indS_CURIO')` in Malaysia. Korea is different. Its curiosity contribution is `r ci('KOR','indS_CURIO')`, while enjoyment of problem solving contributes `r ci('KOR','indS_ENPROBS')` and goal setting `r ci('KOR','indS_GOALSET')`. The combined Korean pathway is strong even though curiosity does not carry it clearly.
+
+Goal setting, measured through planning study, checking understanding, and adapting strategies, illustrates another distinction. Its within-school social gradient is positive in `r supported('aW_GOALSET')` systems, yet its joint contribution to reading is positive in `r supported('indS_GOALSET')` and negative in `r evidence('indS_GOALSET',kind='Opposite')`, with the remaining intervals including zero. The data therefore do not support treating a socially advantaged disposition as automatically productive for reading, conditional on the other skills. The pattern is compatible with differences in what the scale measures in practice, overlaps among dispositions, and the uses to which pupils put them. It does not imply that setting goals generally damages learning.
+
+![Skill-specific contributions to the socio-economic pathway in every full-6-skill system. Colors show reading points, with zero at the center. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level. The mean row averages country-specific contributions with equal weights. Each country cell is part of the same joint model; cells sum across skills to the country pathway in @fig-ses.](../04_output/rev2/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
+
+\clearpage
+
+## Within- and between-school contributions to the reading gradient
+
+@fig-within-between decomposes each country's total gradient into within- and between-school contributions. Each bar separates the skills-mediated part from the remainder. The between-school contribution is larger with a 95% interval excluding zero for the difference in `r wbcount('total_between_minus_within')` systems; `r wbcount('total_between_minus_within',TRUE)` retain support after adjustment. For the skills-mediated part, the corresponding counts are `r wbcount('skills_between_minus_within')` and `r wbcount('skills_between_minus_within',TRUE)`. Germany illustrates the distinction. Its between-school contribution is `r wbci('DEU','total_between')` reading points, of which `r wbci('DEU','skills_between')` points run through the measured skills. Most of its between-school gradient is therefore in the remaining component.
+
+In Korea, the total gradient comprises `r wbci('KOR','total_within')` points within schools and `r wbci('KOR','total_between')` between schools. Skills account for `r wbci('KOR','skills_within')` and `r wbci('KOR','skills_between')` points, respectively. The estimated skills contribution is larger between schools, but the difference of `r wbci('KOR','skills_between_minus_within')` points is uncertain. This comparison differs from the positive sorting increment reported below. The allocation divides the combined profile contrast into 2 parts; the sorting increment compares that combined contrast with a 10-point difference entirely among classmates. Appendix Tables A15–A16 report country-specific components, Table A17 reports the difference tests, and Table A18 reports the between-school shares.
+
+\clearpage
+
+![Within- and between-school contributions to the socio-economic reading gradient in all 67 systems. The first row gives equal-weight means across systems. For each country, the upper bar shows $G_W$ and the lower bar shows $G_B$; dark segments are their skills-mediated parts $K_W$ and $K_B$. Black capped lines give 95% intervals for each level's net contribution, calculated from paired school-bootstrap draws and 10 plausible values. Negative segments are retained to the left of zero. Appendix Tables A16–A17 report component-specific intervals and direct between-minus-within tests.](../04_output/rev2/figures/ses_within_between_composition.pdf){#fig-within-between width=100% fig-pos='H'}
+
+\clearpage
+
+## School sorting changes how much advantage runs through skills
+
+The sorting comparison uses the unscaled pathways $I_B$ and $I_W$ for a full 10-SES-rank-point difference at each level. When $I_B>I_W$ and higher family rank accompanies higher school rank, incorporating school composition enlarges the skills pathway. This comparison differs from testing whether the allocated contribution $K_B$ exceeds $K_W$ in @fig-within-between. The addition $\Delta_S$ is positive with an interval excluding zero in 27 of the 67 systems, with 23 retaining support after adjustment. @fig-sorting-addition shows this increment and its interval for every system. Its equal-weight mean is `r mean_ci('sorting_increment')` reading points. In 40 systems the addition is uncertain. No system has a negative addition established by its individual interval.
+
+Korea's pathway rises from `r ci('KOR','skills_same_school')` points with school setting fixed to `r ci('KOR','skills_sorting')` when sorting is included. The addition itself is `r ci('KOR','sorting_increment')` points. Malaysia's corresponding addition is `r ci('MYS','sorting_increment')`. I calculate intervals for the difference between the 2 estimates within each bootstrap draw.
+
+Denmark shows why sorting should be estimated rather than assumed to amplify the route. Its fixed-setting pathway is `r ci('DNK','skills_same_school')` and its sorting addition is `r ci('DNK','sorting_increment')`. The joint pathway is positive, but the school extension adds little. Differences among classmates account for most of the estimated skill route in that comparison.
+
+The economic implication is that a student-level account can miss an appreciable part of skill-mediated inequality in some systems. It does not follow that all school socio-economic differences operate through the measured skills. The remaining component continues to contain other connections between resources, schools, and reading. Nor is a positive sorting addition the effect of moving a pupil to a different school: it is the contribution of the observed school component to the specified profile contrast.
+
+\clearpage
+
+![Additional skills pathway associated with school sorting. Each point is $\Delta_S=I_S-I_W$, in reading points per 10 national socio-economic rank points. Bars are 95% intervals calculated for the difference within the school-bootstrap and plausible-value procedure. Positive values indicate a larger pathway when observed school composition is included. Shapes distinguish unadjusted p-value bands; color identifies support after BH adjustment across the joint-pathway and sorting-addition family. All 67 systems remain visible; the mean row uses equal country weights and an unadjusted interval.](../04_output/rev2/figures/ses_sorting_increment.pdf){#fig-sorting-addition width=100% fig-pos='H'}
+
+\clearpage
+
+## Equalizing skill profiles: recipient gains, and gap reduction
+
+The full-profile replacement narrows the SES reading gap with a 95% interval excluding zero in 57 of 67 systems; 56 retain support after multiple-testing adjustment. The other 10 intervals include zero. @fig-equalization retains all systems. These results concern a specified change in skill endowments and school skill means, rather than a 10-SES-rank-point exposure contrast.
+
+The equal-weight mean projected gap reduction is `r mean_ci('gap_reduction',kind='equalisation')` reading points. The difference between recipient gains, and gap reduction matters economically. In Korea, the observed upper--lower-quartile reading gap is `r fmt(cfest('KOR','baseline_gap'))` points. Recipients gain `r cfci('KOR','recipient_change')` points under replacement, while the upper-quartile group gains `r cfci('KOR','reference_change')`. The gap reduction is therefore `r cfci('KOR','gap_reduction')` points, or `r fmt(cfest('KOR','gap_fraction'),1)`% of the observed gap. Counting only recipients' gains would overstate the reduction in inequality. The reference-group change arises from the fitted school-composition response, with school membership fixed. @fig-recipient-gap compares these quantities for Korea and for the equal-weight mean across systems. Appendix Tables A25–A26 report the country estimates, and Table A29 describes the recipient and reference groups.
+
+
+![Recipient gains and gap reduction under skill equalization in Korea and across the 67 systems. Recipients are pupils in the lower national socio-economic quartile; the comparison group is the upper quartile. The net gap reduction equals the recipient gain minus the comparison-group gain. Country intervals use saved joint school-bootstrap and plausible-value calculations. Mean intervals combine independent country variances with equal weights. School membership stays fixed and school-average skills update with the recipient profiles.](../04_output/rev2/figures/ses_recipient_gap_korea.pdf){#fig-recipient-gap width=100% fig-pos='H'}
+
+In Denmark, the corresponding reduction is `r cfci('DNK','gap_reduction')` points, or `r fmt(cfest('DNK','gap_fraction'),1)`% of the gap. Malaysia's is `r cfci('MYS','gap_reduction')` points, or `r fmt(cfest('MYS','gap_fraction'),1)`%. Germany's interval includes zero: `r cfci('DEU','gap_reduction')` points. Mongolia, whose original joint SES pathway is uncertain, has a positive equalization contrast of `r cfci('MNG','gap_reduction')` points. The 2 exercises use different skill differences: fitted exposure gradients in the mediation calculation, and observed recipient--donor distributions in the replacement. Their significance counts should not be treated as replications of the same test.
+
+\clearpage
+
+![Projected reductions in the upper--lower-quartile reading gap after joint skill-profile replacement. All 67 6-skill systems and their equal-weight mean are shown. School membership, socio-economic rank, and controls stay fixed; school skill means change consistently with recipients' profiles. Shapes mark unadjusted 2-sided p-value bands shown in the legend. Bars combine the original school-bootstrap coefficient draws with resampled donor profiles, group weights, and reading plausible values.](../04_output/rev2/figures/ses_equalization.pdf){#fig-equalization width=100% fig-pos='H'}
+
+\clearpage
+
+## Robustness checks
+
+Alternative weighting and school-size restrictions preserve every country-specific counterfactual point estimate's direction. Among the 57 systems with positive main intervals, `r crretained('SES')` retain positive intervals under all 3 checks: unscaled conditional student weights, schools with at least 10 analytic pupils, and unweighted random-intercept estimation. Each check refits M2 within 499 school resamples and recomputes donor profiles and group gaps. Korea's unweighted reduction remains `r crci('KOR','lmer_unweighted')` points; Malaysia's is `r crci('MYS','lmer_unweighted')`. Appendix Figure A6 compares the alternative specifications, and Tables A34–A36 report their country-specific intervals.
+
+# Discussion
+
+## Skills transmit advantage alongside other educational inputs
+
+The positive joint skills pathway in 52 of 67 systems supports an economic account in which family circumstances are associated with unequal capabilities for learning. Curiosity contributes most widely, while Korea's pathway includes stronger contributions from enjoyment of problem solving and goal setting. These differences concern the distribution and reading relationships of particular skills, rather than a single generally beneficial disposition.
+
+@bowles1976 placed non-cognitive traits within the reproduction of economic inequality. Bowles, Gintis, and Osborne subsequently distinguished productive capabilities from preferences that help employers elicit effort [@bowles2001behavioral; @bowles2001incentive]. The reading outcome in this study concerns demonstrated proficiency before labor-market entry. Its interpretation is closer to the skill-formation framework of @cunha2007, in which earlier capabilities and investments influence the productivity of later investment. The measured social gradients and reading relationships are consistent with that account. They do not identify the dynamic process of skill formation.
+
+The contrast between curiosity and goal setting matters for this interpretation. Both are socially stratified, yet their average conditional reading relationships have opposite signs. Economic accounts of personality emphasise that behavior depends on tasks and incentives [@almlund2011]. Monitoring and corrective study strategies may respond to learning difficulty, and their contribution can change when correlated skills enter together. Curiosity's prominence accords with the open-mindedness finding in @avanesian2025. The variation across countries and measures also resembles the uneven self-perception pathways in @hofer2024. A skills account of inequality therefore requires evidence about which dispositions support a particular learning outcome.
+
+## School allocation extends the skills pathway without exhausting school inequality
+
+The within--between decomposition locates the socio-economic reading gradient and identifies the skills contribution at each level. Germany's large between-school contribution is mostly outside the measured skills pathway. Korea allocates a substantial part of its between-school point estimate to skills. The 46 systems with a larger between-school total contribution and the 14 with a larger between-school skills contribution describe separate comparisons. Those counts cannot establish the share of school inequality attributable to skills.
+
+Sorting changes the exposure comparison. It asks how the combined skills pathway differs from a full 10-SES-rank-point contrast entirely among classmates. Its positive increment in Korea can coexist with an uncertain difference between the allocated within- and between-school skills contributions. The distinction separates where the gradient is located from how much observed school allocation adds to the pathway.
+
+Families transmit access to learning environments alongside individual characteristics [@bowles2002inheritance]. Evidence that early tracking increases achievement inequality [@hanushek2006] and that school-finance reforms improve disadvantaged children's later outcomes [@jackson2016spending] gives economic reasons to examine school institutions and resources. These studies do not identify the remaining component in the present decomposition. That component can include prior achievement, unmeasured capabilities, and differences in educational inputs. Teachers can also affect non-test-score outcomes predictive of attainment [@jackson2018], so school composition may reflect skill formation as well as opportunities to use existing skills. Longitudinal evidence is needed to distinguish those processes.
+
+## Skill endowments and the scope for reducing inequality
+
+The positive projected gap reduction in 57 systems places unequal skill endowments among the sources of socio-economic achievement inequality. This finding accords with @gruijters2024, who distinguish differences in skill endowments from differences in their achievement returns. Their PISA 2018 analysis attributes a modest part of the science gap to measured skills, mainly through endowment differences. The present results extend that question to reading and school skill composition: the distributional contribution of skills includes predicted changes among pupils whose own profiles remain unchanged. Differences in the measured skills, outcomes, and samples prevent a direct comparison of magnitudes.
+
+The school component also changes how the equalization result should be interpreted. In Korea, recipients gain `r fmt(cfest('KOR','recipient_change'))` predicted reading points, while the gap narrows by `r fmt(cfest('KOR','gap_reduction'))` points because advantaged classmates also gain. @jackson2020school show that schools' contributions to socio-emotional development predict later attainment beyond their contributions to test scores. Their findings establish schools as settings in which these capabilities can develop; the present counterfactual examines the distributional consequences of changing skill profiles within those settings. It therefore distinguishes an improvement in disadvantaged pupils' achievement from an equivalent reduction in inequality.
+
+Germany illustrates substantial school-level inequality outside the measured skills pathway. In Korea, predicted recipient gains exceed gap reduction. Denmark combines a positive skills pathway with little amplification from sorting. I select these cases for their contrasting estimates; the comparisons do not identify the institutions responsible. The cross-system averages give equal weight to participating systems' assessed complete-case samples and do not represent the global pupil population.
+
+The investment framework of @cunha2007 links capabilities to teaching and school resources. Their complementarities remain unestimated in the additive model. Evaluators need evidence on achievable skill changes, causal learning responses, benefits to other pupils, and costs. @gruijters2024 caution that equalizing skills can leave much of an achievement gap intact. Evaluators also need to establish who benefits before drawing conclusions about the equalizing potential of skills programs. The cross-system differences provide no basis for a uniform program.
+
+## Research limitations
+
+Causal interpretation requires correct temporal ordering, adequate control of exposure--skill and skill--achievement confounding, overlap, and correct model specification. PISA's cross-sectional measures and absence of prior achievement leave reciprocal effects, unobserved family investments, and school selection unresolved; the estimates are therefore model-based mediation contrasts rather than identified program effects. Equalization additionally assumes that donor profiles can be transported into recipients' contexts with an invariant reading response; observed joint profiles do not establish conditional overlap or program feasibility. School means are measured with error and do not isolate peer effects or unobserved school quality [@ludtke2008]. Self-report measurement and complete-case selection limit comparability and representativeness, particularly in Armenia and Lebanon. The school bootstrap approximates, rather than reproduces, PISA's full stratified 2-stage sampling design. Finally, additive fixed slopes allocate the joint pathway across skills without identifying their causal ordering, dynamic formation, or complementarities.
+
+# Conclusion
+
+The model-based estimates support a socio-emotional skills pathway transmitting socio-economic advantage in reading across much of the PISA 2025 sample. Curiosity contributes most widely, while Korea illustrates a different skill composition. Unequal skill endowments form part of a broader process through which family circumstances shape learning.
+
+The decomposition locates the total gradient and its skills-mediated component within and between schools. Germany illustrates how substantial between-school inequality can coexist with a small measured skills component. Sorting measures the additional pathway associated with the school composition accompanying family rank. Equalization projects changes in achievement after replacing disadvantaged pupils' skill profiles while holding school membership fixed. Predicted gains among advantaged classmates make gap reduction smaller than recipient gains in Korea.
+
+Skills development therefore warrants evaluation alongside improvements in teaching and school resources. Such evaluations need evidence on achievable changes, causal learning responses, who benefits, and costs. Their distributional assessment must distinguish gains for disadvantaged pupils from reductions in the achievement gap.
+
+\clearpage
+
+# References {.unnumbered}
+
+\begingroup
+\small
+
+::: {#refs}
+:::
+
+\endgroup

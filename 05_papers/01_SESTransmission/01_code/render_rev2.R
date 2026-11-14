@@ -1,0 +1,26 @@
+# Run from the project/bundle root: Rscript 05_papers/01_SESTransmission/01_code/render_rev2.R
+# This is deliberately a reporting-only entry point.
+if(!file.exists('05_papers/01_SESTransmission/04_output/rev2/tables/parental_main_results.csv'))
+  source('05_papers/01_SESTransmission/01_code/20_prepare_parental_publication.R')
+source('05_papers/01_SESTransmission/01_code/11_summarize_counterfactual_robustness_rev2.R')
+source('05_papers/01_SESTransmission/01_code/23_within_between_decomposition_rev2.R')
+source('05_papers/01_SESTransmission/01_code/02_figures_rev2.R')
+source('05_papers/01_SESTransmission/01_code/24_within_between_figure_rev2.R')
+source('05_papers/01_SESTransmission/01_code/21_sorting_increment_figure_rev2.R')
+source('05_papers/01_SESTransmission/01_code/07_equalization_figures_rev2.R')
+source('05_papers/01_SESTransmission/01_code/22_recipient_gap_figure_rev2.R')
+source('05_papers/01_SESTransmission/01_code/12_counterfactual_robustness_figures_rev2.R')
+source('05_papers/01_SESTransmission/01_code/03_validate_rev2.R')
+source('05_papers/01_SESTransmission/01_code/08_validate_equalization_rev2.R')
+source('05_papers/01_SESTransmission/01_code/05_link_index_rev2.R')
+if(!file.exists(file.path(OUT,'tables/descriptives.csv')))
+  stop('Cached descriptives missing. Restore the bundle or run 01_descriptives.R with saved inputs.')
+if(identical(Sys.getenv('IJED_SKIP_RENDER'),'1')) quit(save='no',status=0)
+q <- Sys.which('quarto')
+if(!nzchar(q)) stop('Quarto is required.')
+for(f in c('ijed_ses_seg_rev2','ijed_ses_seg_supplement_rev2')) {
+  doc <- file.path('05_papers/01_SESTransmission/03_manuscript',paste0(f,'.qmd'))
+  status <- system2(q,c('render',shQuote(doc),'--to','pdf'))
+  if(status!=0) stop('PDF rendering failed: ',f)
+}
+message('Main manuscript and supplement rendered to PDF. Earlier reports are unchanged.')

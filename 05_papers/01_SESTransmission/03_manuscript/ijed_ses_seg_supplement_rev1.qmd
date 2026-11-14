@@ -1,0 +1,395 @@
+---
+title: "Socio-emotional skills and socioeconomic advantage"
+subtitle: "Supplementary country results and computational details"
+date: "8 November 2026"
+date-format: "D MMMM YYYY"
+lang: en
+bibliography: references_rev1.bib
+csl: elsevier-harvard.csl
+link-citations: true
+tbl-cap-location: top
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.5cm
+    mainfont: PT Serif
+    fontsize: 11pt
+    linestretch: 1.15
+    number-sections: true
+    toc: true
+    toc-depth: 1
+    keep-tex: true
+    colorlinks: true
+    linkcolor: blue
+    citecolor: blue
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{booktabs,longtable,array,float,etoolbox}
+        \newcommand{\tblsize}{\footnotesize}
+        \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
+        \floatplacement{figure}{H}
+        \setlength{\emergencystretch}{3em}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+source('../01_code/reporting_rev1.R')
+DS <- fread(file.path(OUT,'tables/descriptives.csv'))
+```
+
+This supplement accompanies *Do socio-emotional skills transmit socioeconomic advantage? Evidence from PISA 2025 data*. It retains all estimable systems, including incomplete skill blocks, and documents the models behind the country estimates. Figures and pathway tables read the saved global mediation results; the coverage audit adds descriptive comparisons using saved pupil records. No regression was rerun to prepare this draft.
+
+**Reading conventions.** Brackets after estimates are 95% uncertainty intervals, combining school-bootstrap and plausible-value variation. SES units are ten national percentile-rank points; deprivation units are additional unaffordable items at given individual and school ESCS. Skill gradients are in country-specific standard deviations. Country labels identify the source population, including subnational samples. Main-paper comparisons use all six skills; other blocks are explicitly marked. A missing skill coefficient is shown as a dash, never zero. Tables here are numbered independently of those in the manuscript.
+
+# Sample and measurement coverage
+
+The source has 90 systems. SES models are estimable in 82 and deprivation models in 75. The common-six-skill subsets contain 69 and 63 systems. Eligibility depends on observed variables, valid weights, at least 100 complete pupils and 30 schools; the main subset additionally requires all six skills. Within the eligible systems, models for an exposure use a common complete-case sample across all skill and achievement equations.
+
+\clearpage
+
+```{r}
+#| results: asis
+c <- merge(A[exposure=='SES' & status=='Eligible',.(CNT,economy,N,schools,skills,complete_share)],
+           A[exposure=='DEP',.(CNT,depN=ifelse(status=='Eligible',N,NA_integer_),items)],by='CNT')
+c <- c[order(economy)]
+x <- c[,.(Code=CNT,System=economy,Skills=skills,`SES N`=num(N),Schools=num(schools),
+           `Complete %`=fmt(100*complete_share,1),`DEP N`=ifelse(is.na(depN),'—',num(depN)),Items=ifelse(is.na(depN),'—',items))]
+tbl(x,'Country coverage. Complete percent is the SES analytic share of the source pupil count; DEP N is its complete-deprivation subset. Schools refers to the SES sample.',7.2,widths=c(NA,'3.5cm',NA,NA,NA,NA,NA,NA))
+```
+
+The retained deprivation count uses nine candidate items. For a system, a candidate is retained when at least 90% of respondents who answer any candidate provide a valid response. A count requires responses to every retained item. Only response 2 (“No, cannot afford it”) counts as deprivation; responses 1 and 3 count zero. Equal item counts need not imply equal definitions. The source bundle contains `deprivation_item_sets.csv` and the item dictionary, together with the detailed response-coverage audit.
+
+```{r}
+#| results: asis
+x<-A[exposure=='DEP' & status=='Eligible',.(Systems=.N,`Six-skill systems`=sum(skills==6)),by=.(Items=items)][order(Items)]
+tbl(x,'Deprivation coverage by number of retained items. The main six-skill sample has 13 distinct item sets.',9)
+```
+
+The eight systems lacking an SES model are listed below. Seven further systems with estimable SES models lack a deprivation model: Argentina, Germany, Israel, Italy, Japan, the Netherlands and Norway. These are measurement or model-input exclusions, not decisions based on results.
+
+```{r}
+#| results: asis
+tbl(A[exposure=='SES' & status!='Eligible',.(Code=CNT,System=economy,Reason=status)][order(System)],
+    'Systems without an SES model.',8,widths=c(NA,'3.5cm','10.5cm'))
+```
+
+## What each skill index measures
+
+The mapping below identifies the questionnaire blocks behind the six released indices [@oecd2025questionnaire, pp. 74--79; @oecd2025codebook]. Item descriptions are condensed rather than reproduced verbatim. All six variables are labelled WLE (weighted-likelihood estimate) in the student codebook. We use those released scores; we do not reconstruct scale scores as item averages.
+
+```{r}
+#| results: asis
+measures <- data.table(
+ Index=c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG'),
+ Content=c('Persistence through difficulty or boredom; task completion.','Interest in discovery and learning.','Enjoying challenging problems and sustained problem engagement.','Coping with unfamiliar situations, pressure, cultures and interpersonal difficulty.','Planning study, checking understanding and adapting strategy.','Seeking help from classmates or teachers, including after own effort.'),
+ Items=c('ST307: Q01, Q02, Q03, Q07, Q09, Q10 (JA); p. 74','ST301: Q01, Q04, Q06, Q08, Q10 (JA); p. 75','ST435: Q01, Q03, Q04, Q05 (DA); p. 76','ST216: Q01, Q03, Q04, Q05 (HA); p. 77','ST432: Q02, Q03, Q04, Q06 (DA); p. 78','ST434: Q01, Q02, Q04, Q06 (DA); p. 79'),
+ Responses=c('Five agreement categories; Q07 and Q10 worded negatively.','Five agreement categories; Q08 worded negatively.','Four agreement categories.','Five self-description categories, from very much to not at all like me.','Four frequency categories, from never/almost never to very often.','Four agreement categories, listed from strongly agree to strongly disagree.'))
+tbl(measures,'Scale content, questionnaire identifiers and response formats. Codes in parentheses complete each item identifier; for example ST307Q01JA.',7.5,widths=c('1.5cm','4.5cm','4.7cm','4.5cm'))
+```
+
+**Scoring and missingness.** The codebook identifies the released scoring method as WLE. The analysis preserves OECD's treatment of item polarity and missing items implicit in those scores. Our own rule is exact: retain a pupil only if each required released index and the other model inputs are observed; do not impute a missing index; do not discard an otherwise scored pupil merely because an individual item is unanswered. Each index is subsequently standardized with final student weights on the country's SES complete-case sample. The same location and scale are used in the deprivation subset. School means remain on this pupil-level scale.
+
+The master questionnaire establishes item content and response options, but not the complete calibration parameters, country-specific reliability statistics or minimum answered-item threshold for each released WLE. Those details were not recoverable from the accessible scoring documentation for this revision; no common threshold or reliability value is assumed. Consequently, the study is an analysis of released indices, not a validation of an independently reconstructed measurement model.
+
+## Complete-case coverage: Armenia and Lebanon
+
+Armenia and Lebanon are the only full-six-skill systems with less than half the source pupils retained. The following audit reproduces the saved analytic counts and verifies the retained pupil identifiers. Exclusions are sequential and depend on the displayed order; they are not mutually exclusive causes in the source data.
+
+```{r}
+#| results: asis
+cv<-fread(file.path(OUT,'tables/coverage_stages.csv'))
+tbl(cv[,.(System=economy,Stage=step,Remaining=num(remaining),`Excluded at stage`=num(excluded_at_step))],
+    'Sequential sample construction in the two lowest-coverage systems. All stages use the saved source preparation; no regression is estimated.',8,widths=c('2.2cm','7.3cm','2.5cm','3cm'))
+```
+
+All source pupils in these two systems have usable school identifiers and weights, reading values and the model's controls. Missing SES removes 2,857 pupils in Armenia and 2,174 in Lebanon; requiring all six indices among the remaining pupils removes another 2,480 and 2,985. Every skill index has some observations in both systems, so this is distinct from omitting an entirely unavailable scale in a partial-block system. These records do not identify whether each pupil-level missing score reflects questionnaire routing, item nonresponse or the release's scoring threshold. It would be incorrect to attribute every missing score to refusal or to planned missingness.
+
+```{r}
+#| results: asis
+cvd<-fread(file.path(OUT,'tables/coverage_comparison.csv'))
+tbl(cvd[,.(System=economy,Group=group,Measure=variable,`Observed N`=num(N_available),`Weighted mean`=fmt(weighted_mean,2))],
+    'Retained and excluded pupils where the comparison variable is observed. Reading averages the ten plausible values. Means use final student weights; no missing outcomes or SES values are imputed.',8)
+```
+
+The retained-minus-excluded reading differences are 39.81 points in Armenia and 52.41 in Lebanon. Available-case ESCS means differ much less in Armenia, but pupils with missing ESCS cannot enter that comparison. These differences establish selection on observed achievement, not its cause or the direction of bias in the mediation contrast. Estimates for these countries are interpreted as complete-case results; the bootstrap intervals do not correct coverage differences. They remain visible in the country inventory but are not used as representative policy benchmarks.
+
+## Country descriptives
+
+The next table reports weighted means on the SES analytic sample and the mean deprivation count on the deprivation analytic sample. The reading mean averages the ten plausible values. The reading SD describes the pupil-level average of those values, not the latent proficiency SD. Rank is divided by ten, with approximate support 0--10. Complete descriptive statistics (N, mean, SD, minimum, maximum) for every available skill, exposure and control, separately by country and exposure, are supplied in `tables/descriptives.csv`. Skills have weighted mean zero and SD one by construction on the SES sample; the deprivation subset uses those same transformations.
+
+```{r}
+#| results: asis
+ids<-A[exposure=='SES' & status=='Eligible'][order(economy),CNT]
+xx<-rbindlist(lapply(ids,function(cc) {
+ f<-function(v,ex='SES') {z<-DS[CNT==cc & variable==v & exposure==ex];if(nrow(z)) paste0(fmt(z$mean,2),' (',fmt(z$SD,2),')') else '—'}
+ data.table(Code=cc,System=G[CNT==cc,economy],Reading=f('Reading'),Rank=f('SES_rank'),ESCS=f('ESCS'),Deprivation=f('DEP','DEP'))
+}))
+tbl(xx,'Country means (standard deviations), weighted by final student weights. Deprivation uses its own analytic sample.',7.5,widths=c(NA,'3.5cm',NA,NA,NA,NA))
+```
+
+# Exact estimands and R specifications
+
+## Models and units
+
+For every exposure and system, the outcome is reading and the available skills enter jointly. Let `status` denote rank/10 or deprivation. Every variable is split into its weighted school mean (`_B`) and deviation from that mean (`_W`). The school intercept is random and all slopes are fixed within a country. There is no random grade slope, school fixed-effect-only regression, or pooled cross-country coefficient in this analysis.
+
+The specifications below show the full six-skill SES case. They are executable model formulas, but this document does not run them. In deprivation models the control vector additionally contains `ESCS_W` and `ESCS_B`. Norway omits age where unavailable. In partial-block systems, the same model includes only the measured skills.
+
+```{r}
+#| eval: false
+#| echo: true
+skills <- c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG')
+controls <- c('nonmale','AGE')
+if (exposure == 'DEP') controls <- c(controls,'ESCS')
+
+# Two-level survey weights; school_weight is W_NRASCHBWT.
+d[, w1 := W_FSTUWT / school_weight]
+d[, w1 := w1 * .N / sum(w1), by = school]
+# w2 is school_weight divided by a country-specific constant.
+for (v in c('status', controls, skills)) {
+  d[, (paste0(v,'_B')) := weighted.mean(get(v), w1), by=school]
+  d[, (paste0(v,'_W')) := get(v) - get(paste0(v,'_B'))]
+}
+wb <- function(v) c(paste0(v,'_W'), paste0(v,'_B'))
+f_m1 <- reformulate(c(wb('status'), wb(controls), '(1|school)'),
+                   response='CURIO')  # repeat for every skill
+f_m0 <- reformulate(c(wb('status'), wb(controls), '(1|school)'),
+                   response='PV1READ')
+f_m2 <- reformulate(c(wb('status'), wb(controls), wb(skills),
+                     '(1|school)'), response='PV1READ')
+# Repeat M0 and M2 for PV1READ ... PV10READ.
+m1 <- WeMix::mix(f_m1, data=d, weights=c('w1','w2'), cWeights=TRUE)
+m2 <- WeMix::mix(f_m2, data=d, weights=c('w1','w2'), cWeights=TRUE)
+f_s <- reformulate(c('status',controls,paste0(controls,'_B')),
+                  response='status_B')
+sorting <- lm(f_s, data=d, weights=W_FSTUWT)
+delta <- coef(sorting)[['status']]
+# Sensitivity only: same formula, unweighted maximum likelihood.
+m2_unweighted <- lme4::lmer(f_m2, data=d, REML=FALSE)
+```
+
+**What a and b mean.** In M1, `status_W` and `status_B` supply $a_W$ and $a_B$: skill SD per exposure unit. In M2, each skill's `_W` and `_B` supply $b_W$ and $b_B$: reading points per skill SD after controlling for all other skills. M2's `status_W` and `status_B` supply $c'_W$ and $c'_B$. M0 supplies the reading gradients before skills. S supplies $\delta$, the individual-to-school exposure projection.
+
+The fitted main engine evaluates this Gaussian weighted likelihood using school sufficient statistics and profiles the variance components. It was checked against direct WeMix fits. No `mediate()` object is involved. The joint mediation contrast is computed from the model coefficients for each plausible value, and uncertainty comes from refitting the complete sequence on resampled schools.
+
+## Why coefficient products give the joint contrast
+
+Write the exposure profile as $x=(X^W,\bar X)$, and the mediator vector as $Z=(M^W_1,\ldots,M^W_6,\bar M_1,\ldots,\bar M_6)$. Fix individual and school-average controls. The higher exposure profile is $x_1=x_0+(1-\delta,\delta)$. Its fitted skill means differ from the lower profile by $(1-\delta)a_{Wk}$ within schools and $\delta a_{Bk}$ between schools. Let $G_1$ and $G_0$ be joint distributions of $Z$ with these respective fitted means. Hold the outcome exposure profile at $x_1$ in both predictions. Then
+
+$$
+\begin{split}
+I_S&=E\{Y(x_1,Z\sim G_1)\}-E\{Y(x_1,Z\sim G_0)\}\\
+&=\sum_k b_{Wk}\Delta E(M^W_k)+\sum_k b_{Bk}\Delta E(\bar M_k)\\
+&=(1-\delta)\sum_k a_{Wk}b_{Wk}+\delta\sum_k a_{Bk}b_{Bk}.
+\end{split}
+$$
+
+The equality follows from linearity of the outcome expectation and the fitted M1 gradients. Only the first moments of $G_0$ and $G_1$ enter; the calculation does not estimate a unique full joint distribution. There are no exposure--skill interactions, so reversing the replacement at the lower exposure profile gives the same magnitude. This symmetry follows from the specification, rather than evidence about the effectiveness of a skills programme. Correlation among skills does not alter this additive expectation. It would matter differently in a model with interactions or nonlinear links. The calculation is related to joint interventional mediation, rather than six unrelated single-mediator natural-effect analyses [@vansteelandt2017; @imai2010].
+
+$\delta$ is a calibration for the observed profile comparison. It does not define a feasible randomized school-assignment intervention, identify peer effects or allocate the school contrast between formation and selection. The main paper's Research limitations section states the identification conditions for a causal interpretation. In particular, a within--between decomposition distinguishes levels without making allocation random.
+
+The within pathway $I_W$ holds the school context fixed. The between pathway $I_B$ is per unit of school-average exposure. The quantities are not added unweighted. The sorting addition is $\Delta_S=\delta(I_B-I_W)$. The remaining component is $D=(1-\delta)c'_W+\delta c'_B$, and the denominator is $T=D+I_S$, not the M0 coefficient. Each skill contribution sums within the same joint model. Negative contributions are preserved.
+
+Shares are reported only when the total interval excludes zero, plausible-value totals retain their sign, bootstrap/plausible-value denominator signs agree at least 99%, and the components support the same proportional interpretation. Unstable or offsetting decompositions retain reading-point estimates but withhold percentages. The source `ratio_audit.csv` records the decision and reason for every country. The revision adds a display rule withholding percentages when the interval extends below zero and above 100%. This flags Armenia, Greece, Guatemala, Croatia and Serbia in the deprivation analysis. For Croatia and Guatemala, the original intervals were approximately [-1385, 1420]% and [-115, 151]%; these are too imprecise for an informative proportional reading. No interval is clipped. The screen initially admits 40 full-six-skill deprivation shares; 35 are displayed after this additional rule. The original values remain in the machine-readable estimates and `share_display_audit.csv`. Percentages are averaged over plausible values, so they can differ slightly from the ratio of the printed averaged point estimates.
+
+## Worked regression-to-pathway example
+
+The table links the two regressions to a skill contribution, using curiosity. The $a$ coefficients come from M1; the $b$ coefficients come from M2 with all six skills. $I_{S,k}$ combines both levels with S. For Denmark, the within curiosity product is about `r fmt(est('DNK','indW_CURIO'))` reading points; its total profile contribution is `r fmt(est('DNK','indS_CURIO'))` points. Korea has a positive within SES gradient in curiosity but no clearly positive joint curiosity pathway. A social gradient alone is therefore insufficient.
+
+```{r}
+#| results: asis
+xx<-rbindlist(lapply(c('DNK','KOR','MYS'),function(cc) {
+ rbindlist(lapply(c('aW_CURIO','aB_CURIO','bW_CURIO','bB_CURIO','indS_CURIO'),function(tt)
+ data.table(System=G[CNT==cc,economy],Quantity=c(aW_CURIO='$a_{W,k}$',aB_CURIO='$a_{B,k}$',bW_CURIO='$b_{W,k}$',bB_CURIO='$b_{B,k}$',indS_CURIO='$I_{S,k}$')[[tt]],`Estimate [95% CI]`=ci(cc,tt,digits=3))))
+}))
+tbl(xx,'Curiosity: linking M1, M2 and the sorting profile. SES exposure; three illustrative systems with all six skills.',9,escape=FALSE)
+```
+
+## Inference and validation
+
+Every country--exposure job uses 499 valid whole-school bootstrap draws. A draw refits M0, all M1 skill equations, M2 for all ten plausible values, and S; the uncertainty of $\delta$ and of both mediation links is therefore included. With $P=10$, the pooled variance is $\bar U+(1+1/P)B$, where $\bar U$ is the mean bootstrap variance across plausible values and $B$ is their point-estimate variance. The interval is the pooled mean plus or minus 1.96 pooled standard errors. Rank and skill standardization are held at their prepared values during this bootstrap.
+
+The school resampling is an exploratory cluster-bootstrap approximation, not PISA's full stratified two-stage BRR procedure. The same inference convention is applied to all systems. Multiple-testing adjustments use approximate two-sided normal p-values. The retained families comprise all available within/between skill gradients by exposure, all individual skill contributions by exposure, and the joint pathway/sorting-addition family by exposure. The six-skill tables retain these full-analysis adjustments rather than recalculating a smaller family after selection on coverage.
+
+The archived pilot replication reproduced Denmark, Korea and Malaysia's earlier point estimates and standard errors exactly. Direct WeMix verification of ten additional deprivation cases had a maximum fixed-coefficient discrepancy of $4.32\times10^{-6}$. The copied validation files record those numerical checks and input checks. Estimation used WeMix 4.0.3 and lme4 1.1.37; package versions and the original R session information are included in the bundle.
+
+## Finding the two links for any country
+
+The revision supplies `tables/country_link_coefficients.csv`, an index of the full saved results with country names, exposure, coefficient, estimate, 95% interval and p-value. For the exposure-to-skill gradients (`aW_`, `aB_`), `gradient_q` and `gradient_q_family` carry the existing full-analysis adjustment from `hypothesis_country_classification.csv`. No adjusted q-values were calculated for the `bW_` or `bB_` reading coefficients; their corresponding cells are explicitly missing. The index joins saved results and classifications without another estimation. Use `CNT` for the system, `exposure` for SES or DEP, and the term prefix below; the suffix identifies the skill. Both files retain partial-block systems and report their skill count.
+
+```{r}
+#| results: asis
+index<-data.table(Prefix=c('aW_','aB_','bW_','bB_'),Symbol=c('$a_{W,k}$','$a_{B,k}$','$b_{W,k}$','$b_{B,k}$'),
+ Meaning=c('Exposure-to-skill gradient among classmates','Exposure-to-skill gradient between school means','Skill-to-reading coefficient among classmates, all skills included','Skill-to-reading coefficient between school means, all skills included'))
+# Raw prefixes are explicitly code-dictionary entries; the model notation is typeset separately.
+index[,Prefix:=gsub('_','\\_',Prefix,fixed=TRUE)]
+tbl(index,'Country coefficient index. Skill suffixes are PERSEV, CURIO, ENPROBS, COGABIL, GOALSET and SELFREG.',8,widths=c('2cm','2cm','11cm'),escape=FALSE)
+```
+
+# Joint country results
+
+For a ten-rank-point SES comparison, $I_W$ is the predicted reading difference carried by skills with school setting fixed; $I_S$ includes the school component associated with that family difference. $\Delta_S$ is their difference. For deprivation, the same columns concern one additional unaffordable item, with ESCS held constant at both levels. All entries are reading points; they are not skill SD, percentages or coefficients on school SES itself.
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) data.table(Code=cc,System=G[CNT==cc,economy],
+   K=A[CNT==cc & exposure==ex,skills],IW=ci(cc,'skills_same_school',ex),
+   IS=ci(cc,'skills_sorting',ex),Addition=ci(cc,'sorting_increment',ex))))
+ setnames(xx,c('IW','IS','Addition'),c('$I_W$','$I_S$','$\\Delta_S$'))
+ print(tbl(xx,paste0(if(ex=='SES')'Socioeconomic rank' else 'Material deprivation',': joint skills pathways in every estimable system. K is the observed skill count; K = 6 is the main-paper sample.'),7.2,
+   widths=c(NA,'3.0cm',NA,'3.0cm','3.0cm','3.0cm'),escape=FALSE))
+}
+```
+
+## Total and remaining gradients
+
+The model-implied total $T$ includes the skills pathway $I_S$ and remaining component $D$. A share is printed only where it passes the original denominator checks and the additional display-precision rule above. For example, Malaysia's deprivation total is `r ci('MYS','total','DEP')` points, with a skills pathway of `r ci('MYS','skills_sorting','DEP')` and a remaining component of `r ci('MYS','remaining','DEP')`. Neither the remaining component nor the entire school gradient is labelled a skills effect.
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) data.table(Code=cc,System=G[CNT==cc,economy],
+    Total=ci(cc,'total',ex),Remaining=ci(cc,'remaining',ex),
+    `Skills share %`=if(share_displayable(cc,ex))ci(cc,'share',ex,1) else 'Withheld')))
+ print(tbl(xx,paste0(ex,': model-implied total, remaining component and admissible skills share.'),7.4,
+    widths=c(NA,'3.4cm','3.4cm','3.4cm','3.4cm')))
+}
+```
+
+# Individual skill contributions
+
+**Skill key.** Perseverance (PERSEV); curiosity (CURIO); enjoyment of problem solving (ENPROBS); cognitive adaptability (COGABIL); goal setting/study management (GOALSET); self-regulated help seeking (SELFREG).
+
+The following tables retain the skill-specific pathways for all systems. Each cell is $I_{S,k}$, a contribution in reading points, with its interval. Because M2 contains the entire observed skill block, a partial-block coefficient need not equal the corresponding six-skill coefficient that would be obtained if the missing scales existed. Dashes are missing measures. The machine-readable `input/estimates.csv` contains all $a_W,a_B,b_W,b_B$, within, between and sorting-profile contributions, sampling and plausible-value uncertainty, p-values and adjusted q-values.
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible'][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) {
+   z<-data.table(System=G[CNT==cc,economy])
+   for(k in names(sklab)) z[,(k):=if(nrow(E[CNT==cc & exposure==ex & term==paste0('indS_',k)]))ci(cc,paste0('indS_',k),ex,1) else '—']
+   z
+ }))
+ setnames(xx,names(sklab),c('Perseverance','Curiosity','Problem solving','Adaptability','Goal setting','Help seeking'))
+ print(tbl(xx,paste0(ex,': individual skill contributions, including observed school composition. Headings repeat on continuation pages; all entries are reading points with 95 percent intervals.'),6.8,
+      widths=c('3cm',rep('2cm',6))))
+}
+```
+
+PERSEV = perseverance; CURIO = curiosity; ENPROBS = enjoyment of problem solving; COGABIL = cognitive adaptability; GOALSET = goal setting; SELFREG = self-regulated help seeking. Country codes map to full names in the coverage table.
+
+# RQ2 and RQ3: between-school links
+
+The main-text two-link figure displays within-school coefficients. This companion retains the between-school coefficients from the same six-skill models. The horizontal axis is the skill difference per ten school-average rank points; the vertical axis is the reading difference per unit of school-average skill, with the other skills included. Skill units remain standard deviations of the pupil-level country distribution; the school means are not restandardized. Their product is the skill's between-school contribution before weighting by the sorting coefficient. It is not the full individual-profile contribution, which also contains the within-school term.
+
+![Between-school skill gradients and reading relationships in all 69 six-skill systems. Dashed curves mark products of 1, 3 and 5 reading points, from lower to higher curves. Equal products can arise from different combinations of the two links. These are point estimates, not tests of cross-country differences.](../04_output/rev1/figures/ses_gap_link_b.pdf){width=100% fig-pos='H'}
+
+# RQ1: evidence by skill and level
+
+RQ1 concerns the exposure-to-skill gradient. The next tables count evidence in the direction suggested by the resource argument at each level: positive for SES and negative for deprivation. “Opposite” is the reverse direction; “uncertain” includes zero. The denominator is 69 for SES and 63 for deprivation throughout these tables. BH support uses the full-analysis adjustment family, not a fresh within-subset correction.
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ z<-H[scope=='Six-skill systems only' & exposure==ex & grepl('^a[WB]_',term)]
+ zz<-z[,.(Support=sum(classification=='Supports'),Opposite=sum(classification=='Opposite'),
+       Uncertain=sum(classification=='Inconclusive'),`BH support`=sum(adjusted_support)),by=term]
+ zz[,Level:=ifelse(grepl('^aW_',term),'Within','Between')]
+ zz[,Skill:=unname(sklab[sub('^a[WB]_','',term)])]
+ print(tbl(zz[order(Skill,Level),.(Skill,Level,Support,Opposite,Uncertain,`BH support`)],
+     paste0(ex,': evidence for the social gradient in each skill.'),8))
+}
+```
+
+The manuscript's joint-pathway summary is based on intervals for the entire calculated contrast. It does not require each component to be individually significant, and it does not infer a country difference merely because one interval excludes zero and another does not.
+
+# Sensitivity results
+
+## Visual comparison of deprivation specifications
+
+![Joint deprivation pathway under the main and alternative specifications. All eligible six-skill systems are retained in each panel: 63 for weight scaling, minimum school sample size and unweighted lmer; 61 for the common-four-item definition. Both axes use reading points per additional unaffordable item, with identical scales. Country labels identify the three largest absolute changes per panel and map to the coverage table. The diagonal denotes agreement, not statistical significance.](../04_output/rev1/figures/dep_robustness.pdf){width=100% fig-pos='H'}
+
+Changing to four common items changes the exposure definition while retaining the same pupils within each system. It is therefore a measurement comparison, not simply another estimator of an unchanged item count. The unweighted lmer comparison retains the main sorting coefficient. All plotted alternatives were saved in the original analysis; this display adds no model fits or bootstrap intervals.
+
+## Weighting, sample and deprivation measurement
+
+These saved sensitivity estimates were produced in the original analysis. They are point-estimate comparisons without new bootstrap intervals. Unscaled weights change the conditional weight normalization; minimum-10 excludes schools with fewer than ten analytic pupils. The unweighted `lmer()` comparison retains the main sorting coefficient, isolating the change in the mixed-model estimation. For deprivation, the core-four analysis uses the same pupils but changes the exposure definition. The SES-on-deprivation-sample analysis uses rank, not deprivation: its appropriate comparator is the main SES estimate.
+
+```{r}
+#| results: asis
+for(ex in c('SES','DEP')) {
+ ids<-A[exposure==ex & status=='Eligible' & skills==6][order(economy),CNT]
+ xx<-rbindlist(lapply(ids,function(cc) {
+   getv<-function(v) {z<-V[CNT==cc & exposure==ex & variant==v & term=='skills_sorting',estimate];if(length(z))fmt(z) else '—'}
+   z<-data.table(Code=cc,Main=fmt(est(cc,'skills_sorting',ex)),Unscaled=getv('unscaled_weights'),
+       `Min. 10`=getv('minimum_10'),Unweighted=fmt(L[CNT==cc & exposure==ex & term=='skills_sorting',lmer_unweighted]))
+   if(ex=='DEP')z[,`Core four`:=getv('core_four_same_sample')]
+   if(ex=='SES') {v<-V[CNT==cc & exposure=='DEP' & variant=='SES_on_deprivation_sample' & term=='skills_sorting',estimate];z[,`DEP sample`:=if(length(v))fmt(v) else '—']}
+   z
+ }))
+ print(tbl(xx,paste0(ex,': sensitivity of the joint skills point estimate, full-six-skill systems. A dash means the alternative is unavailable.'),8))
+}
+```
+
+Malaysia illustrates why the weighting choice is substantive. Its unweighted SES pathway is about half the weighted estimate, while Korea's remains large. Denmark's rank pathway is close under the two estimators, but this does not justify treating all country results as weight-invariant. The core-four deprivation comparison also changes the exposure itself; agreement in sign is useful, but equality of magnitude is not expected.
+
+## Omitted-variable stress tests
+
+The saved stress test perturbs the fitted skill--outcome relationship in a deliberately adverse residual direction. For level $\ell$, define $K_\ell=s_{Y\ell}\sqrt{a_\ell'\Sigma_\ell^{-1}a_\ell}$, where $\Sigma_\ell$ is the full residual covariance of skills and $s_{Y\ell}$ is the residual outcome standard deviation after the complete M2 regressors (exposure, all skills and controls) at level $\ell$. Within schools it is the square root of the weighted residual mean square in the orthogonal within projection, using scaled conditional student weights multiplied by school weights and the corresponding weighted pupil count as denominator. Between schools it is the weighted root mean square of residual school-average reading after M2's between regressors, using outcome-specific effective GLS weights $w_{2j}n_j/(1+n_j\tau^2/\sigma^2)$, with their sum as denominator. Thus neither scale is the unconditional reading SD or merely the fitted random-intercept SD. Both are calculated separately for each plausible value and bootstrap fit. The perturbation is
+
+$$I_\ell(\rho)=I_\ell(0)-\frac{\rho}{\sqrt{1-\rho^2}}K_\ell.$$
+
+The sign of $\rho$ is chosen to move the original estimate towards zero, and the curve is allowed to cross zero. The profile calculation combines the within and between scales using $(1-\delta)$ and $\delta$. The between component conditions on fitted effective GLS weights. This is a fixed-projection omitted-bias stress test. It is not a complete multilevel `medsens()` analysis, an estimated bias correction, or a test of exposure--mediator confounding. A larger threshold means a larger perturbation is needed under this particular construction, not that all causal identification concerns are small.
+
+```{r}
+#| results: asis
+ss<-read_input('sensitivity_thresholds')
+xx<-merge(ss[level=='S'],A[status=='Eligible' & skills==6,.(CNT,exposure,economy)],by=c('CNT','exposure'))
+tbl(xx[order(exposure,economy),.(Exposure=exposure,Code=CNT,`Point-zero |rho|`=fmt(point_zero_rho,3),
+    `First |rho| with CI at zero`=fmt(first_grid_rho_CI_includes_zero,2))],
+    'Residual-confounding stress thresholds for the joint skills pathway. Zero in the final column means the original interval already includes zero.',8)
+```
+
+## Observed-composition calibration and own-observation check
+
+A full school mean contains the focal pupil's exposure. The profile contrast deliberately uses that mean in every within--between equation. The saved diagnostic compares its sorting calibration with a mean excluding the focal pupil, using the same non-singleton sample. It measures sensitivity to that definition; it neither corrects the headline mediation estimate nor counts how many intervals would survive a different joint model.
+
+```{r}
+#| results: asis
+dg<-read_input('audit')[CNT%in%c('DNK','KOR','MYS')]
+tbl(dg[order(CNT,exposure),.(System=G$economy[match(CNT,G$CNT)],Exposure=exposure,`Comparison N`=num(loo_N),
+  `Full-mean delta`=fmt(delta_full_loo_sample,4),`Own-excluded delta`=fmt(delta_loo,4))],
+  'Sorting calibration on the same pupils under full and own-observation-excluded means. These are auxiliary projection coefficients, not alternative mediation estimates.',8)
+```
+
+For Denmark, the SES calibration changes from 0.2373 to 0.1698 and the deprivation calibration from 0.0950 to 0.0125. Thus the observed-profile coefficient should not be interpreted as excess segregation beyond own-inclusion. The full comparison for every country is in `tables/sorting_calibration.csv`. A coherent peer-composition or school-assignment contrast would require changing the relevant equations together; that is a different analysis.
+
+
+# Incomplete skill blocks
+
+The 13 additional SES systems and 12 additional deprivation systems broaden the geographical coverage. Their estimates answer the question for the observed skill vector. A smaller block is not a lower bound on the six-skill pathway, since adding correlated mediators can change both individual contributions and their sum.
+
+![SES pathways in systems with incomplete skill blocks. Braces give the number of skills measured. These estimates are retained for scope assessment and are outside the common-six-skill comparison.](../04_output/rev1/figures/ses_pathways_partial.pdf){width=100% fig-pos='H'}
+
+![Deprivation pathways in systems with incomplete skill blocks. Brackets give deprivation items and braces the measured skill count. The same exposure and uncertainty conventions apply.](../04_output/rev1/figures/dep_pathways_partial.pdf){width=100% fig-pos='H'}
+
+# Research bundle and provenance
+
+The `ijed_ses_seg` routine has three parts: immutable copied aggregate inputs; reproducible reporting and figure code; and editable Quarto manuscripts with BibTeX references. The source manifest records original locations and SHA-256 hashes. Descriptives were computed from saved analytic RDS inputs without refitting. The deliverable contains those aggregate descriptives, not pupil-level files.
+
+`render_rev1.R` generates the rev1 figures and two PDFs from the saved results. It never calls an estimator. `01_descriptives.R` is optional and requires the original analytic inputs to regenerate the descriptive table. The original estimation scripts are archived separately for inspection; they preserve the preceding analysis workflow and its input requirements. Numerical checks verify component sums, sorting identities, coverage counts, figure coverage, interval fields and the copied-file hashes. This is a new reporting routine, leaving the previous Paper A and global reports unchanged.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
