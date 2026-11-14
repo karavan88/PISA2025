@@ -7,7 +7,11 @@ base<-Sys.getenv('PISA_DATA','01_data')
 skall<-c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG');pv<-paste0('PV',1:10,'READ')
 items<-c('ST488Q01DA','ST488Q02DA','ST488Q08DA','ST488Q09DA',paste0('ST401Q0',3:7,'DA'))
 cols<-c('CNT','CNTSTUID','CNTSCHID','STRATUM','OECD','ESCS','PAREDINT','HISEI','ST004D01T','MALE','AGE',skall,'W_FSTUWT',pv,items)
-x<-read_sav(file.path(base,'CY09_MS_STU_PUF.sav'),col_select=all_of(cols))
+rdcols<-unique(c('CNT','CNTSCHID','CNTSTUID','STRATUM','OECD','ST001D01T','ISCEDP','ST003D02T','ST003D03T','AGE','REPEAT','ST004D01T','ST022Q01TA','IMMIG','ESCS',skall,'BELONG','ST420Q01DA','W_FSTUWT','SENWT',paste0('W_FSTURWT',1:80),unlist(lapply(c('SCIE','MATH','READ'),function(v)paste0('PV',1:10,v)))))
+x<-read_sav(file.path(base,'CY09_MS_STU_PUF.sav'),col_select=all_of(unique(c(cols,rdcols))))
+# Both designs share this one provider read; keep mediation's original schema.
+saveRDS(x[,rdcols],file.path(WORK,'cutoff_provider.rds'))
+x<-x[,cols]
 lab<-attr(x$CNT,'labels');econ<-setNames(names(lab),as.character(lab))
 saveRDS(lapply(x[,c('CNT','CNTSTUID',items)],attributes),file.path(WORK,'deprivation_metadata.rds'))
 d<-as.data.table(lapply(x,function(v)if(is.character(v))as.character(v)else as.numeric(v)));rm(x);gc()

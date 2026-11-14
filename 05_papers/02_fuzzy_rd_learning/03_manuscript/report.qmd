@@ -23,10 +23,10 @@ execute:
 
 ```{r setup}
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(knitr) })
-ROOT <- normalizePath(file.path(getwd(), "..", "..")); setwd(ROOT); source("02_scripts/gradegain/00_helpers.R")
-est <- fread(file.path(ROOT, op("estimates.csv"))); elig <- fread(file.path(ROOT, op("eligibility.csv"))); comp <- fread(file.path(ROOT, op("compliance.csv")))
-summ <- fread(file.path(ROOT, op("summary.csv"))); summ_clean <- fread(file.path(ROOT, op("summary_clean_only.csv"))); reg <- fread(file.path(ROOT, op("summary_region.csv"))); shr <- fread(file.path(ROOT, op("shrunken.csv")))
-audit <- fread(file.path(ROOT, op("cutoff_audit_all.csv")))
+ROOT <- Sys.getenv("RENV_PROJECT", unset = normalizePath(file.path(getwd(), "..", "..", ".."))); setwd(ROOT); source("05_papers/02_fuzzy_rd_learning/01_code/00_helpers.R")
+est <- fread(op("estimates.csv")); elig <- fread(op("eligibility.csv")); comp <- fread(op("compliance.csv"))
+summ <- fread(op("summary.csv")); summ_clean <- fread(op("summary_clean_only.csv")); reg <- fread(op("summary_region.csv")); shr <- fread(op("shrunken.csv"))
+audit <- fread(op("cutoff_audit_all.csv"))
 est <- merge(est, elig[, .(CNT, edge, jump)], by = "CNT")
 el <- elig[eligible == TRUE]; n_el <- nrow(el); n_edge <- sum(el$edge); n_cand <- nrow(elig); n_all <- nrow(audit)
 wide <- function(spec_, outs) dcast(est[spec == spec_ & outcome %in% outs], CNT + name + region + edge + jump + outcome ~ term, value.var = c("est", "se"))
@@ -42,7 +42,7 @@ g <- function(o, col, spec_ = "ag_cov", term_ = "gamma") summ[outcome == o & spe
 ```
 
 ::: {.callout-note}
-**Status.** `r n_el` eligible systems out of the `r n_all` PISA 2025 participants (`r n_edge` of them with the cutoff at the edge of the birth cohort, flagged "edge"). Outcomes: science, mathematics, reading (PISA points, 10 plausible values); perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving, cognitive adaptability, sense of belonging (within-system SD units); growth mindset (probability). Inference: Fay BRR over 80 replicate weights + Rubin. Pipeline: `02_scripts/gradegain/` (`01_build.py` on the Mac, then `run_all_estimation.sh` ≈ 10 minutes); outputs in `03_outputs/gradegain/`.
+**Status.** `r n_el` eligible systems out of the `r n_all` PISA 2025 participants (`r n_edge` of them with the cutoff at the edge of the birth cohort, flagged "edge"). Outcomes: science, mathematics, reading (PISA points, 10 plausible values); perseverance, self-regulated learning, goal setting, curiosity, enjoyment of problem-solving, cognitive adaptability, sense of belonging (within-system SD units); growth mindset (probability). Inference: Fay BRR over 80 replicate weights + Rubin. Pipeline: `05_papers/02_fuzzy_rd_learning/01_code/run_all.py`; shared preparation is centralized. The runner records the selected output directory and package lock. Corrected estimates use the same outcome-complete pupils in both 2SLS stages; historical snapshots predate that correction.
 :::
 
 # The question and the method
@@ -154,11 +154,8 @@ kable(tk[match(out_lab(c(out_skills, "growth")), Outcome)], caption = "Socio-emo
 ```{r skills-text, results="asis"}
 sk <- ag[!outcome %in% PV_DOMS]; sk[, z := est_gamma / se_gamma]
 neg_sys <- sk[, .(n_neg = sum(z < -1.96), n_pos = sum(z > 1.96)), by = .(CNT, name)][order(-n_neg)]
-cat("**Reading.** A year of schooling leaves the socio-emotional scales essentially where they were: every median is within ±", f2(max(abs(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, median]))), " SD of zero and the random-effects means are all between ", f2(min(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, re_mean])), " and ", f2(max(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, re_mean])), " SD. ",
-    "The one scale with a consistent sign is curiosity: +", f2(g("CURIO_z", "median")), " SD in the median system, ", g("CURIO_z", "sig_pos"), " systems significantly positive and none negative. ",
-    "Significant effects elsewhere are scattered and run in both directions (", sum(sk$z > 1.96), " positive and ", sum(sk$z < -1.96), " negative out of ", nrow(sk), " system-by-scale estimates, against about ", round(0.05 * nrow(sk)), " expected by chance). ",
-    "Two systems account for a large share of the negative ones: ", paste0(neg_sys[1:2, name], " (", neg_sys[1:2, n_neg], " scales down", collapse = ") and "), "). In B-S-J-Z the same year that adds 30 points to every score lowers reported perseverance, goal setting, problem-solving enjoyment, cognitive adaptability, belonging and growth mindset by 0.1–0.2 SD; in Chinese Taipei perseverance, goal setting, problem-solving enjoyment, self-regulated learning, belonging and growth mindset fall. These are the two systems with the largest achievement gains and a selective transition between the two grades, which points to a frame-of-reference reading — students rate their dispositions against stronger classmates after the move — rather than to erosion; the revealed-persistence measures in the PISA 2025 process data are the test. ",
-    "The fixed-age contrast τ tells the same story for the scales as γ does (medians within ±0.02 SD): unlike achievement, the self-reported dispositions do not carry an age gradient inside a grade.\n", sep = "")
+ss <- summ[spec == "ag_cov" & term == "gamma" & outcome %in% out_skills]
+cat("Across the 7 standardized scales, country-median grade gains range from ", f2(min(ss$median)), " to ", f2(max(ss$median)), " SD. For curiosity, the median is ", f2(g("CURIO_z", "median")), " SD, with ", g("CURIO_z", "sig_pos"), " significantly positive and ", g("CURIO_z", "sig_neg"), " significantly negative country estimates. Across all scale and growth-mindset estimates, ", sum(sk$z > 1.96), " are positive and significant, and ", sum(sk$z < -1.96), " are negative and significant, out of ", nrow(sk), " estimates. Growth mindset is measured in probability units; it is not included in the standardized-scale range. The country tables retain both signs and their uncertainty.\n", sep = "")
 ```
 
 # Summary
@@ -172,7 +169,7 @@ rows <- list(
   data.table(Question = "How does it compare with the grade coefficient of production functions?",
              Answer = paste0("The grade coefficient (median ", f1(g("SCIE", "median", "lsdv", "lsdv")), " points) is about twice the grade gain; the difference is selection into early entry and out of repetition, and should not be read as learning.")),
   data.table(Question = "Does a year of schooling change socio-emotional skills?",
-             Answer = paste0("No, on average: every scale's median is within ±", f2(max(abs(summ[spec == "ag_cov" & term == "gamma" & !outcome %in% PV_DOMS, median]))), " SD of zero. Curiosity rises slightly (+", f2(g("CURIO_z", "median")), " SD, ", g("CURIO_z", "sig_pos"), " systems). In B-S-J-Z and Chinese Taipei several scales fall while achievement rises most — a frame-of-reference effect to be tested with revealed measures.")))
+             Answer = paste0("Country-median gains across the 7 standardized scales range from ", f2(min(ss$median)), " to ", f2(max(ss$median)), " SD. Curiosity has a median gain of ", f2(g("CURIO_z", "median")), " SD; ", g("CURIO_z", "sig_pos"), " country estimates are significantly positive and ", g("CURIO_z", "sig_neg"), " significantly negative. See the country tables for heterogeneity.")))
 kable(rbindlist(rows), caption = "The report in four answers")
 ```
 

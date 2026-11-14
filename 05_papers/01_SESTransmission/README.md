@@ -41,3 +41,7 @@ Shared inputs are under `03_outputs/01_harmonized/`. No maintained paper script
 reads SPSS files. Local code estimates models and forms estimands, not alternative
 versions of the shared variables. Historical render scripts remain for provenance;
 use run_all.py for the maintained reporting workflow.
+
+## Reproduction verification
+
+See the [environment, data, and command guide](../../00_documentation/REPRODUCE.md). The 2026-11-14 audit rebuilt all 157 prepared inputs without numerical changes, refit all 157 main point models, and reproduced 5 seeded bootstrap draws for each Korean exposure. Reporting rebuilt both PDFs under renv. This does not claim a new full 499-draw rerun of every main and alternative model. Fresh estimation now includes the previously missing evidence-classification postprocessor; historical pilot checks are optional. Use `report --current-results` after a successful `estimate --fresh` to avoid restoring the frozen snapshot over new estimates.

@@ -16,4 +16,20 @@ The study estimates the gain associated with an additional school year using sch
 
 This is the active broad-coverage fuzzy-RD project. The later 14-system same-school extension is preserved in `06_scoping/07_schoolgain`.
 
-The historical pipeline has not yet been migrated to central harmonization or certified end to end in the new layout. Do not run its legacy driver as a certified reproduction command. Shared-variable construction must be moved centrally before fresh estimation. No analysis was rerun during this folder reorganization; the saved estimates and original eligibility rules are preserved.
+## Reproduction
+
+Preparation and design screening now run centrally. See [data placement](../../01_data/README.md) and [complete reproduction instructions](../../00_documentation/REPRODUCE.md).
+
+```sh
+python3 02_scripts/00_tools/build_shared.py
+python3 05_papers/02_fuzzy_rd_learning/01_code/run_all.py estimate --output /absolute/new/results/directory
+python3 05_papers/02_fuzzy_rd_learning/01_code/run_all.py report --results /absolute/new/results/directory
+```
+
+The result directory must not exist before estimation. Estimation never replaces the historical bundle. Reporting reads the chosen completed run and fits no models.
+
+**Correction identified during reproduction:** the legacy 2SLS function misaligned fitted grade values when an outcome was missing. This affects skill-outcome IV estimates, not the complete achievement outcomes. The corrected function uses the identical outcome-complete sample in both stages and is tested against the direct matrix 2SLS estimator. Historical results remain in `02_results`; `report --historical` is only for explicit inspection of that old version. New estimates include a row-by-row historical comparison.
+
+## Verified local run (2026-11-14)
+
+The corrected run is `04_output/corrected_20261114/`; its `historical_comparison.csv` records every coefficient change. All 36 systems completed. Achievement and LSDV estimates are unchanged; 1,626 skill-outcome IV coefficient entries change after correcting alignment. The report at `03_manuscript/report.html` was rendered from this corrected run. These generated files are local, not in Git.

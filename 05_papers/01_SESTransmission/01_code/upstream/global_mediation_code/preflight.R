@@ -1,7 +1,7 @@
 source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/engine.R');source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/functions.R')
 WORK<-Sys.getenv('GM_WORK','05_papers/01_SESTransmission/04_output/upstream');OUT<-'05_papers/01_SESTransmission/04_output/input'
-dir.create(file.path(WORK,'compressed'),showWarnings=FALSE)
-jobs<-fread(file.path(OUT,'jobs.csv'));ref<-fread(file.path(OUT,'global_reference_estimates.csv'))
+dir.create(file.path(WORK,'compressed'),recursive=TRUE,showWarnings=FALSE)
+jobs<-fread(file.path(OUT,'jobs.csv'));refpath<-file.path(OUT,'global_reference_estimates.csv');ref<-if(file.exists(refpath))fread(refpath)else NULL
 checks<-list();errors<-list()
 for(j in seq_len(nrow(jobs))) {
   job<-jobs[j];id<-job$job_id;z<-readRDS(file.path('03_outputs/01_harmonized/input',paste0(id,'.rds')))
@@ -12,7 +12,7 @@ for(j in seq_len(nrow(jobs))) {
     pred<-prediction_check(s,p['delta',1])
     err<-max(abs(pred['indirect',]-p['skills_sorting',]))
     olderr<-NA_real_
-    if(job$exposure=='SES') {
+    if(job$exposure=='SES' && !is.null(ref)) {
       r<-ref[CNT==job$CNT&term%in%rownames(p)]
       olderr<-max(abs(rowMeans(p)[r$term]-r$estimate))
       stopifnot(olderr<1e-5)

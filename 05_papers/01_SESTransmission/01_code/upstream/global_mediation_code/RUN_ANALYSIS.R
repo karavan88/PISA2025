@@ -4,3 +4,4 @@ source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/pref
 source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/run.R')
 source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/diagnostics.R')
 source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/finish.R')
+source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/classification.R')

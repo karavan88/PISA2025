@@ -9,16 +9,11 @@
 #   (the "grade coefficient" of cross-sectional production functions; selection into early entry and out of repetition included).
 # Outcomes: science, mathematics, reading (points, 10 PVs); seven scales (within-system SD); growth mindset (probability).
 # Inference: Fay BRR over 80 replicate weights + Rubin over PVs; every quantity recomputed per replicate so gamma's SE respects covariances.
-# Usage: Rscript 02_scripts/gradegain/03_gradegain.R [CNT ...]      Output: 03_outputs/gradegain/estimates.csv (long: CNT, outcome, spec, term, est, se)
+# Usage: Rscript 05_papers/02_fuzzy_rd_learning/01_code/03_gradegain.R [CNT ...]      Output: 03_outputs/gradegain/estimates.csv (long: CNT, outcome, spec, term, est, se)
 suppressPackageStartupMessages({ library(data.table) })
-source("02_scripts/gradegain/00_helpers.R")
+source("05_papers/02_fuzzy_rd_learning/01_code/00_helpers.R")
 a <- load_analytic(); args <- commandArgs(trailingOnly = TRUE); systems <- if (length(args)) args else sort(unique(as.character(a$CNT)))
-tsls <- function(y, D, Z, W, w) {
-  ok <- !is.na(y) & complete.cases(W) & !is.na(D) & !is.na(w)
-  X1 <- cbind(W, Z = Z)[ok, , drop = FALSE]; b1 <- lm.wfit(X1, D[ok], w[ok])$coefficients; Dhat <- as.numeric(X1 %*% b1)
-  X2 <- cbind(W, D = Dhat)[ok, , drop = FALSE]; b2 <- lm.wfit(X2, y[ok], w[ok])$coefficients
-  c(fs = unname(b1["Z"]), tau = unname(b2["D"]), beta = unname(-12 * b2["r"]), gamma = unname(b2["D"] - 12 * b2["r"]))
-}
+source("05_papers/02_fuzzy_rd_learning/01_code/model_functions.R")
 res <- list()
 for (cn in systems) {
   s <- a[CNT == cn]

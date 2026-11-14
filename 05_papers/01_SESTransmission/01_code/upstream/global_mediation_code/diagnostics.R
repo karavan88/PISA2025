@@ -1,5 +1,4 @@
 source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/engine.R');source('05_papers/01_SESTransmission/01_code/upstream/global_mediation_code/functions.R')
-.libPaths(c(Sys.getenv('GM_RLIB','../work/reproduction_report/rlib'),.libPaths()))
 suppressPackageStartupMessages({library(lme4);library(WeMix)})
 WORK<-Sys.getenv('GM_WORK','05_papers/01_SESTransmission/04_output/upstream');OUT<-'05_papers/01_SESTransmission/04_output/input'
 jobs<-fread(file.path(OUT,'jobs.csv'))

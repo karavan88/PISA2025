@@ -1,9 +1,9 @@
 # Grade Gain Report -- summaries across systems: median and IQR (the paper's primary summary) and a random-effects meta-analysis
 # (REML, metafor) of the per-system estimates with their BRR standard errors -- the formal counterpart of the median: a pooled mean with
 # its SE, the between-system SD of the true effects and I2. Regions are labels; medians by region are reported, never pooled models.
-# Usage: Rscript 02_scripts/gradegain/04_summary.R        Output: 03_outputs/gradegain/summary.csv, summary_region.csv, shrunken.csv
+# Usage: Rscript 05_papers/02_fuzzy_rd_learning/01_code/04_summary.R        Output: 03_outputs/gradegain/summary.csv, summary_region.csv, shrunken.csv
 suppressPackageStartupMessages({ library(data.table); library(metafor) })
-source("02_scripts/gradegain/00_helpers.R")
+source("05_papers/02_fuzzy_rd_learning/01_code/00_helpers.R")
 r <- fread(op("estimates.csv")); elig <- fread(op("eligibility.csv"))
 r <- merge(r, elig[, .(CNT, edge, jump)], by = "CNT")
 # metafor's rma() evaluates its arguments by name, which fails inside data.table's grouping environment: fit it from a plain loop

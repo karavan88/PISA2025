@@ -8,7 +8,8 @@ inputs=[raw/'CY09_MS_STU_PUF.sav',raw/'CY09_MS_SCH_PUF.sav']
 inputs+=sorted((ROOT/'02_scripts/01_harmonization').glob('*.R'))
 missing=[str(f) for f in inputs if not f.exists()]
 if missing:sys.exit('Missing central-build inputs: '+', '.join(missing))
-current={str(f.relative_to(ROOT)) if f.is_relative_to(ROOT) else str(f):digest(f) for f in inputs}
+# Identify provider files by role, not machine-specific location, so PISA_DATA is portable.
+current={('01_data/'+f.name) if f.parent.resolve()==raw.resolve() else str(f.relative_to(ROOT)):digest(f) for f in inputs}
 manifest=out/'build_manifest.json'
 if manifest.exists() and not args.force:
     old=json.loads(manifest.read_text())
@@ -20,7 +21,7 @@ reference=PAPER/'02_results/input'
 for name in ['original_eligibility.csv','country_groups.csv']:
     import shutil
     if (reference/name).exists() and not (metadata/name).exists():shutil.copy2(reference/name,metadata/name)
-for name in ['extract_base.R','prepare.R']:
+for name in ['extract_base.R','prepare.R','prepare_cutoff.R','prepare_cutoff_analytic.R']:
     run(['Rscript','--vanilla',str(ROOT/'02_scripts/01_harmonization'/name)])
 products=[x for x in out.rglob('*') if x.is_file() and x!=manifest]
 manifest.write_text(json.dumps({'inputs':current,'outputs':{str(x.relative_to(out)):digest(x) for x in products}},indent=2)+'\n')

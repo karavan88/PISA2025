@@ -13,6 +13,9 @@ def run(args):
     if profile.exists():
         env["R_PROFILE_USER"]=str(profile)
         env["RENV_PROJECT"]=str(ROOT)
+    # --vanilla suppresses the project profile and therefore renv.
+    if args and args[0] == "Rscript":
+        args=[a for a in args if a != "--vanilla"]
     subprocess.run(args,cwd=ROOT,check=True,env=env)
 def log(stage):
     out=PAPER/'04_output/00_logs';out.mkdir(parents=True,exist_ok=True)

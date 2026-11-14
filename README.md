@@ -1,8 +1,8 @@
 # PISA2025
 
 Garen Avanesian's PISA research repository. Shared harmonization runs centrally;
-paper folders consume prepared inputs and perform analysis. The active migrated
-paper is **01_SESTransmission**. Fuzzy-RD learning and wellbeing are also active; all other projects are in
+paper folders consume prepared inputs and perform analysis. The active projects with central preparation are **01_SESTransmission** and
+**02_fuzzy_rd_learning**. Wellbeing remains active in a separate session; all other projects are in
 `06_scoping` and are not certified against the shared build.
 
 ## Numbered layout
@@ -46,7 +46,7 @@ under the paper's ignored `04_output/00_logs/`.
    `Rscript -e 'renv::restore(prompt=FALSE)'`.
    The tracked `.Rprofile` activates the platform-specific project library automatically.
    Python entry points also set the project profile when launching R or Quarto.
-   `DESCRIPTION` declares direct dependencies; `renv.lock` pins all 87 packages.
+   `DESCRIPTION` declares direct dependencies; `renv.lock` pins all 91 packages.
    Run `Rscript -e 'renv::status()'` to check synchronization.
 3. Place the licensed/provider files in `01_data/`, or set `PISA_DATA`.
    See `01_data/README.md` for exact filenames.
@@ -75,3 +75,7 @@ estimation weights belong to analysis and must be documented as such. Changes to
 central definitions require a new shared build and explicit re-estimation; do not
 silently reuse country checkpoints. Legacy pipelines are preserved for provenance
 and migrated before being treated as maintained.
+
+## Reproduction guide
+
+Start with [where to place the source data](01_data/README.md) and the [complete commands for projects 01 and 02](00_documentation/REPRODUCE.md). The [verification report](00_documentation/REPRODUCIBILITY.md) distinguishes complete reruns, retained-result checks, and work not rerun. Project 02’s historical skill-outcome IV estimates contained a missing-outcome alignment bug; use the corrected estimation workflow rather than its historical snapshot for substantive interpretation.

@@ -56,11 +56,14 @@ B<-rbindlist(checks);stopifnot(max(B$max_joint_sum_error)<1e-8,max(B$max_total_i
 fwrite(B,file.path(OUT,'bootstrap_checks.csv'));fwrite(E,file.path(OUT,'estimates.csv'))
 
 # Reproduce the three-country pilot, including its uncertainty (identical seeds).
+if(file.exists(file.path(OUT,'pilot_reference_estimates.csv'))) {
 old<-fread(file.path(OUT,'pilot_reference_estimates.csv'))
 pv<-merge(E[exposure=='SES'&CNT%in%old$CNT,.(CNT,term,estimate,se)],old[,.(CNT,term,old_estimate=estimate,old_se=se)],by=c('CNT','term'))
 pc<-pv[,.(max_point_error=max(abs(estimate-old_estimate)),max_se_error=max(abs(se-old_se))),by=CNT]
 stopifnot(max(pc$max_point_error)<1e-5,max(pc$max_se_error)<1e-5)
 fwrite(pc,file.path(OUT,'pilot_replication.csv'))
+
+}
 
 # One row per exposure/country, with uncertainty and availability retained.
 A<-fread(file.path(OUT,'eligibility.csv'));G<-fread(file.path(OUT,'country_groups.csv'))

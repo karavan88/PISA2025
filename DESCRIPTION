@@ -22,4 +22,5 @@ Imports:
     jsonlite,
     digest,
     renv,
-    scales
+    scales,
+    metafor
