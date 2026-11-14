@@ -7,7 +7,11 @@
 /05_papers/**/04_output/
 /05_papers/**/05_archive/
 /05_papers/**/06_submissions/
-/04_manuscripts/
+/04_manuscripts/*
+!/04_manuscripts/README.md
+!/04_manuscripts/00_archived/
+/04_manuscripts/00_archived/*
+!/04_manuscripts/00_archived/README.md
 /07_archive/
 /work/
 /Claude outputs/
@@ -107,3 +111,8 @@ renv/cache/
 
 # Project-local renv sandbox
 renv/sandbox/
+
+# Local products in scoping projects
+/06_scoping/**/04_output/
+/06_scoping/**/05_archive/
+/06_scoping/**/06_submissions/
