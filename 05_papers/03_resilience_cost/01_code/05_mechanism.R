@@ -38,6 +38,8 @@ stat_mech <- function(s, y, w) {
   base <- cbind(top = top, C, SEI = s$SEI)
   M <- list(schESCS = s$schESCS_loo_z, schACH = schACH, female = s$female, uni = s$uni, SEI = s$SEI)
   for (z in avail(s, SEZ)) M[[sub("_z$", "", z)]] <- s[[z]]
+  if (length(avail(s, "growth"))) M$growth <- s$growth              # growth mindset, 0/1 (added 15 November 2026)
+  for (z in avail(s, c("EFFSCIE_z", "BELONG_z", "JOYSCIE_z"))) M[[sub("_z$", "", z)]] <- s[[z]]   # science self-efficacy, belonging, enjoyment of science (added 15 November 2026)
   for (m in names(M)) {
     mv <- M[[m]]; if (m == "female" && !"female" %in% ctrl) next
     X <- if (m %in% c("SEI", "female")) cbind(base, topX = top * mv) else cbind(base, M = mv, topX = top * mv)

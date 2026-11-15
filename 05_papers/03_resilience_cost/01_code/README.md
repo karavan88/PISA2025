@@ -1,11 +1,12 @@
 # The cost of resilience — code and analysis notes
 
 Resilient students (bottom within-system ESCS quartile × top achievement quartile) as the critical case: do they pay for academic
-success with their life satisfaction? Target journal: Child Indicators Research. Companion paper: `05_papers/04_price_of_progress`.
+success with their life satisfaction? Target journal: Child Indicators Research. Paper 04 (`05_papers/04_price_of_progress`) shares the
+prepared data; since 15 November 2026 this paper takes no results from it.
 
 | Step | Script | Output (`04_output/`) | Notes |
 |---|---|---|---|
-| shared | `02_scripts/02_legacy/wellbeing_shared/01_build.py`, `02_prepare.R` | `01_data/derived/resilwb_students.csv.gz`, `resilwb_analytic.rds`, `resilwb_coverage.csv` | frozen legacy preparation used by both papers; not yet in the central harmonizer |
+| shared | `02_scripts/02_legacy/wellbeing_shared/01_build.py`, `02_prepare.R` | `01_data/derived/resilwb_students.csv.gz`, `resilwb_analytic.rds`, `resilwb_coverage.csv` | legacy preparation used by both papers; not yet in the central harmonizer. Growth mindset and enjoyment of science added on 15 November 2026 (see its README) |
 | 2 | `02_describe.R` | `coverage.csv`, `desc_dist.csv` | fits no models: system coverage and the 0–10 answer distribution by group, on this paper's systems (Ukraine left out; see "Ukraine excluded") |
 | 3 | `03_response_style.R` | `rs_sys.csv`, `rs_pool.csv` | cell descriptives; gap with response-style controls; without speeders; along the ladder P(LS≥k); placebo top-box on 1–10 effort thermometers |
 | 4 | `04_gap.R` | `gap_sys.csv`, `gap_pool.csv` | ladder demo → +SEI → +6 skills → +relationships; Gelbach decomposition; advantaged high-vs-low achievers; difference in gaps; continuous ach × ESCS |
@@ -15,17 +16,21 @@ success with their life satisfaction? Target journal: Child Indicators Research.
 | 8 | `08_threshold.R` (~6 min) | `thr_sys.csv`, `thr_pool.csv`, `thr_model.csv` | ordered-probit threshold model for the ladder (≤3, 4, …, 10): one latent shift per system; pooled model with a separate shift at every threshold, with thresholds that also move with the four scale-use indices, and with a mean-and-spread alternative; external-criterion check on the relationship composite. `thr_pool.csv` and `thr_model.csv` are in the snapshot. |
 | 9 | `09_focal.R` (~2 min) | `foc_sys.csv`, `foc_pool.csv`, `foc_model.csv` | focal answers: gap in the share giving each answer 0–10; 5 against its neighbours; share answering 0 or 5; heaping at 0, 5 and 10; achievement gradient of focal answering inside a status quartile; pooled mixture arithmetic for the share of the gap at 10 that coarse scale use can produce. `foc_pool.csv` and `foc_model.csv` are in the snapshot. |
 | 10 | `10_figures.R`, `reporting.R` | `../02_results/figs/fig_a*.pdf` | report figures; read `02_results/snapshot/` only |
-| 11 | `11_figures_paper.R` | `../02_results/figs/fig_p*.pdf` | country-estimate figures of the paper draft (layout of paper 01); read `02_results/snapshot/` only |
-| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report and the paper (16 files, three of them per-system files for the country figures); 1 file comes from paper 04 (`cutoff_pool.csv`) |
+| 11 | `11_figures_paper.R` | `../02_results/figs/fig_p*.pdf` | figures of the paper draft; read `02_results/snapshot/` only |
+| 12 | `12_benchmark.R` | `bench_sys.csv`, `bench_pool.csv` | every group against advantaged top achievers (within school, demo and demo + skill index); resilient vs advantaged top achievers on top achievers only |
+| 13 | `13_forest.R` (~30–40 min) | `forest_pv.csv`, `forest_est.csv`, `forest_info.csv` | causal forest of the gap on fourteen characteristics, stacked systems, within school; calibration test, projection, gap by fifth; linear counterpart |
+| 15 | `15_regions.R`, `regions.R` | `region_pool.csv` | pools the per-system estimates of steps 3, 4 and 12 within seven world regions; fits no new model |
+| 14 | `14_cutoff.R` | `cutoff_sys.csv`, `cutoff_pool.csv` | school-entry cutoff (20 systems): effect of an extra grade on life satisfaction and its difference for the bottom status quartile |
+| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report and the paper (24 files, three of them from the weighted-composite check in `04_output/robust_achw/`); all produced by this paper's steps |
 | — | `run_all.sh report` / `paper` / `estimate <new_dir>` / `compare <new_dir>` | | reporting fits no models; estimation never writes into `04_output` |
 
 **Working rules for this folder.**
-- This paper's session writes only inside `05_papers/03_resilience_cost/`. The companion paper and `02_scripts/02_legacy/wellbeing_shared/` are read-only here.
+- This paper's session writes only inside `05_papers/03_resilience_cost/`. Paper 04 is read-only here. The shared layer was changed twice on
+  15 November 2026 on the author's explicit instruction (see its README); otherwise it is read-only too.
 - Figures and the report read `02_results/snapshot/` only. Estimation writes to `04_output/`; a result reaches the report only through
   `snapshot.py refresh` (with `--replace` when a file changes, which archives the previous snapshot to `05_archive/`).
 - Re-estimation goes into a new directory (`run_all.sh estimate <new_dir>`), is compared with `04_output` (`run_all.sh compare`), and
   the reason for any difference is recorded below before `04_output` is updated. Never run two copies of a step at once.
-- Files that come from the companion paper are listed in `snapshot.py` with their source; refresh them deliberately, not automatically.
 
 **Estimation.** Per system, Fay BRR (80 replicates) + Rubin over 10 plausible values (`pisa_est` in the shared helpers). The plausible value
 enters through the achievement composite, so anything defined on achievement is re-derived per plausible value and per replicate weight.
@@ -151,7 +156,7 @@ nor a stricter standard for the top predicts anything. Resilient minus disadvant
   at 10 and at 8 or more reproduce step 3 to seven decimals. Files copied into `04_output` as new files (`logs/foc.log`,
   `logs/foc_run.json`). No other step was rerun.
 
-**From the companion paper (snapshot of `cutoff_pool.csv`).** An extra grade at the same age lowers life satisfaction by 0.056 SD; the
+**School-entry cutoff (formerly a snapshot of paper 04's `cutoff_pool.csv`; estimated here as step 14 since 15 November 2026).** An extra grade at the same age lowers life satisfaction by 0.056 SD; the
 interaction with the bottom ESCS quartile is −0.014 (SE 0.034), so the causal design does not reproduce the larger penalty for
 disadvantaged students that the cross-section suggests (difference in gaps −0.07 to −0.09).
 
@@ -181,11 +186,22 @@ Analysis notes below that are dated before 15 November 2026 quote the estimates 
 `run_all.sh` was edited (the `paper` mode); bash reported a syntax error after the last step had finished. All eight step logs end
 normally and the outputs are complete.
 
-**Country figures (15 November 2026).** The paper draft uses four figures that show every system (`11_figures_paper.R`), in the layout
-of paper 01: `fig_p1_means` (mean life satisfaction of the two disadvantaged groups), `fig_p2_gap` (the gap before and after the skill
-index), `fig_p3_answers` (gap in the share giving each answer 0–10, heat map), `fig_p4_moderators` (interaction with four context
-variables and six skills, heat map). They need `rs_sys.csv`, `mech_sys.csv` and `foc_sys.csv`, which are now in the snapshot. The report
-keeps its own figures (`10_figures.R`). The placebo comparison on the effort questions and the two-rater result are in the text only.
+**Country figures (15 November 2026, redrawn the same day).** The first version copied the layout of paper 01 (two alphabetical
+panels and heat maps). The author asked for figures with their own look, scatter plots where they fit, and the mean and the median of
+systems instead of the mean in both panels; after seeing the redrawn figures they asked to drop the median. `11_figures_paper.R` draws
+five figures, each showing every system and marking the random-effects mean once (diamond):
+`fig_p1_means` (scatter: mean life satisfaction of resilient students against disadvantaged low achievers and against advantaged top
+achievers), `fig_p2_gap` (the gap with the skill index, one row per system, ranked; the mean closes the ranking),
+`fig_p3_skills` (scatter of the gap without against with the skill index; funnel of estimate against standard error),
+`fig_p4_answers` (one line per system for the difference in each answer 0-10; scatter of the share answering 10),
+`fig_p5_moderators` (one panel per moderator, one dot per system). Titles and subtitles stay inside the plots; the notes on how to read
+each figure are in the figure captions of the manuscript, at the author's request.
+The figures need `rs_sys.csv`, `mech_sys.csv` and `foc_sys.csv`, which are in the snapshot. No estimation was rerun for the redrawing.
+The report keeps its own figures (`10_figures.R`). The placebo comparison on the effort questions and the two-rater result are in the
+text only. `save()` writes each PDF to a temporary file and moves it into place, because the PDF device twice left an existing file
+unchanged without an error; the cause was not found. Manuscript text added with the figures: the unadjusted comparison with advantaged
+top achievers, the number of systems in which the gap grows when skills are held fixed, the number inside the funnel, and the number
+in which resilient students answer 10 less often (helpers `cbelow()` and `cfunnel()` in `reporting.R`).
 
 **Paper draft (15 November 2026).** `03_manuscript/cost_of_resilience_paper.qmd` is the manuscript for *Child Indicators Research*;
 the research report `cost_of_resilience.qmd` stays as the working record. It is a full draft: abstract, introduction (novelty
@@ -198,7 +214,7 @@ methodological refinements. Render with `quarto render` on the file (`run_all.sh
 - Items left for the author are marked `[AUTHOR: ...]` in the text (PISA 2025 data citation, item wording, companion-paper citation,
   child-indicator citation, supplement, title word "cost", declarations).
 - The paper says "scale", not "ladder": the PISA item is a 0-10 satisfaction question, not the Cantril ladder. From 15 November 2026
-  the paper has its own figures (`11_figures_paper.R`); they keep a title, subtitle and notes inside the plot, as the figures of paper 01 do.
+  the paper has its own figures (`11_figures_paper.R`); they keep a title, subtitle and notes inside the plot.
 - Two numbers in the methods section are not read from the snapshot: the 0.07 correlation of status with life satisfaction and
   "about two thirds" of resilient students sharing a school with a disadvantaged low achiever (both from the notes above).
 - The summary table of evidence by hypothesis was taken out for length and kept in `03_manuscript/literature/evidence_summary_table.md`.
@@ -218,3 +234,60 @@ methodological refinements. Render with `quarto render` on the file (`run_all.sh
 - Central migration of the shared preparation (`02_scripts/01_harmonization`) before any fresh processing is treated as maintained.
 
 Full pre-split notebook: `02_scripts/02_legacy/wellbeing_shared/HISTORY_resilwb_2026-11-14.md`.
+
+**Revision of 15 November 2026 (afternoon; author's instructions).**
+- *Structure.* Hypotheses replaced by four research questions (RQ1 the gap, RQ2 what skills hide, RQ3 disadvantage among achievers,
+  RQ4 where the gap differs). Section 2 rebuilt to 1,300 words from the existing evidence with the author's six literature prompts;
+  the record (scope, modules, outline, audit) is `03_manuscript/literature/review_structure.md`. Sections follow the author's IRel
+  paper: data; empirical approach (identification strategy, methodological threats); results; discussion with implications and
+  limitations. `[AUTHOR: ...]` notes and the declarations section removed; questions go to the author in the chat.
+- *Second benchmark (step 12).* Every group against advantaged top achievers, the most satisfied group.
+- *Heterogeneity (step 13).* A causal forest of the gap on fourteen characteristics replaces the system-by-system interaction models
+  as the main analysis; those move to the appendix. A first forest run (11:40 design, nuisance models in levels only) gave an average
+  gap of −0.06 where the regressions give about −0.19; the nuisance forests now also receive the within-school deviations of the
+  characteristics. Test on one plausible value (68 systems, 15:04): average gap −0.13 (SE 0.04), calibration "differential" 0.02
+  (SE 0.22): no variation found within schools. `grf` 2.6.1 is installed but not recorded in `renv.lock`.
+- *Characteristics added.* Growth mindset (binary: disagrees that intelligence cannot change; not fielded in Spain), science
+  self-efficacy, sense of belonging and enjoyment of science, as moderators in steps 5 and 13; growth mindset also as a control
+  (`lad:sei_growth`) and in the group descriptives (`mean:*:growth`).
+- *Cutoff test estimated here (step 14).* Reproduces the previous snapshot rows exactly (base LS_z −0.056, SE 0.018; lowses
+  gamma:lowSES −0.014, SE 0.034).
+- *Figures.* Own lettering (Charter) and palette; no titles, subtitles or notes inside the charts (they are in the captions);
+  significance shown at 5 and 10 per cent; mean of systems shown once (black square). Main text: means, benchmark, skills,
+  answers, forest. Appendix: ranking of systems, interaction models.
+- *Runs.* Two estimations were stopped and kept with the suffix `_stopped` (`05_archive/estimate_20261115_bench_forest_stopped`,
+  `estimate_20261115_growth_stopped`), the first because the forest design was wrong and growth mindset was to be added, the second
+  because three more characteristics were to be added.
+- *Checks for the author, not changed.* Grouping by domain (PV1, raw, each system weighted equally): the gap between resilient
+  students and disadvantaged low achievers is −0.07 SD with the composite, −0.09 with reading, −0.08 with science and −0.01 with
+  mathematics; the composite stays. Expected number of systems significant at 5 per cent if every system had the pooled gap: 12.3
+  (observed 9) for the gap with skills, 35.2 (observed 33) against advantaged top achievers.
+- *Achievement measured by reading (author's decision, 15:45).* Reading is the main measure of achievement; the check is a composite
+  weighted towards reading (1/2 reading, 1/4 mathematics, 1/4 science), run for steps 3, 4 and 12 into `robust_achw/`. The switch is
+  `PAPER_ACH` in `00_helpers.R` (READ default, ACHW, ACH = the simple average used until now): `load_rw()` replaces ACH1-ACH10 with
+  the chosen measure from the plausible values in the shared student extract. Adding the measures to the shared preparation was
+  blocked by the permission check (the author had approved shared-layer changes for growth mindset only), so the selection is made in
+  this paper's loader instead; it reads a derived file, not the provider file. Note for the text: the major domain of PISA 2025 is
+  science, not reading.
+- *Regions (step 15).* Pooled estimates by seven world regions (`regions.R`), for the gap, the benchmark contrasts and the share
+  answering 10; figure `fig_p8_regions`.
+- *Runs.* A third run with the simple average (`estimate_20261115_traits_stopped`) was stopped when the author chose reading. The full
+  run is `05_archive/estimate_20261115_reading`.
+- *Promotion (16:42).* `estimate_20261115_reading` (all steps; `robust_achw` for steps 3, 4, 12; `robust_scie` and `robust_ach` for
+  step 4, run by hand into the same directory after the main run with the commands now in `run_all.sh`) compared with `04_output`:
+  every file differs because achievement is now reading, as intended. Checks: the simple-average rerun reproduces the previous
+  `gap_sys.csv` exactly (1,699 rows, max |diff| 0), and step 14 reproduces the previous cutoff rows exactly. Previous `04_output`
+  archived to `05_archive/output_20261115_composite/`, previous snapshot to `05_archive/snapshot_20261115T154254Z/`; snapshot now
+  26 files. Estimation was rerun in full.
+- *Main results with reading (68 systems).* Gap −0.074 (SE 0.021) with demographics, −0.167 (0.021) with the skill index (61
+  negative, 8 significant at 5%, 12 at 10%; about 11 expected at 5% if every system had the pooled gap). Against advantaged top
+  achievers: resilient −0.261 (0.015, 36 significant), disadvantaged low achievers −0.189 (24), advantaged low achievers −0.018; with
+  the skill index −0.192, −0.034, +0.088. Checks: composite −0.191, science −0.184, simple average −0.189 (skill index held fixed).
+  Forest within schools: average gap −0.143 (0.048), calibration differential 0.06 (0.25), no characteristic significant; without
+  school fixed effects differential 1.01 (0.21), belonging 0.09 (0.02). Joint linear model with fixed effects: belonging +0.082
+  (0.022), growth mindset +0.081 (0.039), curiosity −0.062 (0.022), science self-efficacy −0.043 (0.021). System-by-system
+  interactions: belonging +0.093, self-regulated learning +0.072, curiosity −0.063 pass Bonferroni for 14 tests; enjoyment of
+  science −0.051 at the threshold. Second rater for self-regulation: student 0.045 (0.043), parent −0.001 (0.042).
+- *Paper.* 23 pages; background 1,409 words (within the 1,500 limit, above the 1,200–1,300 aim after growth mindset, self-efficacy
+  and belonging were added). The rationale for reading is still to come from the author.
+

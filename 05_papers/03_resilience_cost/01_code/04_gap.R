@@ -32,6 +32,11 @@ stat_gap <- function(s, y, w) {
   out["lad:se6"]    <- reg(q1 & full_cc, s$LS_z, cbind(top = top, C, as.matrix(s[, ..sez])))
   out["lad:full"]   <- reg(q1 & full_cc, s$LS_z, cbind(top = top, C, SEI = s$SEI, as.matrix(s[, ..ctz])))
   out["lad:nofe_demo"] <- reg(q1 & full_cc, s$LS_z, cbind(top = top, C), g = NULL)
+  # growth mindset (binary; not fielded in every system) held fixed next to the skill index, and the same sample without it
+  gm <- q1 & full_cc & !is.na(s$growth)
+  out["lad:sei_growth"]  <- if (sum(gm) > 0) reg(gm, s$LS_z, cbind(top = top, C, SEI = s$SEI, growth = s$growth)) else NA
+  out["lad:sei_gsample"] <- if (sum(gm) > 0) reg(gm, s$LS_z, cbind(top = top, C, SEI = s$SEI)) else NA
+  out["gro:contrib"]     <- if (sum(gm) > 0) reg(gm, s$growth, cbind(top = top, C, SEI = s$SEI)) * reg(gm, s$LS_z, cbind(top = top, C, SEI = s$SEI, growth = s$growth), coefs = "growth") else NA
   out["lad:full_points"] <- reg(q1 & full_cc, s$LS, cbind(top = top, C, SEI = s$SEI, as.matrix(s[, ..ctz])))
   # alternative comparison: resilient vs every other bottom-quartile student
   out["alt:sei"] <- reg(s$sesq == 1, s$LS_z, cbind(top = top, C, SEI = s$SEI))

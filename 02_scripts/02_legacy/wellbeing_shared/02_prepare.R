@@ -30,6 +30,8 @@ d[, LS10 := as.integer(LS == 10)]
 # placebo thermometers (1-10): top-box use on a numeric scale whose content is not wellbeing
 d[, `:=`(EFF1 = EFFORT1, EFF2 = EFFORT2, EFFQ = ST331Q03JA)]
 d[, `:=`(EFF1_10 = as.integer(EFF1 == 10), EFF2_10 = as.integer(EFF2 == 10), EFFQ_10 = as.integer(EFFQ == 10))]
+# growth mindset (added 15 November 2026): 1 = disagrees that intelligence cannot change; same definition as 02_scripts/01_harmonization/prepare_cutoff.R
+d[, growth := fifelse(is.na(ST420Q01DA), NA_real_, as.numeric(ST420Q01DA %in% c(1, 2)))]
 
 # --- sample
 d <- d[!is.na(LS) & !is.na(ESCS) & !is.na(ACH1) & !is.na(W_FSTUWT)]
@@ -55,10 +57,12 @@ d[, c("sw", "swx", "nsch") := NULL]
 d[, speeder := as.integer(sec_per_item < 1)]
 d[, speeder_rel := as.integer(sec_per_item < wquant(sec_per_item, w, .05)), by = CNT]
 d[, grade_c := factor(GRADE)]
+# enjoyment of science (added 15 November 2026), standardised within system like the other scales; kept out of zvars so that the order of the earlier columns does not change
+d[, JOYSCIE_z := if (sum(!is.na(JOYSCIE)) > 50) zw(JOYSCIE, w) else NA_real_, by = CNT]
 
 keepcols <- c("CNT", "CNTSCHID", "CNTSTUID", "female", "AGE", "GRADE", "W_FSTUWT", RW, "w", ACH, "LS", "LS10", "SEI", "sesq", "ESCS",
               "schESCS_loo_z", "speeder", "speeder_rel", "sec_per_item", "SISCO", "EXPECEDU", "PQSELFREG", "PA204Q04DA", SE6, CTX,
-              "ERS", "ARS", "ERS5", "MRS5", "ACQ5", "EFF1", "EFF2", "EFFQ", "EFF1_10", "EFF2_10", "EFFQ_10", grep("_z$", names(d), value = TRUE))
+              "ERS", "ARS", "ERS5", "MRS5", "ACQ5", "EFF1", "EFF2", "EFFQ", "EFF1_10", "EFF2_10", "EFFQ_10", setdiff(grep("_z$", names(d), value = TRUE), "JOYSCIE_z"), "growth", "JOYSCIE", "JOYSCIE_z")   # additions last: earlier columns keep their order
 d <- d[, unique(keepcols), with = FALSE]
 saveRDS(d, DERIV)
 

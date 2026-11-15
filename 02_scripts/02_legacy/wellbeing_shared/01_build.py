@@ -30,8 +30,12 @@ ID = ['CNT', 'CNTSCHID', 'CNTSTUID', 'ST004D01T', 'MALE', 'AGE', 'GRADE', 'W_FST
 OUTC = ['ST016Q01NA', 'SISCO', 'EXPECEDU']
 # placebo numeric scales (1-10 thermometers): effort on the test, effort had it counted, effort on the questionnaire
 PLAC = ['EFFORT1', 'EFFORT2', 'ST331Q03JA']
+# growth mindset (added 15 November 2026): "Your intelligence is something about you that you cannot change very much", 1 strongly disagree ... 4 strongly agree
+MIND = ['ST420Q01DA']
+# enjoyment of science (added 15 November 2026, second addition of the day)
+JOY = ['JOYSCIE']
 
-cols = ID + OUTC + PLAC + SE6 + CTX + SES + PAR + RS4 + RS5 + PV + RW
+cols = ID + OUTC + PLAC + SE6 + CTX + SES + PAR + RS4 + RS5 + PV + RW + MIND + JOY   # additions last: the earlier columns keep their order
 d, _ = pyreadstat.read_sav(os.path.join(DATA, 'CY09_MS_STU_PUF.sav'), usecols=cols)
 
 # questionnaire timing for the grid screens behind the response-style and skill items -> seconds per item

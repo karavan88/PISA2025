@@ -34,3 +34,28 @@ To check the relocated code, every step was then re-run into a scratch directory
 
 This establishes that the relocated code reproduces the 14 November estimates on this machine. It does not certify the legacy
 preparation against the central harmonizer, and it does not establish that the estimates are correct.
+
+## Change of 15 November 2026 — growth mindset added
+
+Made by the paper 03 session on the author's instruction (the layer is otherwise frozen). `01_build.py` now also extracts
+`ST420Q01DA` ("You have a certain amount of intelligence, and you really can't do much to change it"; 1 strongly disagree to
+4 strongly agree), and `02_prepare.R` adds `growth` = 1 for students who disagree or strongly disagree, the definition of
+`02_scripts/01_harmonization/prepare_cutoff.R`. Both were run into a scratch directory (`WELLBEING_DERIVED`) and compared before
+the files in `01_data/derived` were replaced:
+
+- `resilwb_analytic.rds`: 510,699 × 156, one new column (`growth`, last). The 155 earlier columns are identical value for value,
+  in the same order. `resilwb_coverage.csv` is byte-identical. `resilwb_students.csv.gz` has one new column (`ST420Q01DA`, last).
+- `growth` is observed for 92 per cent of students; it was not fielded in Spain and is missing for a fifth of students in Armenia.
+- The previous two data files are kept in `01_data/derived/resilwb_logs/before_growth_20261115/`. The console logs of the
+  14 November build in `resilwb_logs/` (`build.log`, `prepare.log`) were overwritten by the logs of this rebuild, by mistake.
+- Paper 04 reads none of the new columns, so its estimates cannot change; it was not re-estimated. Paper 03 was re-estimated in
+  full (see its `01_code/README.md`).
+
+## Second change of 15 November 2026 — enjoyment of science added
+
+On the author's instruction, `01_build.py` also extracts `JOYSCIE` (enjoyment of science, WLE) and `02_prepare.R` adds `JOYSCIE`
+and `JOYSCIE_z` (standardised within system), after `growth`. Rebuilt into a scratch directory and compared with the files of
+14 November (`resilwb_logs/before_growth_20261115/`): 510,699 × 158; the 155 original columns identical value for value and in
+order; `growth` identical to the first rebuild; `resilwb_coverage.csv` byte-identical. `JOYSCIE` is observed for 98 per cent of
+students. Console logs: `resilwb_logs/build_20261115b.log`, `prepare_20261115b.log`.
+

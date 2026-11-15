@@ -11,7 +11,7 @@ d <- load_rw()
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0), LSle4 = as.integer(LS <= 4))]
 for (k in c(4, 6, 8, 9)) d[, (paste0("LSge", k)) := as.integer(LS >= k)]
 CELLS <- c(R = "resilient", PL = "disadv. low achiever", AT = "advantaged top", AL = "advantaged low")
-DESC <- c("LS", "LS10", "LSle4", "ERS_z", "ARS_z", "ACQ5_z", "MRS5_z", "ERS5_z", "SEI", "speeder")
+DESC <- c("LS", "LS10", "LSle4", "ERS_z", "ARS_z", "ACQ5_z", "MRS5_z", "ERS5_z", "SEI", "speeder", "growth")   # growth: share with a growth mindset (added 15 November 2026)
 THR <- c("LSge4", "LSge6", "LSge8", "LSge9", "LS10")
 PLAC <- c("EFF1", "EFF2", "EFFQ")
 

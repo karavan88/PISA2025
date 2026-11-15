@@ -3,7 +3,7 @@
   python3 05_papers/03_resilience_cost/01_code/snapshot.py refresh            copy the listed sources into the snapshot (refuses if any file would change)
   python3 05_papers/03_resilience_cost/01_code/snapshot.py refresh --replace  archive the current snapshot to 05_archive/snapshot_<utc>/, then replace it
 Promotion is deliberate: estimation writes to 04_output (or a fresh PAPER_OUT directory); nothing reaches a report until it is
-promoted here. Files produced by the companion paper are listed with their source and are refreshed only by this command.
+promoted here. Every file is produced by this paper's own steps (since 15 November 2026 the cutoff estimate too).
 Standard library only. Data files stay Git-ignored; the manifest (hashes, sources) is tracked."""
 import hashlib, json, shutil, subprocess, sys, datetime
 from pathlib import Path
@@ -22,13 +22,26 @@ FILES = {
     'thr_model.csv': ('05_papers/03_resilience_cost/04_output/thr_model.csv', '05_papers/03_resilience_cost/01_code/08_threshold.R'),
     'foc_pool.csv': ('05_papers/03_resilience_cost/04_output/foc_pool.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
     'foc_model.csv': ('05_papers/03_resilience_cost/04_output/foc_model.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
-    'cutoff_pool.csv': ('05_papers/04_price_of_progress/04_output/cutoff_pool.csv', '05_papers/04_price_of_progress/01_code/08_cutoff.R'),
+    'cutoff_pool.csv': ('05_papers/03_resilience_cost/04_output/cutoff_pool.csv', '05_papers/03_resilience_cost/01_code/14_cutoff.R'),
     'desc_dist.csv': ('05_papers/03_resilience_cost/04_output/desc_dist.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
     'coverage.csv': ('05_papers/03_resilience_cost/04_output/coverage.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
     # per-system estimates behind the country figures of the paper (11_figures_paper.R)
     'rs_sys.csv': ('05_papers/03_resilience_cost/04_output/rs_sys.csv', '05_papers/03_resilience_cost/01_code/03_response_style.R'),
     'mech_sys.csv': ('05_papers/03_resilience_cost/04_output/mech_sys.csv', '05_papers/03_resilience_cost/01_code/05_mechanism.R'),
     'foc_sys.csv': ('05_papers/03_resilience_cost/04_output/foc_sys.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
+    # second benchmark (advantaged top achievers) and the causal forest
+    'bench_pool.csv': ('05_papers/03_resilience_cost/04_output/bench_pool.csv', '05_papers/03_resilience_cost/01_code/12_benchmark.R'),
+    'bench_sys.csv': ('05_papers/03_resilience_cost/04_output/bench_sys.csv', '05_papers/03_resilience_cost/01_code/12_benchmark.R'),
+    'forest_est.csv': ('05_papers/03_resilience_cost/04_output/forest_est.csv', '05_papers/03_resilience_cost/01_code/13_forest.R'),
+    'forest_info.csv': ('05_papers/03_resilience_cost/04_output/forest_info.csv', '05_papers/03_resilience_cost/01_code/13_forest.R'),
+    'region_pool.csv': ('05_papers/03_resilience_cost/04_output/region_pool.csv', '05_papers/03_resilience_cost/01_code/15_regions.R'),
+    # robustness: achievement as a composite weighted towards reading (PAPER_ACH=ACHW); main steps only
+    'rs_pool_achw.csv': ('05_papers/03_resilience_cost/04_output/robust_achw/rs_pool.csv', '05_papers/03_resilience_cost/01_code/03_response_style.R'),
+    'gap_pool_achw.csv': ('05_papers/03_resilience_cost/04_output/robust_achw/gap_pool.csv', '05_papers/03_resilience_cost/01_code/04_gap.R'),
+    'bench_pool_achw.csv': ('05_papers/03_resilience_cost/04_output/robust_achw/bench_pool.csv', '05_papers/03_resilience_cost/01_code/12_benchmark.R'),
+    # robustness: the gap with achievement measured by science, or by the simple average of the three domains (step 4 only)
+    'gap_pool_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/gap_pool.csv', '05_papers/03_resilience_cost/01_code/04_gap.R'),
+    'gap_pool_ach.csv': ('05_papers/03_resilience_cost/04_output/robust_ach/gap_pool.csv', '05_papers/03_resilience_cost/01_code/04_gap.R'),
 }
 
 def sha(p):
