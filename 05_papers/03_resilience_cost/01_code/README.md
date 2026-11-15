@@ -6,6 +6,7 @@ success with their life satisfaction? Target journal: Child Indicators Research.
 | Step | Script | Output (`04_output/`) | Notes |
 |---|---|---|---|
 | shared | `02_scripts/02_legacy/wellbeing_shared/01_build.py`, `02_prepare.R` | `01_data/derived/resilwb_students.csv.gz`, `resilwb_analytic.rds`, `resilwb_coverage.csv` | frozen legacy preparation used by both papers; not yet in the central harmonizer |
+| 2 | `02_describe.R` | `coverage.csv`, `desc_dist.csv` | fits no models: system coverage and the 0–10 answer distribution by group, on this paper's systems (Ukraine left out; see "Ukraine excluded") |
 | 3 | `03_response_style.R` | `rs_sys.csv`, `rs_pool.csv` | cell descriptives; gap with response-style controls; without speeders; along the ladder P(LS≥k); placebo top-box on 1–10 effort thermometers |
 | 4 | `04_gap.R` | `gap_sys.csv`, `gap_pool.csv` | ladder demo → +SEI → +6 skills → +relationships; Gelbach decomposition; advantaged high-vs-low achievers; difference in gaps; continuous ach × ESCS |
 | 5 | `05_mechanism.R` | `mech_sys.csv`, `mech_pool.csv`, `meta_reg.csv`, `system_traits.csv` | top × moderator (LOO school ESCS, LOO school achievement per PV, female, university expectation, SEI, each skill); top-box versions; accounting with self-efficacy / expectations / career clarity (Gelbach); RE meta-regression of the step-4 gap on system traits |
@@ -13,9 +14,10 @@ success with their life satisfaction? Target journal: Child Indicators Research.
 | 7 | `07_curiosity.R` | `cur_sys.csv`, `cur_pool.csv` | top × curiosity under: ladder outcomes, response-style controls (+ × top), RS-purged curiosity, item subsets (positive / reversed / comparative), no speeders, all six skills jointly, no SEI, advantaged quartile |
 | 8 | `08_threshold.R` (~6 min) | `thr_sys.csv`, `thr_pool.csv`, `thr_model.csv` | ordered-probit threshold model for the ladder (≤3, 4, …, 10): one latent shift per system; pooled model with a separate shift at every threshold, with thresholds that also move with the four scale-use indices, and with a mean-and-spread alternative; external-criterion check on the relationship composite. `thr_pool.csv` and `thr_model.csv` are in the snapshot. |
 | 9 | `09_focal.R` (~2 min) | `foc_sys.csv`, `foc_pool.csv`, `foc_model.csv` | focal answers: gap in the share giving each answer 0–10; 5 against its neighbours; share answering 0 or 5; heaping at 0, 5 and 10; achievement gradient of focal answering inside a status quartile; pooled mixture arithmetic for the share of the gap at 10 that coarse scale use can produce. `foc_pool.csv` and `foc_model.csv` are in the snapshot. |
-| 10 | `10_figures.R`, `reporting.R` | `../02_results/figs/fig_a*.pdf` | read `02_results/snapshot/` only |
-| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report (13 files); 2 files come from paper 04 (`cutoff_pool.csv`, `desc_dist.csv`) |
-| — | `run_all.sh report` / `estimate <new_dir>` / `compare <new_dir>` | | reporting fits no models; estimation never writes into `04_output` |
+| 10 | `10_figures.R`, `reporting.R` | `../02_results/figs/fig_a*.pdf` | report figures; read `02_results/snapshot/` only |
+| 11 | `11_figures_paper.R` | `../02_results/figs/fig_p*.pdf` | country-estimate figures of the paper draft (layout of paper 01); read `02_results/snapshot/` only |
+| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report and the paper (16 files, three of them per-system files for the country figures); 1 file comes from paper 04 (`cutoff_pool.csv`) |
+| — | `run_all.sh report` / `paper` / `estimate <new_dir>` / `compare <new_dir>` | | reporting fits no models; estimation never writes into `04_output` |
 
 **Working rules for this folder.**
 - This paper's session writes only inside `05_papers/03_resilience_cost/`. The companion paper and `02_scripts/02_legacy/wellbeing_shared/` are read-only here.
@@ -29,7 +31,7 @@ success with their life satisfaction? Target journal: Child Indicators Research.
 enters through the achievement composite, so anything defined on achievement is re-derived per plausible value and per replicate weight.
 School fixed effects by weighted within-school demeaning. Cross-system summaries: DerSimonian–Laird random effects. Sex comes from the
 sampling-frame `MALE` where `ST004D01T` is withheld (14 systems). ISL, LUX, MAC, MLT have no school ID in the public file.
-Systems need ≥80 students in each contrasted cell (drops BEL, LUX → 72; within-school models 69).
+Systems need ≥80 students in each contrasted cell (drops BEL, LUX). Ukraine (QUA) is excluded from 15 November 2026: 73 systems in the sample, 71 with both cells, 68 in within-school models (74 / 72 / 69 before).
 
 **Why SES is not the identification problem.** Within system, ESCS explains ~1% of life-satisfaction variance (r = 0.07); adding SES
 and school FE moves the skill-index slope from 0.212 to 0.201. The live threats are shared-method/temperament (→ ORIV, behavioural
@@ -158,6 +160,51 @@ three hypotheses (H1 the cost, H2 masking, H3 specificity, formerly H4) and two 
 was H3 (scale use) and RQ3 (standard for the top) is one short robustness section; it is to stay short. Notes above written before
 this decision, and the scoping review in `03_manuscript/literature/`, use the old labels (H3 = scale use, H4 = specificity, RQ3).
 `foc_*` was promoted with `snapshot.py refresh` (existing files unchanged; previous manifest in `05_archive/manifest_20261114T185631Z/`).
+
+**Ukraine excluded (15 November 2026).** By the author's decision Ukraine (`QUA`, 17 of 27 regions) is left out of every analysis of
+this paper. The exclusion is one line in `00_helpers.R` (`EXCLUDE`, applied in `load_rw()`), so the shared layer and paper 04 are
+unchanged; `PAPER_EXCLUDE=""` reproduces the estimates that included Ukraine. Estimation was rerun in full on 15 November 2026
+(`run_all.sh estimate 05_archive/estimate_20261115_noUKR`, steps 2–9, 17 minutes). Comparison with the previous `04_output`:
+- Every per-system estimate of the other systems is identical (maximum difference 0 in all seven `*_sys.csv` files); only Ukraine's
+  rows are gone. Step 6 (17 parent-questionnaire systems) never contained Ukraine and is unchanged.
+- Pooled estimates lose one system and move by at most 0.35 of a standard error. Gap with demographics −0.088 → −0.084 (47 of 68
+  systems negative); with the skill index −0.193 → −0.189 (SE 0.022; 62 of 68 negative, 9 significantly; I² = 0); six skills
+  −0.169 → −0.166; skills and relationships −0.190 → −0.186; advantaged gap −0.102 → −0.094; difference in gaps −0.074 → −0.075.
+  Ukraine's own gap was −0.37 (SE 0.15), so the pooled gap is slightly smaller without it.
+- Pooled models (`thr_model.csv`, `foc_model.csv`): largest change 0.55 SE (a benchmark share, not a contrast).
+- `desc_dist.csv` and `coverage.csv` are now written by this paper (`02_describe.R`) instead of being taken from paper 04 and the shared
+  layer. With nothing excluded the step reproduces both source files exactly; without Ukraine no share moves by more than 0.2 points.
+  Sample: 73 systems, 504,542 students (Ukraine had 6,157).
+- The companion paper's cutoff estimate (`cutoff_pool.csv`, 20 systems) does not include Ukraine and is unchanged.
+The previous outputs are kept in `05_archive/output_20261114_withUKR/` and the previous snapshot in `05_archive/snapshot_20261115T013153Z/`.
+Analysis notes below that are dated before 15 November 2026 quote the estimates with Ukraine. While the run was in progress
+`run_all.sh` was edited (the `paper` mode); bash reported a syntax error after the last step had finished. All eight step logs end
+normally and the outputs are complete.
+
+**Country figures (15 November 2026).** The paper draft uses four figures that show every system (`11_figures_paper.R`), in the layout
+of paper 01: `fig_p1_means` (mean life satisfaction of the two disadvantaged groups), `fig_p2_gap` (the gap before and after the skill
+index), `fig_p3_answers` (gap in the share giving each answer 0–10, heat map), `fig_p4_moderators` (interaction with four context
+variables and six skills, heat map). They need `rs_sys.csv`, `mech_sys.csv` and `foc_sys.csv`, which are now in the snapshot. The report
+keeps its own figures (`10_figures.R`). The placebo comparison on the effort questions and the two-rater result are in the text only.
+
+**Paper draft (15 November 2026).** `03_manuscript/cost_of_resilience_paper.qmd` is the manuscript for *Child Indicators Research*;
+the research report `cost_of_resilience.qmd` stays as the working record. It is a full draft: abstract, introduction (novelty
+statement; no figures, by the author's instruction), previous evidence and hypotheses, data and methods, results, discussion,
+conclusion, declarations. Length limit set by the author: about 10,000 words for the whole paper. The rendered PDF (22 pages after
+the country figures) has 9,556 words including the reference list and 7,396 without it, not counting the lettering inside the four
+figures (838 words, mostly system names, which `pdftotext` also extracts: 10,394 in all); recount after every revision. The draft sources `01_code/reporting.R`, so
+its numbers come from the approved snapshot and follow it when the snapshot changes; methods and results are to be revised after the
+methodological refinements. Render with `quarto render` on the file (`run_all.sh report` renders the report only).
+- Items left for the author are marked `[AUTHOR: ...]` in the text (PISA 2025 data citation, item wording, companion-paper citation,
+  child-indicator citation, supplement, title word "cost", declarations).
+- The paper says "scale", not "ladder": the PISA item is a 0-10 satisfaction question, not the Cantril ladder. From 15 November 2026
+  the paper has its own figures (`11_figures_paper.R`); they keep a title, subtitle and notes inside the plot, as the figures of paper 01 do.
+- Two numbers in the methods section are not read from the snapshot: the 0.07 correlation of status with life satisfaction and
+  "about two thirds" of resilient students sharing a school with a disadvantaged low achiever (both from the notes above).
+- The summary table of evidence by hypothesis was taken out for length and kept in `03_manuscript/literature/evidence_summary_table.md`.
+- Two sources unread on 14 November were read as abstracts on 15 November (Agasisti et al. 2026; Tong 2025); neither estimates the
+  gap. Added to `references.bib`: Gelbach (2016) and DerSimonian and Laird (1986), both checked against Crossref; `&amp;` in nine
+  journal names became `\&` and "Palma Carvajal" was restored as a surname.
 
 **Open items for this paper.**
 - The top-of-ladder question needs data this cycle does not have (vignettes or a second wellbeing measure): check PISA 2018/2022.

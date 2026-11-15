@@ -8,6 +8,9 @@ thrm <- rd("thr_model.csv")                                         # pooled thr
 focm <- rd("foc_model.csv")                                         # pooled focal-answer quantities (step 9): term, est, se
 orivb <- rd("oriv_resil.csv"); cut <- rd("cutoff_pool.csv")        # cutoff_pool.csv is a snapshot of paper 04's estimate
 gap_sys <- rd("gap_sys.csv"); cov <- rd("coverage.csv")
+rs_sys <- rd("rs_sys.csv")                                          # per-system estimates of step 3, for counts of systems
+# number of systems with a negative ("neg"), positive ("pos") or any ("n") estimate of a per-system term
+csys <- function(tab, term_, what = "neg") { x <- tab[term == term_ & !is.na(est)]; if (!nrow(x)) stop("per-system term not found: ", term_); switch(what, neg = sum(x$est < 0), pos = sum(x$est > 0), n = nrow(x)) }
 
 num <- function(x, d = 2) { s <- formatC(round(x, d), format = "f", digits = d); s <- sub("^-(0\\.0+)$", "\\1", s); sub("^-", "&minus;", s) }   # pandoc entity for a true minus; no "-0.00"
 big <- function(x) formatC(round(x), format = "d", big.mark = ",")

@@ -23,8 +23,12 @@ FILES = {
     'foc_pool.csv': ('05_papers/03_resilience_cost/04_output/foc_pool.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
     'foc_model.csv': ('05_papers/03_resilience_cost/04_output/foc_model.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
     'cutoff_pool.csv': ('05_papers/04_price_of_progress/04_output/cutoff_pool.csv', '05_papers/04_price_of_progress/01_code/08_cutoff.R'),
-    'desc_dist.csv': ('05_papers/04_price_of_progress/04_output/desc_dist.csv', '05_papers/04_price_of_progress/01_code/09_extras.R'),
-    'coverage.csv': ('01_data/derived/resilwb_coverage.csv', '02_scripts/02_legacy/wellbeing_shared/02_prepare.R'),
+    'desc_dist.csv': ('05_papers/03_resilience_cost/04_output/desc_dist.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
+    'coverage.csv': ('05_papers/03_resilience_cost/04_output/coverage.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
+    # per-system estimates behind the country figures of the paper (11_figures_paper.R)
+    'rs_sys.csv': ('05_papers/03_resilience_cost/04_output/rs_sys.csv', '05_papers/03_resilience_cost/01_code/03_response_style.R'),
+    'mech_sys.csv': ('05_papers/03_resilience_cost/04_output/mech_sys.csv', '05_papers/03_resilience_cost/01_code/05_mechanism.R'),
+    'foc_sys.csv': ('05_papers/03_resilience_cost/04_output/foc_sys.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
 }
 
 def sha(p):

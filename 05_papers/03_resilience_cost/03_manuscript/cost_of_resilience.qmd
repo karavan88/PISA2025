@@ -153,7 +153,7 @@ Two candidate channels also account for none of it. Resilient students have more
 
 The answer to RQ1 is negative. Status mismatch and peer comparison, the two mechanisms with the strongest prior support, leave no trace in these data.
 
-![Change in the gap associated with each moderator, with 95% intervals. Estimates significant at the 1% level are highlighted. Context and skill rows: random-effects means over 69 systems. Two-rater rows: pooled sample of the 17 systems with a parent questionnaire.](`r fig("fig_a5_moderators")`){#fig-a5 width=100%}
+![Change in the gap associated with each moderator, with 95% intervals. Estimates significant at the 1% level are highlighted. Context and skill rows: random-effects means over `r nsys("mech","mod:schESCS:topX")` systems. Two-rater rows: pooled sample of the 17 systems with a parent questionnaire.](`r fig("fig_a5_moderators")`){#fig-a5 width=100%}
 
 ## RQ2: which skills change the cost?
 
