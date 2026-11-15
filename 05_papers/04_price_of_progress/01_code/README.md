@@ -108,6 +108,47 @@ script and the numbers above. Base, SES and curiosity rows were identical in bot
   gamma on life satisfaction: all 35 -0.043 (SE 0.012); the 20 earlier systems -0.057 (reproduces -0.056); the other 15 -0.013
   (SE 0.017). Achievement: 16.5 / 20.6 / 7.0 points. The 15 new systems show a much weaker grade effect; first stage and design
   strength by system are the next check. Headline estimand chosen by the user: gamma (tau saved beside it).
+- *Design strength by system (2026-11-16, `12_design.R`, descriptive, written to the same new directory as `design35.csv`).* The weaker
+  effect in the 15 added systems is not a first-stage failure: mean first stage 0.51 against 0.59 in the earlier 20, mean jump in the
+  upper-grade share 0.58 against 0.68. Thin cohorts matter for precision, not for the mean: 7 of the 15 (4 of the earlier 20) have at most
+  one birth month on one side of the cutoff, and their standard errors on achievement are about twice as large (11.7 against 5.8). But the
+  8 added systems with at least two months on both sides still show gamma on achievement of 8.5 points against 21.8 in the 16 clean earlier
+  systems. Across all 35, system-level gamma is nearly uncorrelated with first stage (0.04) and weakly with months per side (0.23, -0.19)
+  and mean achievement (0.28). So the difference is real heterogeneity or a selection of the original 20 systems, not yet explained;
+  how the 20 were chosen in the grade-gain project is the first thing to check.
+- *How the earlier 20 were chosen (2026-11-16, checked).* No selection rule is documented in the repository (searched the legacy history,
+  both READMEs and the central eligibility table). Not skill-scale availability (the 15 added have it at the same rate) and not the
+  edge flag (partial month kept on one side): 2 of the earlier 20 and 7 of the 15 added are edge systems, but the 8 clean (non-edge)
+  added systems still pool to +6.3 achievement points (SE 1.6) against +20.1 (SE 2.0) in the 18 clean earlier ones; life satisfaction
+  -0.009 (SE 0.018) against -0.060 (SE 0.018). The two groups differ by region: the earlier 20 are Europe 6, Latin America 5, Southeast
+  Asia 3, East Asia 3, Africa 2, Middle East 1; the 15 added are Europe 6, Post-Soviet 4, Middle East 2, Latin America, East Asia and
+  Oceania 1 each. So the headline is not a selected-on-results artefact that I can show, but it does not generalise to the added systems,
+  and heterogeneity by region or school system is a finding to examine (and to state), not to average away.
+- *Sample rule (user, 2026-11-16).* The sample is defined by the design's own eligibility (enough students whose grade is moved by the
+  birth-month cutoff, the central rule shared with paper 02), not by an outcome. All 35 eligible systems with the item are the main
+  sample; the earlier 20 are a subset. Check run the same day: restricting to the 24 systems with a "strict" design (not edge-flagged
+  and at least two birth months on each side) gives life satisfaction -0.046 (SE 0.015) and achievement +16.3 (SE 2.1), against -0.043
+  (0.012) and +16.5 (1.7) for all 35; the 11 others give -0.035 (0.028) and +17.6 (2.5). The pooled result does not depend on
+  design strictness; the between-system spread (I-squared 74% for achievement) is the open question.
+- *Design tests (2026-11-16, `13_design_tests.R`, base specification, 35 systems, new directory `05_archive/estimate_20261116_design_tests`;
+  `04_output` untouched, nothing promoted).* First stage 0.556 (SE 0.045; heterogeneous, I-squared 100%). Reduced form (jump at the cutoff):
+  achievement +3.9 points (SE 1.2), life satisfaction -0.025 SD (0.011), P(LS = 10) -0.7 pp (0.4). Balance at the cutoff: sex 0.000 (0.004);
+  ESCS +0.020 SD (0.013), home possessions +0.022 (0.012), immigrant background +0.002, other language -0.003; ESCS and home
+  possessions are not clean: 6 of 34 and 8 of 34 systems individually significant (about 2 expected by chance) and heterogeneous across
+  systems (Q p = 0.001), so covariate controls and the systems that drive it need a look. Density: the month just below the cutoff against
+  the month just above has a median ratio 1.01; outside 0.7-1.4 only KEN (0.38), ALB (2.05), KOR (2.29), none edge-flagged (could be
+  seasonality of births, not tested). Bandwidth, gamma in the 24 strict systems (full window: achievement 16.3 (2.1), LS -0.046 (0.015)):
+  achievement is stable (|r| <= 6: 15.8, <= 4: 17.8, <= 3: 19.1), life satisfaction is not: -0.026 (0.022), -0.064 (0.041), -0.120 (0.049).
+  The life-satisfaction cost is therefore consistent with the full-window estimate within noise but its size depends on the window;
+  this is the weakest part of the design evidence. Quadratic birth-month term not run (not identified with 1-3 months on a side).
+  Recovery guide for all steps: `../RULES.md`.
+- *Covariates added (2026-11-16, `14_covariates.R`, new directory `05_archive/estimate_20261116_covariates`; `04_output` untouched).* Adding
+  ESCS, home possessions and other-language to sex and immigrant background leaves the headline unchanged: life satisfaction -0.043
+  (SE 0.012) in both specifications in all 35 systems; -0.046 (0.015) against -0.045 (0.015) in the strict 24; achievement 16.5 (1.7)
+  against 16.3 (1.6). The window pattern is also unchanged by the controls (strict 24, base then plus; LS: |r|<=6 -0.026 / -0.033,
+  <=4 -0.064 / -0.075, <=3 -0.120 / -0.149; achievement 15.8 / 15.9, 17.8 / 18.0, 19.1 / 19.8). So the mild ESCS and home-possessions
+  imbalance does not drive the estimate, and the window dependence of the life-satisfaction cost is not a covariate effect. Decision
+  (user, 2026-11-16): report the window sensitivity openly with the full-window headline and the covariate-adjusted estimate beside it.
 - *Only in the legacy 20-system file.* The SES composite and its quartile, `school`, the grade-purged skill index `SE_p` and the
   same-school / transition classification have no central counterpart; the 15 additional systems with the item need each of them defined.
 - *Room for bandwidth checks.* One 12-month birth cohort per system: of the 35 systems, 11 have at least three clean birth months
