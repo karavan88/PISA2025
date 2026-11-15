@@ -12,6 +12,10 @@ ap.add_argument('--historical',action='store_true',help='Explicitly inspect the 
 ap.add_argument('--output',type=Path,help='Fresh-estimation output directory; must not already exist')
 a=ap.parse_args()
 snap=PAPER/'02_results'; shared=ROOT/'03_outputs/01_harmonized/cutoff'
+def shared_products():
+    # the central products this paper reads: the cutoff design's (not the whole build, not other designs' products)
+    built=json.loads((shared.parent/'build_manifest.json').read_text())
+    return {k:v for k,v in sorted(built['outputs'].items()) if k.startswith('cutoff/')}
 if a.mode=='estimate':
     run([sys.executable,str(ROOT/'02_scripts/00_tools/build_shared.py')])
     out=a.output or PAPER/'04_output'/('fresh_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
@@ -26,7 +30,7 @@ elif a.results:
     if saved['renv_lock_sha256']!=digest(ROOT/'renv.lock'):sys.exit('Package lock changed since estimation.')
     for name in ['00_helpers.R','03_gradegain.R','04_summary.R','model_functions.R']:
         if saved['code'].get(name)!=digest(PAPER/'01_code'/name):sys.exit('Estimation definitions changed: '+name)
-    if (shared.parent/'build_manifest.json').exists() and saved['shared_manifest_sha256']!=digest(shared.parent/'build_manifest.json'):sys.exit('Shared inputs changed since estimation.')
+    if (shared.parent/'build_manifest.json').exists() and saved['shared_products']!=shared_products():sys.exit('Shared cutoff products changed since estimation.')
 else:
     if a.mode=='report' and not a.historical:sys.exit('Use report --results PATH after estimate. To inspect the old snapshot explicitly, use --historical; its skill-outcome IV estimates predate the alignment correction.')
     out=PAPER/'04_output/report';out.mkdir(parents=True,exist_ok=True)
@@ -45,5 +49,5 @@ if a.mode=='estimate':
     for name in ['test_tsls.R','03_gradegain.R','04_summary.R']:run(['Rscript',str(code/name)])
 if a.mode!='preflight':run(['Rscript',str(code/'05_validate.R')])
 if a.mode=='report':run(['quarto','render',str(PAPER/'03_manuscript/report.qmd'),'--to','html'])
-(out/('run_manifest.json' if a.mode=='estimate' else 'report_manifest.json')).write_text(json.dumps({'mode':a.mode,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'renv_lock_sha256':digest(ROOT/'renv.lock'),'code':{p.name:digest(p) for p in sorted(code.glob('*.R'))},'shared_manifest_sha256':digest(shared.parent/'build_manifest.json') if (shared.parent/'build_manifest.json').exists() else None},indent=2)+'\n')
+(out/('run_manifest.json' if a.mode=='estimate' else 'report_manifest.json')).write_text(json.dumps({'mode':a.mode,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'renv_lock_sha256':digest(ROOT/'renv.lock'),'code':{p.name:digest(p) for p in sorted(code.glob('*.R'))},'shared_products':shared_products() if (shared.parent/'build_manifest.json').exists() else None},indent=2)+'\n')
 print('Completed',a.mode,'at',out)

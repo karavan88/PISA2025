@@ -3,6 +3,7 @@
 #   run_all.sh report                 verify the approved snapshot, redraw figures, render the PDF. Fits no models.
 #   run_all.sh estimate <new_dir>     run every estimation step into a NEW directory (must not exist). 04_output is not touched.
 #   run_all.sh compare <new_dir>      compare <new_dir> with 04_output, file by file.
+#   run_all.sh test                   check the cutoff estimators against direct 2SLS on simulated data. Reads no data, writes nothing.
 # After a deliberate re-estimation: compare, record the reason in 01_code/README.md, copy the new CSVs into 04_output,
 # then promote them with: python3 05_papers/04_price_of_progress/01_code/snapshot.py refresh --replace
 set -e; cd "$(dirname "$0")/../../.."
@@ -21,5 +22,7 @@ case "$1" in
     echo "Done: $OUT  (next: run_all.sh compare $OUT)" ;;
   compare)
     Rscript 02_scripts/02_legacy/wellbeing_shared/compare_outputs.R "$2" $P/04_output ;;
-  *) sed -n 2,7p "$0"; exit 2 ;;
+  test)
+    Rscript $P/01_code/test_tsls.R ;;
+  *) sed -n 2,8p "$0"; exit 2 ;;
 esac

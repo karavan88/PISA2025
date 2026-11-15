@@ -8,6 +8,9 @@ ap=argparse.ArgumentParser();ap.add_argument('mode',choices=['preflight','report
 code=PAPER/'01_code';out=PAPER/'04_output';snap=PAPER/'02_results'
 manifest=json.loads((snap/'snapshot_manifest.json').read_text())
 contract=json.loads((snap/'analysis_contract.json').read_text())
+def shared_products(built):
+    # the central products this paper reads: everything except the cutoff design's, which other papers own
+    return {k:v for k,v in sorted(built['outputs'].items()) if not (k.startswith('cutoff/') or k in ('cutoff_provider.rds','wellbeing_provider.rds'))}
 if args.current_results:
     stamp=out/'estimation_manifest.json'
     if not stamp.exists():sys.exit('No completed fresh estimation manifest; use estimate --fresh first.')
@@ -15,13 +18,13 @@ if args.current_results:
     if provenance['renv_lock_sha256']!=digest(ROOT/'renv.lock'):sys.exit('Package lock changed since fresh estimation.')
     for name,h in provenance['sha256'].items():
         if digest(ROOT/name)!=h:sys.exit('Analysis code changed since fresh estimation: '+name)
-    if provenance['shared_manifest_sha256']!=digest(ROOT/'03_outputs/01_harmonized/build_manifest.json'):sys.exit('Shared inputs changed since fresh estimation.')
+    if provenance['shared_products']!=shared_products(json.loads((ROOT/'03_outputs/01_harmonized/build_manifest.json').read_text())):sys.exit('Shared products changed since fresh estimation.')
 if args.mode!='estimate' and not args.current_results:
     shared_manifest=ROOT/'03_outputs/01_harmonized/build_manifest.json'
     if shared_manifest.exists():
         built=json.loads(shared_manifest.read_text())
-        if built['inputs']!=contract.get('shared_build_inputs',built['inputs']):
-            sys.exit('Shared data/build definitions differ from the approved result snapshot. Re-estimate or explicitly restore the matching snapshot.')
+        if {k:v for k,v in built['inputs'].items() if k.startswith('01_data/')}!=contract['shared_build_inputs'] or shared_products(built)!=contract['shared_build_products']:
+            sys.exit('Shared data or central products differ from the approved result snapshot. Re-estimate or explicitly restore the matching snapshot.')
         stale=[name for name,h in built['inputs'].items() if (ROOT/name).exists() and digest(ROOT/name)!=h]
         if stale:sys.exit('Central inputs changed since harmonization: '+', '.join(stale))
     changed=[name for name,h in contract['sha256'].items() if not (ROOT/name).exists() or digest(ROOT/name)!=h]
@@ -56,7 +59,7 @@ if args.mode=='estimate':
     for f in (out/'rev1/tables').glob('*.csv'):shutil.copy2(f,out/'rev2/tables'/f.name)
     for name in ['16_parental_controls_comparison.R','17_report_parental_controls_comparison.R','20_prepare_parental_publication.R','06_equalization_rev2.R','10_run_counterfactual_robustness_rev2.R','23_within_between_decomposition_rev2.R']:
         R(name)
-    (out/'estimation_manifest.json').write_text(json.dumps({'renv_lock_sha256':digest(ROOT/'renv.lock'),'sha256':{name:digest(ROOT/name) for name in contract['sha256']},'shared_manifest_sha256':digest(ROOT/'03_outputs/01_harmonized/build_manifest.json')},indent=2)+'\n')
+    (out/'estimation_manifest.json').write_text(json.dumps({'renv_lock_sha256':digest(ROOT/'renv.lock'),'sha256':{name:digest(ROOT/name) for name in contract['sha256']},'shared_products':shared_products(json.loads((ROOT/'03_outputs/01_harmonized/build_manifest.json').read_text()))},indent=2)+'\n')
     print('Estimation finished. Review with report --current-results; the frozen snapshot is preserved.');log('estimate');sys.exit(0)
 # Drawing existing aggregate results never invokes the harmonizer or regressions.
 # These scripts share plotting helpers and must execute in one R session.
