@@ -54,6 +54,8 @@ breaks either. Paper 01's 73 result files were byte-identical before and after. 
 | 3 | `PAPER_OUT=<same dir> Rscript .../12_design.R` | `design35.csv` | per-system first stage, cohort months, gamma; descriptive |
 | 4 | `PAPER_OUT=<new dir> Rscript .../13_design_tests.R` | `design_*.csv` (by month, reduced form, balance, density, bandwidth) | first stage 0.556; reduced form ACH +3.9, LS −0.025; ~50 s |
 | 5 | `PAPER_OUT=<new dir> Rscript .../14_covariates.R` | `covariates_sys.csv`, `covariates_pool.csv` | gamma with ESCS, home possessions, language added: LS all 35 −0.043 (0.012) as in base; ~60 s |
+| 6 | `UIS_DIR=<unzipped UIS 403 export> PAPER_OUT=<new dir> Rscript .../15_uis_check.R` | `uis_check.csv` | rough check of inferred cutoffs against UIS school-year start month; 34 of 36 have a UIS value; descriptive only |
+| 7 | `PAPER_OUT=<new dir> Rscript .../16_uis_ages.R` | `uis_ages.csv` | official entry age and level durations (UIS API, stored in `04_output/external_uis/` with `SOURCES.txt`) against the PISA grades; 27 systems consistent, 9 flagged; Taiwan and Kosovo use China and Albania as proxies (`uis_proxy`) |
 | T | `bash .../run_all.sh test` | nothing | 56 comparisons within 1e-8 (estimators against direct 2SLS on simulated data) |
 
 Steps 2–5 so far ran into `05_archive/estimate_20261115_central35/`, `05_archive/estimate_20261116_design_tests/` and `05_archive/estimate_20261116_covariates/` (each with `run.json` and

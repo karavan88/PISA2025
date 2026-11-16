@@ -149,6 +149,26 @@ script and the numbers above. Base, SES and curiosity rows were identical in bot
   <=4 -0.064 / -0.075, <=3 -0.120 / -0.149; achievement 15.8 / 15.9, 17.8 / 18.0, 19.1 / 19.8). So the mild ESCS and home-possessions
   imbalance does not drive the estimate, and the window dependence of the life-satisfaction cost is not a covariate effect. Decision
   (user, 2026-11-16): report the window sensitivity openly with the full-window headline and the covariate-adjusted estimate beside it.
+- *External check of the inferred cutoffs (2026-11-16, `15_uis_check.R`, `05_archive/estimate_20261116_uis_check/uis_check.csv`).* Source: UNESCO UIS
+  indicator 403, start month of the academic school year, export supplied by the user (`~/Downloads/indicator-data-export_403.zip`, not stored
+  in the repository; latest year up to 2025). It gives when the school YEAR starts, not the birth-date rule, so it can flag oddities but not
+  confirm a cutoff. Of the 36 eligible systems, 34 have a UIS month (Taiwan and Kosovo do not); the inferred cutoff birth month equals the
+  UIS start month in 8 and is within one month in 12; 10 cutoffs fall in December or January (calendar-year cohorts, e.g. FIN, KOR, HKG,
+  SVN, LVA, which fits known rules but was not checked against national sources). Confirming the cutoffs needs each country's official
+  entry-date rule (a table for the appendix); not done.
+- *Official starting age and level lengths (2026-11-16, `16_uis_ages.R`, `05_archive/estimate_20261116_uis_ages/uis_ages.csv`).* The user approved
+  searching and scraping. The UIS ISCED mapping workbooks (`download.uis.unesco.org/ISCED mapping/`, 32 downloaded to the scratchpad) are free-form
+  programme tables and not usable for a country panel; the clean source is the UIS public API (`api.uis.unesco.org/api/public/`,
+  `data/indicators?indicator=299905&indicator=299932&indicator=999976&start=2022&end=2026`: entrance age to primary, duration of primary and
+  of lower secondary), stored with the indicator-403 export in `04_output/external_uis/` (Git-ignored; `SOURCES.txt`). Result: 34 of 36 systems have
+  UIS values (TAP and KSV do not). Using age at school-year start of a pupil in the lower grade g_lo, entry_age + g_lo - 1, 25 systems give 14
+  (the plain reading), 7 give 15 (ARE, BRA, BRN, ECU, HRV, PSE, SRB) and 2 give 13 (MUS, ROU). The 9 flagged systems are not necessarily wrong
+  (grade numbering, pre-primary counted as a grade, a lower de facto entry age as in Croatia) and need the national rule before the appendix.
+  Proxies (user's decision, 2026-11-16): Taiwan (TAP) takes China's UIS values and Kosovo (KSV) Albania's, marked in the column `uis_proxy`; they
+  are stand-ins, not Taiwan's or Kosovo's own official figures. With them all 36 systems have values: 27 consistent (both proxies fit,
+  age_lo 14, school year starting in September), 9 flagged. Rerun into `estimate_20261116_uis_ages_v2` and `estimate_20261116_uis_check_v2`;
+  the first versions (without proxies) were kept. The cutoff birth month equals the UIS school-year start month in 9 systems and is within
+  one month in 13.
 - *Only in the legacy 20-system file.* The SES composite and its quartile, `school`, the grade-purged skill index `SE_p` and the
   same-school / transition classification have no central counterpart; the 15 additional systems with the item need each of them defined.
 - *Room for bandwidth checks.* One 12-month birth cohort per system: of the 35 systems, 11 have at least three clean birth months
