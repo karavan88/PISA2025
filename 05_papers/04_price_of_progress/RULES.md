@@ -34,8 +34,8 @@ again. Run every command from the repository root with `export RENV_PROJECT="$PW
   student ID: the central `CNTSTUID` is a zero-padded string, the legacy one an integer; a string join silently loses ALB, AZE, BRA, BRN.
 - **Reporting rule (2026-11-16):** the full-window gamma is the headline; the bandwidth sensitivity of the life-satisfaction cost (−0.026 at |r| ≤ 6 to −0.120 at |r| ≤ 3, strict 24 systems) is reported openly, with the covariate-adjusted estimate beside it (adding ESCS, home possessions, language changes nothing).
 - **Achievement** = mean of the science, maths and reading plausible values, built per plausible value (`PVkACH`), as in the legacy build.
-- Measurement validity is robustness, not a hypothesis; Ukraine (QUA) is excluded in paper 03's all-country work, and the question for this
-  paper is still open (QUA is in the 35).
+- **Sample rules (2026-11-16, `01_code/sample_rules.R`):** Ukraine (QUA, 17 of 27 regions) is excluded from every estimate; Israel (ISR) is kept but flagged and shown with and without. `PAPER_EXCLUDE`/`PAPER_FLAG` override; `PAPER_EXCLUDE=""` reproduces runs that included Ukraine. Main sample 34 systems. New Zealand has no birth-date cutoff (entry on the 5th birthday): its inclusion is an open decision.
+- Measurement validity is robustness, not a hypothesis; 
 
 ## 3. Guards of other papers (changed 2026-11-16, user's authorisation)
 
@@ -56,9 +56,10 @@ breaks either. Paper 01's 73 result files were byte-identical before and after. 
 | 5 | `PAPER_OUT=<new dir> Rscript .../14_covariates.R` | `covariates_sys.csv`, `covariates_pool.csv` | gamma with ESCS, home possessions, language added: LS all 35 −0.043 (0.012) as in base; ~60 s |
 | 6 | `UIS_DIR=<unzipped UIS 403 export> PAPER_OUT=<new dir> Rscript .../15_uis_check.R` | `uis_check.csv` | rough check of inferred cutoffs against UIS school-year start month; 34 of 36 have a UIS value; descriptive only |
 | 7 | `PAPER_OUT=<new dir> Rscript .../16_uis_ages.R` | `uis_ages.csv` | official entry age and level durations (UIS API, stored in `04_output/external_uis/` with `SOURCES.txt`) against the PISA grades; 27 systems consistent, 9 flagged; Taiwan and Kosovo use China and Albania as proxies (`uis_proxy`) |
+| 8 | `PAPER_OUT=<new dir> Rscript .../17_official_rules.R` | `official_rules_check.csv` | official entry rules (sourced tables in `04_output/external_entry_rules/`) against the inferred cutoff month; 13 match, 10 within one month, 3 differ (ALB, AZE, KSV), 8 no rule found, NZL has none |
 | T | `bash .../run_all.sh test` | nothing | 56 comparisons within 1e-8 (estimators against direct 2SLS on simulated data) |
 
-Steps 2–5 so far ran into `05_archive/estimate_20261115_central35/`, `05_archive/estimate_20261116_design_tests/` and `05_archive/estimate_20261116_covariates/` (each with `run.json` and
+Steps 2–5 first ran into `05_archive/estimate_20261116_sample34/` under the sample rules (steps 2, 3, 4, 5 with `PAPER_EST=PAPER_DESIGN=PAPER_OUT=<that dir>`), and earlier, with Ukraine, into `05_archive/estimate_20261115_central35/`, `05_archive/estimate_20261116_design_tests/` and `05_archive/estimate_20261116_covariates/` (each with `run.json` and
 `logs/`). `run_all.sh estimate <new_dir>` still runs only the legacy steps `08_cutoff.R` and `09_extras.R` (20 systems, legacy file); the
 new steps are run by hand as above until they are integrated.
 

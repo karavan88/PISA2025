@@ -169,6 +169,27 @@ script and the numbers above. Base, SES and curiosity rows were identical in bot
   age_lo 14, school year starting in September), 9 flagged. Rerun into `estimate_20261116_uis_ages_v2` and `estimate_20261116_uis_check_v2`;
   the first versions (without proxies) were kept. The cutoff birth month equals the UIS school-year start month in 9 systems and is within
   one month in 13.
+- *Official entry rules for all 36 systems (2026-11-16, `17_official_rules.R`, `05_archive/estimate_20261116_official_rules/official_rules_check.csv`).* Four
+  research subagents looked up each country's entry rule for the children born in 2009 and wrote sourced tables (URLs and a confidence mark per row),
+  stored with `SOURCES.txt` in `04_output/external_entry_rules/` (Git-ignored). Model-compiled and not independently verified; several official sites
+  blocked fetching, so some rows rest on search excerpts. The inferred cutoff month is the first birth month of the later-born group, who are in the lower
+  grade (`prepare_cutoff_analytic.R`); the official months were coded by hand in the script. Result: of the 27 systems with an established rule,
+  13 match the inferred month, 10 are within one month (a mid-month reference date, e.g. Costa Rica, or a partial month that is dropped), Germany
+  falls in the range of Land dates, and 3 differ: Albania (inferred November, official about September), Azerbaijan (November against September) and
+  Kosovo (December against September), all with a weak or derived official date. 8 have no rule established (UAE, Brunei, Ecuador, Kazakhstan, Kenya, Cambodia,
+  Palestine, Ukraine). New Zealand has no birth-date cutoff at all (entry on the 5th birthday), so its inferred April cutoff is a practice artefact and
+  the system does not fit the design; a leave-out check and a decision are open. The 2009 birth year splits across two entry years in several systems
+  (e.g. Czechia, Taiwan, Brazil, Chile, Peru, Korea): the rule fixes which months fall in which entry year, which is what the table compares.
+  User-confirmed (2026-11-16): the school year starts in September in Albania, Azerbaijan, Kosovo and Kazakhstan. For the first three this firms up the
+  derived official cutoff month (September), so the gap to the inferred November/December stands; Kazakhstan has no documented entry date and no official
+  cutoff is coded, but its inferred September fits a 1 September reference. Table rerun as `estimate_20261116_official_rules_v2`.
+- *Project sample rules (user, 2026-11-16; `sample_rules.R`).* Ukraine (QUA) is dropped from every estimate and Israel (ISR) is kept but flagged, shown with and
+  without (as paper 01, which leaves both out, and paper 03, which drops Ukraine). Applied in `08b`, `12`, `13`, `14` (the descriptive UIS and rules tables keep
+  all 36 and mark the rule). Rerun into `05_archive/estimate_20261116_sample34` (34 systems, 248,678 students with life satisfaction; `04_output` untouched,
+  nothing promoted). Gamma on life satisfaction, pooled: -0.044 (SE 0.013) for all 34; -0.044 (0.013) without Israel; the 20 earlier systems -0.057 (0.017);
+  the other 14 -0.011 (0.018). Achievement: +16.9 (1.7), +17.3 (1.7), +20.6, +7.3. Reduced form: achievement +4.1 (1.2), life satisfaction -0.022 (0.012);
+  first stage 0.559. Covariates change nothing (-0.044 base, -0.043 with ESCS, home possessions, language); the bandwidth pattern is the same as before
+  (strict design, 23 systems: -0.025 / -0.067 / -0.119 for |r| <= 6 / 4 / 3). Dropping Ukraine and flagging Israel moves no number materially.
 - *Only in the legacy 20-system file.* The SES composite and its quartile, `school`, the grade-purged skill index `SE_p` and the
   same-school / transition classification have no central counterpart; the 15 additional systems with the item need each of them defined.
 - *Room for bandwidth checks.* One 12-month birth cohort per system: of the 35 systems, 11 have at least three clean birth months

@@ -9,7 +9,8 @@ suppressPackageStartupMessages(library(data.table))
 source("05_papers/04_price_of_progress/01_code/systems.R")
 OUT <- Sys.getenv("PAPER_OUT", "05_papers/04_price_of_progress/04_output"); dir.create(OUT, recursive = TRUE, showWarnings = FALSE)
 EST <- Sys.getenv("PAPER_EST", "05_papers/04_price_of_progress/05_archive/estimate_20261115_central35")
-a <- readRDS("05_papers/04_price_of_progress/04_output/cutoff35_students.rds"); setDT(a)
+source("05_papers/04_price_of_progress/01_code/sample_rules.R")
+a <- readRDS("05_papers/04_price_of_progress/04_output/cutoff35_students.rds"); setDT(a); a <- a[!CNT %in% EXCLUDE]
 s <- fread(file.path(EST, "cutoff35_sys.csv"))
 g <- function(o, tm, col) s[outcome == o & term == tm, .(CNT, v = get(col))]
 est <- Reduce(function(x, y) merge(x, y, by = "CNT"), list(

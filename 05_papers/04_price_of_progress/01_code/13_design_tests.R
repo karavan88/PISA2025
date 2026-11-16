@@ -10,7 +10,8 @@
 # A quadratic birth-month term is not run: the estimator is linear in r by construction (tsls_m), and in a one-year cohort with 1-3 months on a
 # side a quadratic is not identified; the bandwidth windows are the functional-form check.
 source("05_papers/04_price_of_progress/01_code/00_helpers.R")   # est_sys, tsls_m, pool_iv, survey helpers; PAPER_OUT sets OUTR
-a <- readRDS("05_papers/04_price_of_progress/04_output/cutoff35_students.rds"); setDT(a)
+source("05_papers/04_price_of_progress/01_code/sample_rules.R") # EXCLUDE (Ukraine), FLAG (Israel)
+a <- readRDS("05_papers/04_price_of_progress/04_output/cutoff35_students.rds"); setDT(a); a <- a[!CNT %in% EXCLUDE]
 for (p in 1:10) a[, (paste0("PV", p, "ACH")) := (get(paste0("PV", p, "MATH")) + get(paste0("PV", p, "READ")) + get(paste0("PV", p, "SCIE"))) / 3]
 a[, female := female_any]; a[, `:=`(sex_f = female_any, escs = ESCS, imm = immigrant, home = HOMEPOS, langoth = lang_other)]
 syst <- sort(unique(a$CNT)); log_step("design tests on", length(syst), "systems")
