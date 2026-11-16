@@ -1,12 +1,15 @@
 # The Cost of Resilience -- step 5: mechanisms
-# All models within school, on resilient (R) vs disadvantaged low achievers (PL), controls = demographics + skill index (the "sei" spec
-# of step 4). Per system BRR + Rubin; then random-effects pooling and a system-level meta-regression.
+# Since 15 November 2026 (evening, author's design): resilient students (R) against advantaged top achievers (AT), i.e. top achievers of
+# the bottom and top status quarters, within school, controls = sex, age, grade (model 3 of step 17; the skill index is no longer used).
+# Term labels keep their old names: "top" is the indicator for resilient students, "n:PL" counts advantaged top achievers.
+# Per system BRR + Rubin; then random-effects pooling and a system-level meta-regression (of the step-17 model-3 gap). Runs after step 17.
+# Before that date the contrast was R vs disadvantaged low achievers with the skill index (05_archive/output_20261115_composite and later).
 #   mod:   where is the gap larger?  top x M, with M =
 #            schESCS   leave-one-out school mean ESCS (status mismatch: poor student in a better-off school)
 #            schACH    leave-one-out school mean achievement, per PV (big fish / little pond: top of a weak school vs middle of a strong one)
 #            female    (high-achieving disadvantaged girls)
 #            uni       expects a bachelor's degree or more (aspiration-resource gap: high reference point, few resources)
-#            SEI and each of the six skills (which skills go with a smaller cost)
+#            each of the six skills, growth mindset, science self-efficacy, belonging, enjoyment of science
 #   acc:   accounting for the gap with candidate channels on a common sample -- science self-efficacy (competence), university
 #          expectation, clear career idea (direction) -- gap before/after and Gelbach contributions. Descriptive, not causal mediation.
 #   top-box versions of the headline moderators (P(LS = 10)).
@@ -15,6 +18,7 @@
 # Output: mech_sys.csv, mech_pool.csv, meta_reg.csv, system_traits.csv
 source("05_papers/03_resilience_cost/01_code/00_helpers.R")
 d <- load_rw()
+d <- d[CNT %in% unique(fread(orr("mxmod_sys.csv"))$CNT)]          # the systems of step 17 (Table 2)
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0), uni = as.integer(EXPECEDU >= 7))]
 d[, EXPECEDU_z := zw(EXPECEDU, w), by = CNT]
 SEZ <- paste0(SE6, "_z")
@@ -25,8 +29,9 @@ loo_mean <- function(v, g, w) {                       # weighted leave-one-out g
 }
 
 stat_mech <- function(s, y, w) {
-  q <- wquant(y, w, c(.25, .75)); top <- as.integer(y >= q[2]); low <- as.integer(y <= q[1])
-  q1 <- s$sesq == 1 & (top == 1 | low == 1)
+  q <- wquant(y, w, c(.25, .75))
+  q1 <- y >= q[2] & s$sesq %in% c(1, 4)               # sample: top achievers of the bottom and top status quarters
+  top <- as.integer(s$sesq == 1)                       # resilient students (vs advantaged top achievers)
   ctrl <- avail(s, c("female", "AGE", "g_m1", "g_p1")); C <- as.matrix(s[, ..ctrl])
   az <- (y - wmean(y, w)) / wsd(y, w)
   schACH <- loo_mean(az, s$CNTSCHID, w)               # in system SD of achievement, recomputed per PV and weight
@@ -35,14 +40,14 @@ stat_mech <- function(s, y, w) {
     X <- X[, apply(X, 2, function(v) var(v, na.rm = TRUE) > 0), drop = FALSE]
     b <- fwls(yv[keep], X, w[keep], s$CNTSCHID[keep]); unname(b[coefs]) }, error = function(e) rep(NA_real_, length(coefs)))
   out <- c()
-  base <- cbind(top = top, C, SEI = s$SEI)
-  M <- list(schESCS = s$schESCS_loo_z, schACH = schACH, female = s$female, uni = s$uni, SEI = s$SEI)
+  base <- cbind(top = top, C)
+  M <- list(schESCS = s$schESCS_loo_z, schACH = schACH, female = s$female, uni = s$uni)
   for (z in avail(s, SEZ)) M[[sub("_z$", "", z)]] <- s[[z]]
   if (length(avail(s, "growth"))) M$growth <- s$growth              # growth mindset, 0/1 (added 15 November 2026)
   for (z in avail(s, c("EFFSCIE_z", "BELONG_z", "JOYSCIE_z"))) M[[sub("_z$", "", z)]] <- s[[z]]   # science self-efficacy, belonging, enjoyment of science (added 15 November 2026)
   for (m in names(M)) {
     mv <- M[[m]]; if (m == "female" && !"female" %in% ctrl) next
-    X <- if (m %in% c("SEI", "female")) cbind(base, topX = top * mv) else cbind(base, M = mv, topX = top * mv)
+    X <- if (m == "female") cbind(base, topX = top * mv) else cbind(base, M = mv, topX = top * mv)
     b <- reg(q1, s$LS_z, X, c("top", "topX"))
     out[paste0("mod:", m, ":top")] <- b[1]; out[paste0("mod:", m, ":topX")] <- b[2]
   }
@@ -53,7 +58,7 @@ stat_mech <- function(s, y, w) {
   }
   # accounting on a common sample
   ch <- avail(s, c("EFFSCIE_z", "uni", "SISCO"))
-  cc <- q1 & complete.cases(s[, ..ch]) & !is.na(s$SEI)
+  cc <- q1 & complete.cases(s[, ..ch])
   out["acc:base"] <- reg(cc, s$LS_z, base, "top")
   bf <- reg(cc, s$LS_z, cbind(base, as.matrix(s[, ..ch])), c("top", ch))
   out["acc:full"] <- bf[1]
@@ -62,7 +67,7 @@ stat_mech <- function(s, y, w) {
     out[paste0("acc:beta:", ch[j])]  <- bf[j + 1]                                         # channel -> LS
     out[paste0("acc:gel:", ch[j])]   <- out[paste0("acc:gamma:", ch[j])] * bf[j + 1]       # contribution to (base - full)
   }
-  out["n:R"] <- sum(q1 & top == 1, na.rm = TRUE); out["n:PL"] <- sum(q1 & low == 1, na.rm = TRUE)
+  out["n:R"] <- sum(q1 & top == 1, na.rm = TRUE); out["n:PL"] <- sum(q1 & top == 0, na.rm = TRUE)   # n:PL = advantaged top achievers
   out
 }
 
@@ -76,10 +81,10 @@ fwrite(pl, orr("mech_pool.csv"))
 log_step("done:", uniqueN(res$CNT), "systems; dropped", paste(small, collapse = " "))
 print(pl[, .(term, n_sys, re = round(re_mean, 3), se = round(re_se, 3), n_neg, sig_pos, sig_neg, I2 = round(I2))], nrows = 200)
 
-# ---------------- system-level meta-regression of the step-4 gap ----------------
-gs <- fread(orr("gap_sys.csv"))[term == "lad:sei", .(CNT, est, se)]
+# ---------------- system-level meta-regression of the step-17 gap (model 3, resilient vs advantaged top achievers) ----------------
+gs <- fread(orr("mxmod_sys.csv"))[term == "mm:z:M3:S1A4", .(CNT, est, se)]
 tr <- d[, {
-  q <- wquant(ACH1, w, c(.25, .75)); cell <- fifelse(sesq == 1 & ACH1 >= q[2], "R", fifelse(sesq == 1 & ACH1 <= q[1], "PL", NA_character_))
+  q <- wquant(ACH1, w, c(.25, .75)); cell <- fifelse(sesq == 1 & ACH1 >= q[2], "R", fifelse(sesq == 4 & ACH1 >= q[2], "PL", NA_character_))   # "PL" = advantaged top achievers
   sm <- data.table(sch = CNTSCHID, cell)[!is.na(cell), .(hasPL = any(cell == "PL"), nR = sum(cell == "R")), by = sch]
   bw <- { m <- ave(ESCS * w, CNTSCHID, FUN = sum) / ave(w, CNTSCHID, FUN = sum); wsd(m, w)^2 / wsd(ESCS, w)^2 }
   one <- uniqueN(CNTSCHID) == 1                      # ISL, LUX, MAC, MLT: school IDs suppressed in the public file

@@ -1,11 +1,12 @@
 # The Cost of Resilience -- step 13: does the gap vary? A causal forest in place of one interaction model per moderator.
 # Step 5 enters each moderator in its own model, as a linear interaction, system by system. Here one forest (Athey, Tibshirani and
-# Wager 2019, package grf) estimates how the gap between resilient students (R) and disadvantaged low achievers (PL) varies with all
+# Wager 2019, package grf) estimates how the gap between resilient students (R) and a comparison group varies with all
 # fourteen moderators at once, without a functional form. Being resilient is not a treatment: the forest describes a conditional gap.
+# Since 15 November 2026 (evening, author's design) the gap is resilient students against advantaged top achievers (RQ4).
 # Design
-#   sample   students in the bottom status quartile who are top or bottom achievers, skill index observed, in the systems of the
-#            within-school gap model of step 4 (lad:sei); all systems stacked, final student weights rescaled to sum to one in each system
-#   Y, W     standardised life satisfaction; indicator for resilient students
+#   sample   top achievers of the bottom and top status quarters, in the systems of step 17 (mxmod_sys.csv); all systems stacked,
+#            final student weights rescaled to sum to one in each system. Runs after step 17.
+#   Y, W     standardised life satisfaction; indicator for resilient students (column 'top' holds it)
 #   X        fourteen moderators (schoolmates' status and achievement, female, expects a degree, growth mindset, science self-efficacy,
 #            sense of belonging, enjoyment of science, six skills), age and grade;
 #            missing values are left to the forest (a scale not administered in a system)
@@ -34,12 +35,12 @@ NT <- as.integer(Sys.getenv("FOREST_TREES", "1000")); NTN <- 1000L; THREADS <- 7
 PVS <- if (nzchar(Sys.getenv("PAPER_TEST_PVS"))) as.integer(strsplit(Sys.getenv("PAPER_TEST_PVS"), " ")[[1]]) else 1:10                    # testing only
 d <- load_rw()
 d[, `:=`(g_m1 = as.integer(GRADE < 0), g_p1 = as.integer(GRADE > 0), uni = as.integer(EXPECEDU >= 7), sch = paste(CNT, CNTSCHID))]
-SYS0 <- if (nzchar(Sys.getenv("PAPER_TEST_SYSTEMS"))) strsplit(Sys.getenv("PAPER_TEST_SYSTEMS"), " ")[[1]] else fread(orr("gap_sys.csv"))[term == "lad:sei" & !is.na(est), CNT]
+SYS0 <- if (nzchar(Sys.getenv("PAPER_TEST_SYSTEMS"))) strsplit(Sys.getenv("PAPER_TEST_SYSTEMS"), " ")[[1]] else unique(fread(orr("mxmod_sys.csv"))$CNT)
 MODS <- c(schESCS = "schESCS_loo_z", schACH = "schACH", female = "female", uni = "uni", growth = "growth", EFFSCIE = "EFFSCIE_z", BELONG = "BELONG_z", JOYSCIE = "JOYSCIE_z",
           PERSEV = "PERSEV_z", GOALSET = "GOALSET_z", COGABIL = "COGABIL_z", ENPROBS = "ENPROBS_z", SELFREG = "SELFREG_z", CURIO = "CURIO_z")
 CTRL <- c("AGE", "g_m1", "g_p1"); BIN <- c("female", "uni", "growth"); # COMMON: the characteristics observed for more than half of the students of every system (set after the data are loaded)
 SYS <- SYS0
-COMMON <- { cv <- d[CNT %in% SYS & sesq == 1, lapply(.SD, function(x) mean(!is.na(x))), by = CNT, .SDcols = setdiff(MODS, "schACH")]
+COMMON <- { cv <- d[CNT %in% SYS & sesq %in% c(1, 4), lapply(.SD, function(x) mean(!is.na(x))), by = CNT, .SDcols = setdiff(MODS, "schACH")]
   ok <- vapply(setdiff(MODS, "schACH"), function(v) all(cv[[v]] > .5), logical(1)); c(names(MODS)[match(names(ok)[ok], MODS)], "schACH") }
 COMMON <- names(MODS)[names(MODS) %in% COMMON]        # in the order of MODS
 loo_mean <- function(v, g, w) {                       # weighted leave-one-out group mean, as in step 5
@@ -49,7 +50,8 @@ loo_mean <- function(v, g, w) {                       # weighted leave-one-out g
 build <- function(p) {                                # analysis sample for plausible value p
   a <- d[CNT %in% SYS, c("CNT", "sch", "w", "LS_z", "SEI", "sesq", setdiff(MODS, "schACH"), CTRL, ACH[p]), with = FALSE]; setnames(a, ACH[p], "ach")
   a[, c("top", "low", "schACH") := { q <- wquant(ach, w, c(.25, .75)); list(as.integer(ach >= q[2]), as.integer(ach <= q[1]), loo_mean((ach - wmean(ach, w)) / wsd(ach, w), sch, w)) }, by = CNT]
-  a <- a[sesq == 1 & (top == 1 | low == 1) & !is.na(LS_z) & !is.na(SEI)]
+  a <- a[sesq %in% c(1, 4) & top == 1 & !is.na(LS_z)]
+  a[, top := as.integer(sesq == 1)]                    # from here on: resilient (1) vs advantaged top achiever (0)
   a[, sw := w / sum(w), by = CNT][, `:=`(Yc = LS_z - sum(w * LS_z) / sum(w), Wc = top - sum(w * top) / sum(w)), by = sch]
   setnames(a, MODS, names(MODS))
   for (v in c(names(MODS), CTRL)) a[, (paste0(v, "_w")) := { x <- get(v); ok <- !is.na(x); r <- x - sum(w[ok] * x[ok]) / sum(w[ok]); r[!is.finite(r)] <- NA; r }, by = sch]   # within-school deviations

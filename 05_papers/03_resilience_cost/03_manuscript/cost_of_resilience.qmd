@@ -2,7 +2,7 @@
 title: "The cost of resilience"
 subtitle: "Life satisfaction among disadvantaged high achievers in PISA 2025. Research report A"
 author:
-  - name: Karen Avanesian
+  - name: Garen Avanesian
 date: today
 date-format: "D MMMM YYYY"
 lang: en
@@ -100,7 +100,7 @@ Family background is not an important confounder here. Within systems the status
 |:--|:-----------------|:-------------------------------|
 | **H1** | Within-school gap in life satisfaction and in the share giving the top answer, resilient minus disadvantaged low achievers. | School differences: school fixed effects. Composition: sex, age, grade. |
 | **H2** | The same gap after adding the skill index, then the six skills, then relationships; Gelbach decomposition of the change. | Order dependence of sequential controls: the decomposition is order-free. |
-| **H3** | (a) The same contrast among advantaged students and the difference between the two gaps; (b) an instrumental-variable test: the effect of one extra grade, instrumented by the school-entry cutoff, and its interaction with low status (20 systems; details in report B). | Selection into high achievement differs by background: the cutoff shifts academic progression for reasons unrelated to the student. |
+| **H3** | The same contrast among advantaged students and the difference between the two gaps. | Selection into high achievement may differ by background; the cross-section cannot rule it out. |
 | **RQ1** | Interaction of resilience with the mean status and mean achievement of schoolmates, sex, and expecting a university degree; meta-regression of system gaps on system traits. | Many moderators: Bonferroni threshold across the ten tested. |
 | **RQ2** | Interaction of resilience with each skill; for self-regulation, the same test with the parent's rating in the 17 systems with a parent questionnaire; for curiosity, a battery of checks inside the student questionnaire. | Shared reporting between self-rated skills and self-rated life satisfaction: second rater where available. |
 
@@ -118,7 +118,7 @@ All tests rest on one self-rated item. We check in four ways whether the two gro
 |:--|:----------|:------------------------------------------|
 | **H1** The cost | \verdict{Supported} | Gap `r e("gap","lad:demo")` SD, about `r e("rs","diff:R-PL:LS")` ladder points unadjusted |
 | **H2** Masking | \verdict{Supported} | Gap `r e("gap","lad:sei")` SD with skills held; `r nneg("gap","lad:sei")` of `r nsys("gap","lad:sei")` systems negative |
-| **H3** Specificity | \verdict{Partly supported} | Larger among disadvantaged students by `r ea("gap","did:sei")` SD in the cross-section; `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`) in the IV |
+| **H3** Specificity | \verdict{Partly supported} | Larger among disadvantaged students by `r ea("gap","did:sei")` SD in the cross-section |
 | **RQ1** Context | \verdict{No moderation found} | All four context interactions within `r num(0.04)` of zero |
 | **RQ2** Skills as buffers | \verdict{Unsettled} | Self-regulation fails the second rater; curiosity holds within self-report |
 | **Robustness** Scale use | \verdict{Gap survives; size bounded} | Unchanged by response style; coarse answering explains `r fm("mix:near:share_explained", 0, scale = 100)`–`r fm("mix:up7:share_explained", 0, scale = 100)`% of the shortfall of 10s; underlying gap between `r tm("gop:sei:low", mag = TRUE)` and `r tm("op:sei:top", mag = TRUE)` SD |
@@ -140,8 +140,6 @@ The gap is close to uniform across the world (@fig-a3). It is negative in `r nne
 ## H3: is the penalty specific to disadvantaged students?
 
 Among advantaged students, top achievers also report lower life satisfaction than low achievers once skills are held fixed (`r esp("gap","q4:sei")`). The penalty among disadvantaged students is larger by `r esa("gap","did:sei")` SD, or by `r ea("gap","did:demo")` without the skill control. On this cross-sectional evidence the penalty differs by family background and is about twice as large for disadvantaged students.
-
-The instrumental-variable test does not reproduce the difference. In the 20 systems where a school-entry cutoff shifts students into a higher grade for reasons unrelated to them, an extra grade lowers life satisfaction by `r k("base","LS_z")` SD on average, and the additional effect for the bottom status quartile is `r k("lowses","LS_z","gamma:lowSES")` (SE `r kse("lowses","LS_z","gamma:lowSES")`). The interval is wide enough to contain the cross-sectional difference, so the two results are not in conflict, but the causal design gives no positive evidence of a larger cost for the poor.
 
 H3 is partly supported. The firm result is a penalty that high achievers pay at every level of family background. That disadvantaged students pay more is suggested by the cross-section and not confirmed by the design that handles selection, which matches a literature divided on the point.
 
@@ -184,7 +182,6 @@ The gap is not an artefact of response style, and most of it is not coarse answe
 ## What remains open before the paper stage
 
 - Separating lower satisfaction from a higher standard for a top answer needs anchoring vignettes or a second wellbeing measure, which PISA 2025 does not have. Earlier PISA cycles are to be checked for either.
-- A sharper test of H3. The IV interaction has a standard error of `r kse("lowses","LS_z","gamma:lowSES")`; more cutoff systems or a pooled individual-level model would narrow it.
 - Emotional-stability skills (stress resistance, optimism, emotional control), which the wider literature ties most closely to wellbeing, are not measured in PISA 2025. PISA 2022 measured some of them (to be confirmed against the codebook) and could test RQ2 properly.
 - A eudaimonic outcome. PISA 2025 has only the life-satisfaction ladder; PISA 2018 included meaning-in-life and affect scales (to be confirmed).
 - Most sources cited in section 2 were read as abstracts only; they need a full reading before the paper stage, and `literature/references.bib` needs one pass for style.

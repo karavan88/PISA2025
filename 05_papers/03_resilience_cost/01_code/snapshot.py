@@ -3,7 +3,7 @@
   python3 05_papers/03_resilience_cost/01_code/snapshot.py refresh            copy the listed sources into the snapshot (refuses if any file would change)
   python3 05_papers/03_resilience_cost/01_code/snapshot.py refresh --replace  archive the current snapshot to 05_archive/snapshot_<utc>/, then replace it
 Promotion is deliberate: estimation writes to 04_output (or a fresh PAPER_OUT directory); nothing reaches a report until it is
-promoted here. Every file is produced by this paper's own steps (since 15 November 2026 the cutoff estimate too).
+promoted here. Every file is produced by this paper's own steps.
 Standard library only. Data files stay Git-ignored; the manifest (hashes, sources) is tracked."""
 import hashlib, json, shutil, subprocess, sys, datetime
 from pathlib import Path
@@ -22,7 +22,6 @@ FILES = {
     'thr_model.csv': ('05_papers/03_resilience_cost/04_output/thr_model.csv', '05_papers/03_resilience_cost/01_code/08_threshold.R'),
     'foc_pool.csv': ('05_papers/03_resilience_cost/04_output/foc_pool.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
     'foc_model.csv': ('05_papers/03_resilience_cost/04_output/foc_model.csv', '05_papers/03_resilience_cost/01_code/09_focal.R'),
-    'cutoff_pool.csv': ('05_papers/03_resilience_cost/04_output/cutoff_pool.csv', '05_papers/03_resilience_cost/01_code/14_cutoff.R'),
     'desc_dist.csv': ('05_papers/03_resilience_cost/04_output/desc_dist.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
     'coverage.csv': ('05_papers/03_resilience_cost/04_output/coverage.csv', '05_papers/03_resilience_cost/01_code/02_describe.R'),
     # per-system estimates behind the country figures of the paper (11_figures_paper.R)
@@ -35,6 +34,22 @@ FILES = {
     'forest_est.csv': ('05_papers/03_resilience_cost/04_output/forest_est.csv', '05_papers/03_resilience_cost/01_code/13_forest.R'),
     'forest_info.csv': ('05_papers/03_resilience_cost/04_output/forest_info.csv', '05_papers/03_resilience_cost/01_code/13_forest.R'),
     'region_pool.csv': ('05_papers/03_resilience_cost/04_output/region_pool.csv', '05_papers/03_resilience_cost/01_code/15_regions.R'),
+    # the status x achievement matrix (PISA 2025 definition; reading, science as robustness), descriptive
+    'matrix_sys.csv': ('05_papers/03_resilience_cost/04_output/matrix_sys.csv', '05_papers/03_resilience_cost/01_code/16_matrix.R'),
+    'matrix_pool.csv': ('05_papers/03_resilience_cost/04_output/matrix_pool.csv', '05_papers/03_resilience_cost/01_code/16_matrix.R'),
+    'matrix_sys_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/matrix_sys.csv', '05_papers/03_resilience_cost/01_code/16_matrix.R'),
+    'matrix_pool_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/matrix_pool.csv', '05_papers/03_resilience_cost/01_code/16_matrix.R'),
+    # six nested models on the matrix, reference advantaged top achievers (reading; science as robustness)
+    'mxmod_sys.csv': ('05_papers/03_resilience_cost/04_output/mxmod_sys.csv', '05_papers/03_resilience_cost/01_code/17_matrix_models.R'),
+    'mxmod_pool.csv': ('05_papers/03_resilience_cost/04_output/mxmod_pool.csv', '05_papers/03_resilience_cost/01_code/17_matrix_models.R'),
+    'mxmod_sys_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/mxmod_sys.csv', '05_papers/03_resilience_cost/01_code/17_matrix_models.R'),
+    'mxmod_pool_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/mxmod_pool.csv', '05_papers/03_resilience_cost/01_code/17_matrix_models.R'),
+    # where on the scale the gap lies and scale-use checks on the matrix (step 19; reading, science as robustness)
+    'mxans_sys.csv': ('05_papers/03_resilience_cost/04_output/mxans_sys.csv', '05_papers/03_resilience_cost/01_code/19_matrix_answers.R'),
+    'mxans_pool.csv': ('05_papers/03_resilience_cost/04_output/mxans_pool.csv', '05_papers/03_resilience_cost/01_code/19_matrix_answers.R'),
+    'mxans_pool_scie.csv': ('05_papers/03_resilience_cost/04_output/robust_scie/mxans_pool.csv', '05_papers/03_resilience_cost/01_code/19_matrix_answers.R'),
+    # descriptive statistics and variable availability by system (Table 1, Appendix Table A1)
+    'desc_sys.csv': ('05_papers/03_resilience_cost/04_output/desc_sys.csv', '05_papers/03_resilience_cost/01_code/18_describe_systems.R'),
     # robustness: achievement as a composite weighted towards reading (PAPER_ACH=ACHW); main steps only
     'rs_pool_achw.csv': ('05_papers/03_resilience_cost/04_output/robust_achw/rs_pool.csv', '05_papers/03_resilience_cost/01_code/03_response_style.R'),
     'gap_pool_achw.csv': ('05_papers/03_resilience_cost/04_output/robust_achw/gap_pool.csv', '05_papers/03_resilience_cost/01_code/04_gap.R'),

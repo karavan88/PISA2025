@@ -20,8 +20,11 @@ prepared data; since 15 November 2026 this paper takes no results from it.
 | 12 | `12_benchmark.R` | `bench_sys.csv`, `bench_pool.csv` | every group against advantaged top achievers (within school, demo and demo + skill index); resilient vs advantaged top achievers on top achievers only |
 | 13 | `13_forest.R` (~30–40 min) | `forest_pv.csv`, `forest_est.csv`, `forest_info.csv` | causal forest of the gap on fourteen characteristics, stacked systems, within school; calibration test, projection, gap by fifth; linear counterpart |
 | 15 | `15_regions.R`, `regions.R` | `region_pool.csv` | pools the per-system estimates of steps 3, 4 and 12 within seven world regions; fits no new model |
-| 14 | `14_cutoff.R` | `cutoff_sys.csv`, `cutoff_pool.csv` | school-entry cutoff (20 systems): effect of an extra grade on life satisfaction and its difference for the bottom status quartile |
-| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report and the paper (24 files, three of them from the weighted-composite check in `04_output/robust_achw/`); all produced by this paper's steps |
+| 14 | — | — | dropped on 15 November 2026 by the author's decision (school-entry cutoff / IV design); script and outputs in `05_archive/output_20261115_cutoff_dropped/`, last committed version in Git |
+| 16 | `16_matrix.R` | `matrix_sys.csv`, `matrix_pool.csv` (science: `robust_scie/`) | descriptive status quartile × achievement quartile matrix (PISA 2025 definition of resilience): mean life satisfaction, share answering 10 and share of students in all 16 cells; differences of the corner groups (resilient, disadvantaged low, advantaged low) from advantaged top achievers and from each other; no controls |
+| 17 | `17_matrix_models.R` (~5 min) | `mxmod_sys.csv`, `mxmod_pool.csv` (science: `robust_scie/`) | six nested models on all students with 15 cell indicators, reference advantaged top achievers: M1 cells only; M2 + school fixed effects (kept from here on); M3 + sex, age, grade; M4 + six skills, growth mindset, science self-efficacy and enjoyment; M5 + belonging, bullying, family support, safety; M6 = M5 without school fixed effects. Same students and systems (with school IDs) in all six; resilient minus disadvantaged low and minus advantaged low achievers, and the difference between the achievement gaps of disadvantaged and advantaged students, from the same fit; Gelbach decomposition of M3 → M5 by variable |
+| 18 | `18_describe_systems.R` | `desc_sys.csv` | fits no model: weighted means, SDs and observed shares of every model variable by system (PISA indices as published), school-ID coverage and the step-17 model sample; for Table 1 and Appendix Table A1; runs after step 17 |
+| — | `snapshot.py` | `../02_results/snapshot/`, `snapshot_manifest.json` | promotes results to the report and the paper (35 files from 15 November 2026, including steps 16–18; three of them from the weighted-composite check in `04_output/robust_achw/`); all produced by this paper's steps |
 | — | `run_all.sh report` / `paper` / `estimate <new_dir>` / `compare <new_dir>` | | reporting fits no models; estimation never writes into `04_output` |
 
 **Working rules for this folder.**
@@ -156,8 +159,8 @@ nor a stricter standard for the top predicts anything. Resilient minus disadvant
   at 10 and at 8 or more reproduce step 3 to seven decimals. Files copied into `04_output` as new files (`logs/foc.log`,
   `logs/foc_run.json`). No other step was rerun.
 
-**School-entry cutoff (formerly a snapshot of paper 04's `cutoff_pool.csv`; estimated here as step 14 since 15 November 2026).** An extra grade at the same age lowers life satisfaction by 0.056 SD; the
-interaction with the bottom ESCS quartile is −0.014 (SE 0.034), so the causal design does not reproduce the larger penalty for
+**School-entry cutoff (formerly a snapshot of paper 04's `cutoff_pool.csv`; estimated here as step 14 since 15 November 2026).** One school year (a grade plus a year of age, same starting age; `gamma`) lowers life satisfaction by 0.056 SD, one more grade at the same age (`tau`) by 0.073 SD (wording corrected 15 November 2026: the paper had called `gamma` "an extra grade at the same age"); the
+interaction of `gamma` with the bottom ESCS quartile is −0.014 (SE 0.034), so the causal design does not reproduce the larger penalty for
 disadvantaged students that the cross-section suggests (difference in gaps −0.07 to −0.09).
 
 **Structure of the report since 14 November 2026 (author's decision).** Measurement validity is not a hypothesis. The report has
@@ -291,3 +294,122 @@ Full pre-split notebook: `02_scripts/02_legacy/wellbeing_shared/HISTORY_resilwb_
 - *Paper.* 23 pages; background 1,409 words (within the 1,500 limit, above the 1,200–1,300 aim after growth mindset, self-efficacy
   and belonging were added). The rationale for reading is still to come from the author.
 
+
+**Groups as a status × achievement matrix (evening of 15 November 2026; author's instructions).**
+- *Definition.* PISA 2025 Results (Volume I, ch. 2, pp. 122–123): academically resilient students are in the bottom national quarter
+  of the status index and score in the top national quarter of performance (headline indicator in science; reading and mathematics
+  also reported, 13% and 12% of disadvantaged students across the OECD). The paper's groups already follow this rule, so nothing in
+  steps 2–15 changes. The Level 3 rule of Agasisti et al. (2018) was considered and dropped. The author's decisions: a 4 × 4 matrix
+  (status quartile × reading quartile); reading for every main analysis, science only as a robustness check at the end; the
+  reference is advantaged top achievers (S4A4); 16 cells are estimated and the four corners are presented.
+- *Step 16 (`16_matrix.R`), descriptive, no controls.* Means, share answering 10 and share of students in all 16 cells, and the
+  differences of the corner groups. Resilient students are 12.9% of disadvantaged students with reading and 12.1% with science,
+  matching the OECD figures. Reading (73 systems, RE means, 0–10 points): resilient against advantaged top achievers −0.55 (SE 0.04;
+  68 negative, 46 significant at 5%), against disadvantaged low achievers −0.23 (55, 14), against advantaged low achievers −0.57
+  (72, 32); advantaged low against advantaged top achievers +0.04. No system has resilient students significantly above any of the
+  three groups. Science: −0.52 (41 significant), −0.20 (14), −0.53 (24).
+- *Run and promotion.* Run into `04_output_matrix_20261115/` (since moved to `05_archive/estimate_20261115_matrix/`, which Git ignores) (reading, and science in `robust_scie/`), checked on FIN, MEX and JPN
+  against a read-only calculation, then copied into `04_output` as new files (nothing overwritten) and promoted with
+  `snapshot.py refresh` (existing snapshot files unchanged). Only step 16 was estimated; no existing model was rerun.
+- *Step 17 (`17_matrix_models.R`), six nested models (author's design).* One regression per model on all students with 15 cell
+  indicators; reference advantaged top achievers (S4A4). M1 cells only; M2 + school fixed effects; M3 + sex, age, grade; M4 + six
+  skills (entered separately: the skill index is dropped by the author's decision), growth mindset, science self-efficacy and
+  enjoyment of science (science-specific in PISA 2025; in the text "self-efficacy and enjoyment in science, used as indicators of
+  academic self-efficacy and enjoyment of learning"); M5 + belonging, bullying, family support, feeling safe; M6 + school fixed
+  effects. A control a system did not field is left out there only (perseverance: ALB BRA IDN KAZ KEN; growth mindset: ESP;
+  belonging: GTM LBN; feeling safe: DNK DEU JPN). All six models use the same students, those observed on every fielded control
+  (about 85% in the median system; low achievers lose more than top achievers). Resilient minus disadvantaged low and minus
+  advantaged low achievers are differences of coefficients from the same fit (BRR + Rubin), which replaces the interval-overlap
+  check (overlap is too strict and ignores the shared reference). "Resilient students below all three groups" is an
+  intersection-union test: all three one-sided differences significant at 5%.
+- *Sample.* Reading: 67 systems (ARM BEL ISL LBN LUX URY have fewer than 80 students in a corner cell of the model sample); M2 and
+  M6 65 (MAC, MLT have no school IDs). Science: 62 (also ARG FRA DEU GTM PRY), 60 with school fixed effects.
+- *Results, reading (RE means, SD of life satisfaction; M1 → M3 → M4 → M5 → M6; M2 = M1 + fixed effects).* Resilient against
+  advantaged top achievers −0.23 → −0.22 → −0.15 → −0.08 → −0.13 (M2 −0.27); significant at 5% in 38, 38, 24, 13, 14 systems
+  (M2 43). Disadvantaged low achievers −0.11 → −0.12 → +0.05 → +0.13 → +0.04. Advantaged low achievers +0.04 → +0.01 → +0.12 →
+  +0.16 → +0.11. Resilient minus disadvantaged low achievers −0.12 → −0.10 → −0.19 → −0.20 → −0.15 (M2 −0.08; 15, 11, 28, 31, 21
+  significant); resilient minus advantaged low achievers −0.26 → −0.23 → −0.27 → −0.23 → −0.22. No system has resilient students
+  significantly above any group in any model. Below all three groups (one-sided): 9, 10, 12, 6, 8 systems (M2 8). In points (0–10):
+  resilient against advantaged top achievers −0.53 in M1, −0.28 in M6. Science: the same pattern (M5: −0.07, −0.21, −0.24).
+- *Run and promotion.* Tested on FIN, MEX, JPN; run into `04_output_mxmod_20261115/` (since moved to `05_archive/estimate_20261115_mxmod/`) (reading; science in `robust_scie/`), copied
+  into `04_output` as new files and promoted with `snapshot.py refresh` (34 files; existing files unchanged). Only step 17 was
+  estimated. Exhibits (replacements for Table 2 and Figure 2) are still to be designed with the author; the manuscript is unchanged.
+- *Step 17 revised (author's decision, 22:15).* School fixed effects enter in M2 and stay in every later model; M6 is M5 without
+  them (the between-school part once every control is held fixed). Added: the difference between the achievement gaps of
+  disadvantaged and advantaged students (`DiD` = (R − PL) − (AT − AL)) and a Gelbach decomposition of the change from M3 to M5 by
+  variable, for resilient students against advantaged top achievers, disadvantaged low achievers and advantaged low achievers. All
+  six models now use only systems with school IDs (MAC, MLT dropped; ISL, LUX were already below the cell minimum): 65 systems with
+  reading, 60 with science. Compared with the first version: M1, M2 and the swapped M5/M6 reproduce it exactly in the 65 common
+  systems (max |diff| 0). First version archived to `05_archive/output_20261115_mxmod_v1/`; run in
+  `05_archive/estimate_20261115_mxmod_fe/`; promoted with `snapshot.py refresh --replace`.
+- *Results, reading (65 systems, SD; M1 → M2 → M3 → M4 → M5; M6).* Resilient against advantaged top achievers −0.22 → −0.27 →
+  −0.26 → −0.19 → −0.13; M6 −0.08 (significant in 36, 43, 41, 29, 14; 12). Resilient minus disadvantaged low achievers −0.11 →
+  −0.08 → −0.07 → −0.16 → −0.15; M6 −0.20. Resilient minus advantaged low achievers −0.26 → −0.26 → −0.23 → −0.27 → −0.22; M6
+  −0.23. Extra achievement cost for the disadvantaged (DiD) −0.07 → −0.07 → −0.08 → −0.06 → −0.04 (SE 0.018); M6 −0.03.
+  Decomposition M3 → M5, against advantaged top achievers: total −0.134 (SE 0.008), relationships −0.097 (belonging −0.046,
+  family support −0.034, feeling safe −0.009), skills and mindsets −0.035. Against disadvantaged low achievers the controls mask
+  the gap: total +0.093 (relationships +0.055: family support +0.024, belonging +0.016, bullying +0.012; skills and mindsets +0.035:
+  perseverance +0.015, enjoyment of science +0.010; curiosity −0.017). Science: the same pattern (M5 −0.12, −0.17, −0.23;
+  decomposition against advantaged top achievers −0.133, relationships −0.097).
+- *Step 15 extended (for the new Figure 2).* Region pooling now also covers five step-17 terms (model 3 and model 5: resilient
+  against advantaged top achievers, minus disadvantaged and minus advantaged low achievers) and runs after step 17 in `run_all.sh`.
+  Rerun into `05_archive/estimate_20261115_regions_mx/` from the saved per-system files: the 56 existing rows are unchanged (max
+  |diff| 0), 40 rows added. Previous file in `05_archive/output_20261115_regions_v1/`; promoted with `snapshot.py refresh --replace`.
+  Only the pooling was rerun; it fits no model.
+- *Step 18 (`18_describe_systems.R`), descriptive, for the new Table 1 (one row per system, one column per variable) and Appendix
+  Table A1 (availability by system), author's design.* Run into `05_archive/estimate_20261115_describe/` from the saved step-17
+  file, copied into `04_output` as a new file and promoted with `snapshot.py refresh`. Fits no model. Science self-efficacy is read
+  as the published index from the shared student extract (the prepared file holds only its standardised version).
+- *Data section rebuilt (author's instructions).* Figure 1 is now the 4 × 4 matrix (`fig_p12_matrix`, means over the 65 model
+  systems); Table 1 is a landscape table with one row per system and one column per variable (`tab_systems()` in `reporting.R`);
+  Appendix Table A1 gives the model sample and the share observed on each variable by system (`tab_avail()`). Appendix exhibits
+  are numbered A1, A2, …; table notes sit below the tables so that continuation pages repeat only the title. The Groups text follows
+  the PISA 2025 definition (`oecd2026vol1` added to the bibliography); the skill index and the weighted-composite check are no longer
+  mentioned in the Measures. System names moved to `system_names.R`, shared by the figures and the tables. The old Table 1 and
+  Figure 1 (`fig_p1_means`) are out of the manuscript; the Results, Robustness, Discussion and abstract still describe the earlier
+  analysis and are to be revised exhibit by exhibit.
+- *Results, first subsection rebuilt (author's instructions).* "Life satisfaction against advantaged top achievers" replaces "The
+  gap and what skills hide": Table 2 is the six nested models of step 17 (`tab_models()`: panel A coefficients against advantaged
+  top achievers, panel B contrasts from the same model, panel C counts of significant systems), with the decomposition in the text;
+  Figure 2 is `fig_p11_resilient_by_region` (model 3; panel A against advantaged top achievers, panel B against advantaged low
+  achievers). The old Table 2 (gap ladder), the skill-index scatter (`fig_p3_skills`) and the regional figure (`fig_p8_regions`)
+  are out of the manuscript. Still describing the earlier analysis: the research questions, the abstract, the subsections on the
+  scale, on disadvantage among achievers (old benchmark figure) and on heterogeneity, Robustness, Discussion, Conclusion, and the
+  appendix ranking figure (no longer referenced).
+- *Research questions revised (author's decisions).* RQ1: resilient students against advantaged top achievers, advantaged low
+  achievers and disadvantaged low achievers in the same school, and at which answers the difference lies. RQ2: how much of these
+  differences skills, mindsets and relationships account for, and which of them. RQ3: whether the lower life satisfaction of high
+  achievers is specific to disadvantaged students. RQ4: whether the gap to advantaged top achievers varies with school context,
+  sex, aspirations, mindsets or skills. Decided with them: the causal forest is to be re-estimated for the gap to advantaged top
+  achievers (six skills, no index), and the scale analysis moves to Robustness, re-estimated against advantaged top achievers.
+- *Cutoff design dropped (author's decision, 15 November 2026, night).* First the wording was corrected at the request of the main
+  session: the reported `gamma` (−0.056 SD) is the change over one school year (a grade plus a year of age at the same starting age),
+  not "an extra grade at the same age" (that is `tau`, −0.073 SD); no claim moved. The author then decided to drop the design from
+  paper 03 altogether: removed from the manuscript (Introduction, Empirical approach, Results), the report, `reporting.R`, `run_all.sh`
+  and the snapshot. `14_cutoff.R` and its outputs moved to `05_archive/output_20261115_cutoff_dropped/` (the script remains in Git
+  history); the snapshot before the change is in `05_archive/snapshot_*_before_cutoff_drop/`. The paper is now descriptive throughout.
+- *Re-estimation against advantaged top achievers (15–16 November 2026, author's decisions).* New step 19 (`19_matrix_answers.R`:
+  where on the scale, response styles, speeders, effort placebo; model 3 and 5 of the matrix); steps 5 (interactions), 8 (threshold
+  model, six skills in place of the index) and 13 (causal forest) switched to resilient students against advantaged top achievers,
+  in the 65 systems of step 17; shared matrix code in `matrix_helpers.R` (step 17 refactored onto it: results identical, max |diff| 0).
+  Run in `05_archive/estimate_20261115_vsAT/` (tested on FIN, MEX, JPN first); previous step-5/8/13 outputs archived in
+  `05_archive/output_20261116_before_vsAT/`. Results: against advantaged top achievers resilient students give 9 and 10 less often
+  (−5.5 and −5.0 points, model 3) and 3–7 more often: a shift of the whole distribution (P(≥6) −7.7, P(≥8) −12.4, P(≤3) +3.2 points),
+  unlike the comparison with disadvantaged low achievers, where the gap sat at 10. Response-style indices −0.263 → −0.243; without
+  speeders −0.265; no avoidance of 10 on the effort thermometers (−0.2 to −2.3 points). Threshold model: shift of about −0.3 at every
+  threshold, −0.18 at 10. Interactions: belonging +0.085 (z 5.6), self-regulated learning +0.037, expecting a degree −0.093. Forest
+  within schools: no variation (calibration differential −0.12, SE 0.32), average gap −0.06 (SE 0.05; the linear counterpart with the
+  same adjustment −0.14, SE 0.03). The coarse-answering step 9 is not re-estimated (it cannot produce a gap between equally high
+  achievers); steps 6 and 7 still refer to the earlier contrast.
+- *Step 17, two contrasts added (author's request).* Resilient students against all other disadvantaged students (`R-PO`: S1A4 minus
+  the share-weighted mean of S1A1–S1A3) with its decomposition, and the broad RQ3 test (`DiD2`: (R − other disadvantaged) − (S4A4 −
+  other advantaged)). Run in `05_archive/estimate_20261116_mxmod_po/`; existing terms identical (max |diff| 0); previous files in
+  `05_archive/output_20261116_mxmod_v2/`. R-PO −0.094 (M1), −0.055 (M3), −0.102 (M5); DiD2 −0.06 (SE 0.015) in every model.
+- *Paper rewritten (16 November 2026, author's request, econ-write).* Abstract, Introduction, Results (one subsection per research
+  question: comparisons with Table 2 and Figure 2; where on the scale, Figure 3 `fig_p15_answers`; what skills, mindsets and
+  relationships account for, Figure 4 `fig_p13_controls` with the funnel interpretation and Figure 5 `fig_p14_decomposition`; whether
+  the cost is specific to disadvantaged students; where the gap differs, Figure 6 forest; robustness), Discussion and Conclusion.
+  Table 2 gains the rows "resilient − all other disadvantaged" and the achievement gap over all levels. Appendix: Table A1 and the
+  interaction models (Figure A1, redrawn for the new contrast); the old ranking figure is dropped. Every number is inline from the
+  snapshot. The earlier report (`cost_of_resilience.qmd`) still describes the first design and now reads re-estimated step-8 output;
+  it is not maintained.

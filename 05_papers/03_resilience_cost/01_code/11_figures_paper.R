@@ -3,6 +3,7 @@
 # The figures carry no title, subtitle or notes: these are in the figure captions of the manuscript. Significance is shown at two
 # levels throughout: filled circle p < 0.05, filled triangle p < 0.10, open circle not significant (two-sided, unadjusted).
 # Main text: fig_p1_means, fig_p2_benchmark, fig_p3_skills, fig_p8_regions, fig_p4_answers, fig_p5_forest. Appendix: fig_p6_ranking, fig_p7_interactions.
+# From the status x achievement matrix (steps 16, 17; not yet in the manuscript): fig_p10_corner_groups, fig_p11_resilient_by_region (the new Figure 2).
 # Output: 05_papers/03_resilience_cost/02_results/figs/fig_p*.pdf     Run from the repository root: Rscript 05_papers/03_resilience_cost/01_code/11_figures_paper.R
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(patchwork); library(ggrepel) })
 IN <- "05_papers/03_resilience_cost/02_results/snapshot/"; FIG <- "05_papers/03_resilience_cost/02_results/figs/"; dir.create(FIG, recursive = TRUE, showWarnings = FALSE)
@@ -11,16 +12,7 @@ gs <- rd("gap_sys.csv"); gp <- rd("gap_pool.csv"); rs <- rd("rs_sys.csv"); rp <-
 fs <- rd("foc_sys.csv"); fp <- rd("foc_pool.csv"); ms <- rd("mech_sys.csv"); mp <- rd("mech_pool.csv")
 bs <- rd("bench_sys.csv"); bp <- rd("bench_pool.csv"); fo <- rd("forest_est.csv"); rg <- rd("region_pool.csv")
 
-NAMES <- c(ALB = "Albania", ARE = "United Arab Emirates", ARG = "Argentina", ARM = "Armenia", AUT = "Austria", AZE = "Azerbaijan", BEL = "Belgium",
-  BGR = "Bulgaria", BRA = "Brazil", BRN = "Brunei Darussalam", CHE = "Switzerland", CHL = "Chile", COL = "Colombia", CZE = "Czechia", DEU = "Germany",
-  DNK = "Denmark", DOM = "Dominican Republic", ECU = "Ecuador", ESP = "Spain", EST = "Estonia", FIN = "Finland", FRA = "France", GBR = "United Kingdom",
-  GEO = "Georgia", GRC = "Greece", GTM = "Guatemala", HKG = "Hong Kong (China)", HRV = "Croatia", HUN = "Hungary", IDN = "Indonesia", IRL = "Ireland",
-  ISL = "Iceland", ISR = "Israel", ITA = "Italy", JOR = "Jordan", JPN = "Japan", KAZ = "Kazakhstan", KEN = "Kenya", KGZ = "Kyrgyzstan", KOR = "Korea",
-  KSV = "Kosovo", LBN = "Lebanon", LTU = "Lithuania", LUX = "Luxembourg", LVA = "Latvia", MAC = "Macao (China)", MAR = "Morocco", MDA = "Moldova",
-  MEX = "Mexico", MKD = "North Macedonia", MLT = "Malta", MNE = "Montenegro", MNG = "Mongolia", MYS = "Malaysia", NLD = "Netherlands", NZL = "New Zealand",
-  PER = "Peru", PHL = "Philippines", POL = "Poland", PRT = "Portugal", PRY = "Paraguay", PSE = "Palestinian Authority", QAT = "Qatar",
-  QCI = "B-S-J-Z (China)", ROU = "Romania", SAU = "Saudi Arabia", SRB = "Serbia", SVK = "Slovak Republic", SVN = "Slovenia", TAP = "Chinese Taipei",
-  THA = "Thailand", URY = "Uruguay", VNM = "Viet Nam")
+source("05_papers/03_resilience_cost/01_code/system_names.R")                     # NAMES: system names by PISA code
 for (x in list(gs, rs, fs, ms, bs)) { stopifnot(!"QUA" %in% x$CNT); miss <- setdiff(unique(x$CNT), names(NAMES)); if (length(miss)) stop("no name for: ", paste(miss, collapse = " ")) }
 
 # ------------------------------------------------------------------ look: the paper's own (serif lettering; purple, orange, green; black square for the mean)
@@ -203,6 +195,218 @@ p8 <- ggplot(z8[region != "All systems"], aes(re_mean, y)) + geom_vline(xinterce
   facet_grid(. ~ panel) + labs(x = "Difference in life satisfaction (SD)", y = NULL) +
   theme(panel.grid.major.y = element_blank(), strip.text = element_text(size = 8.2, face = "bold", colour = cK, hjust = 0, lineheight = .95), panel.spacing = unit(14, "pt"), axis.text.y = element_text(size = 8))
 save(p8, "fig_p8_regions", h = 3.6)
+
+# ------------------------------------------------------------------ P9 (not in the manuscript): Figure 2 by system, grouped by region
+source("05_papers/03_resilience_cost/01_code/regions.R")
+P9 <- c(`gap|lad:sei` = "A. Against disadvantaged low achievers,\nskill index held fixed", `bench|cell:R:demo` = "B. Against advantaged top achievers")
+z9 <- rbind(gs[term == "lad:sei", .(key = "gap|lad:sei", CNT, est, se)], bs[term == "cell:R:demo", .(key = "bench|cell:R:demo", CNT, est, se)])[!is.na(est) & se > 0]
+z9 <- merge(z9, REGION_OF, by = "CNT"); stopifnot(!anyNA(z9$region)); lim9 <- c(-1.25, 1)
+ordA <- z9[key == "gap|lad:sei"][order(region, -est)]                                  # within a region, systems ranked by panel A
+r9 <- rg[paste(file, term, sep = "|") %in% names(P9) & region != "All systems", .(key = paste(file, term, sep = "|"), region, est = re_mean, se = re_se, n_sys)]
+regs <- r9[key == "gap|lad:sei"][order(est), region]                                    # regions in the order of Figure 2
+rows <- rbindlist(lapply(regs, function(r) rbind(data.table(region = r, CNT = ordA[region == r, CNT], what = "system"), data.table(region = r, CNT = NA_character_, what = "mean"))))
+rows[, `:=`(regf = factor(region, levels = regs, labels = gsub(" and ", " and\n", regs)), y = rev(seq_len(.N)))]          # y unique across regions
+d9 <- merge(z9, rows[what == "system", .(CNT, regf, y)], by = "CNT")
+m9 <- merge(r9, rows[what == "mean", .(region, regf, y)], by = "region")
+for (x in list(d9, m9)) x[, `:=`(panel = factor(P9[key], levels = unname(P9)), lo = pmax(est - 1.96 * se, lim9[1]), hi = pmin(est + 1.96 * se, lim9[2]), Evidence = ev(est, se))]
+stopifnot(d9$est > lim9[1], d9$est < lim9[2])
+labs9 <- rbind(d9[key == "gap|lad:sei", .(regf, y, lab = sprintf("%s (%s)", NAMES[CNT], CNT))], m9[key == "gap|lad:sei", .(regf, y, lab = sprintf("Region mean (%d)", n_sys))])
+p9 <- ggplot(d9, aes(est, y)) + geom_vline(xintercept = 0, colour = cK, linewidth = .4) +
+  geom_segment(aes(x = lo, xend = hi, yend = y), colour = cR, linewidth = .4, alpha = .5) + geom_point(aes(shape = Evidence), colour = cR, size = 1.5, stroke = .45) + ev_shape +
+  geom_segment(data = m9, aes(x = lo, xend = hi, yend = y), colour = cK, linewidth = .7) + mean_pt(m9, aes(est, y), size = 2.6) + mean_key() +
+  scale_y_continuous(breaks = function(l) labs9[y >= l[1] & y <= l[2], y], labels = function(b) labs9$lab[match(b, labs9$y)], expand = expansion(add = .7)) +
+  scale_x_continuous(limits = lim9, breaks = seq(-1, 1, .5)) +
+  facet_grid(regf ~ panel, scales = "free_y", space = "free_y", switch = "y") + labs(x = "Difference in life satisfaction (SD)", y = NULL) +
+  theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 5.6), strip.placement = "outside",
+        strip.text.x = element_text(size = 8.2, face = "bold", colour = cK, hjust = 0, lineheight = .95),
+        strip.text.y.left = element_text(size = 6.8, face = "bold", colour = cK, angle = 0, hjust = 1, lineheight = .95), panel.spacing.y = unit(5, "pt"), panel.spacing.x = unit(12, "pt"))
+save(p9, "fig_p9_regions_by_system", h = 10.6)
+
+# ------------------------------------------------------------------ P10: the four corner groups of the status x achievement matrix (step 16), system by system
+# Descriptive, no controls, 0-10 points. Panel A: mean life satisfaction of the four groups in each system (the grey line spans the
+# lowest and the highest of the four). Panels B-D: resilient students minus each of the other three groups, with 95% intervals.
+# Systems are ranked by the difference from advantaged top achievers. The last row is the random-effects mean of systems.
+xs <- rd("matrix_sys.csv"); xp <- rd("matrix_pool.csv"); stopifnot(!"QUA" %in% xs$CNT, all(unique(xs$CNT) %in% names(NAMES)))
+G4 <- c(S1A4 = "Resilient students", S1A1 = "Disadvantaged low achievers", S4A1 = "Advantaged low achievers", S4A4 = "Advantaged top achievers")
+col4 <- setNames(c(cR, cP, cG, "#2B6CB0"), unname(G4))
+D3 <- c(`diff:R-AT` = "S4A4", `diff:R-PL` = "S1A1", `diff:R-AL` = "S4A1")
+lab3 <- setNames(paste("Against", tolower(substr(G4[D3], 1, 1)), substring(G4[D3], 2)), names(D3)); lab3 <- sub("Against a", "Against a", sub("Against d", "Against d", lab3))
+lab3 <- setNames(paste0("Against ", c("advantaged top achievers", "disadvantaged low achievers", "advantaged low achievers")), names(D3))
+z10 <- xs[term %in% names(D3) & !is.na(est) & se > 0]; ord10 <- z10[term == "diff:R-AT"][order(-est), CNT]; n10 <- length(ord10)
+m10 <- xs[term %in% paste0("mean:", names(G4)) & CNT %in% ord10][, .(CNT, g = factor(G4[sub("mean:", "", term)], levels = unname(G4)), est, y = match(CNT, ord10))]
+r10 <- m10[, .(lo = min(est), hi = max(est)), by = y]
+pm10 <- xp[match(paste0("mean:", names(G4)), term), .(g = factor(unname(G4), levels = unname(G4)), est = re_mean, y = -.8)]
+lim10a <- c(5, 9); stopifnot(m10$est > lim10a[1], m10$est < lim10a[2])
+ylab10 <- scale_y_continuous(breaks = c(seq_len(n10), -.8), labels = c(sprintf("%s (%s)", NAMES[ord10], ord10), sprintf("Mean of %d systems", n10)), limits = c(-1.6, n10 + 2.4), expand = c(0, 0))
+p10a <- ggplot(m10, aes(est, y)) + geom_hline(yintercept = .1, colour = cL, linewidth = .3) +
+  geom_segment(data = r10, aes(x = lo, xend = hi, y = y, yend = y), colour = cBand, linewidth = 1.1, inherit.aes = FALSE) +
+  geom_point(aes(colour = g), size = 1.25, alpha = .95) +
+  geom_segment(data = pm10[, .(lo = min(est), hi = max(est), y = y[1])], aes(x = lo, xend = hi, y = y, yend = y), colour = cBand, linewidth = 1.6, inherit.aes = FALSE) +
+  geom_point(data = pm10, aes(fill = g), shape = 22, colour = "white", size = 2.6, stroke = .5, show.legend = FALSE) +
+  scale_colour_manual(values = col4, name = NULL, guide = guide_legend(order = 2, nrow = 2, override.aes = list(size = 2.4))) + scale_fill_manual(values = col4, guide = "none") +
+  ylab10 + scale_x_continuous(limits = lim10a, breaks = 5:9, expand = c(0, 0)) +
+  labs(x = "Mean life satisfaction (0-10)", y = NULL, tag = "A") +
+  theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 5.6))
+lim10b <- c(-2, 1.25)
+z10[, `:=`(y = match(CNT, ord10), k = factor(lab3[term], levels = unname(lab3)), c3 = G4[D3[term]], lo = pmax(est - 1.96 * se, lim10b[1]), hi = pmin(est + 1.96 * se, lim10b[2]), Evidence = ev(est, se))]
+stopifnot(z10$est > lim10b[1], z10$est < lim10b[2])
+s10 <- xp[match(names(D3), term), .(k = factor(lab3[term], levels = unname(lab3)), est = re_mean, lo = re_mean - 1.96 * re_se, hi = re_mean + 1.96 * re_se, y = -.8)]
+c10 <- z10[, .(lab = sprintf("lower at p < 0.05 in %d,\nat p < 0.10 in %d of %d", sum(est / se < -1.96), sum(est / se < -1.645), .N)), by = k]
+p10b <- ggplot(z10, aes(est, y)) + geom_vline(xintercept = 0, colour = cK, linewidth = .4) + geom_hline(yintercept = .1, colour = cL, linewidth = .3) +
+  geom_segment(aes(x = lo, xend = hi, yend = y, colour = c3), linewidth = .4, alpha = .5) + geom_point(aes(colour = c3, shape = Evidence), size = 1.5, stroke = .45) + ev_shape +
+  geom_segment(data = s10, aes(x = lo, xend = hi, yend = y), colour = cK, linewidth = .7) + mean_pt(s10, aes(est, y)) + mean_key() +
+  geom_text(data = c10, aes(x = lim10b[1] + .08, y = n10 + 1.4, label = lab), hjust = 0, vjust = .5, size = 2.2, family = FAM, colour = cT, lineheight = .9) +
+  scale_colour_manual(values = col4, guide = "none") + ylab10 + scale_x_continuous(limits = lim10b, breaks = seq(-2, 1, .5), expand = c(0, 0)) + facet_grid(. ~ k) +
+  labs(x = "Resilient students minus the group (points on the 0-10 scale)", y = NULL, tag = "B") +
+  theme(panel.grid.major.y = element_blank(), axis.text.y = element_blank(), strip.text = element_text(size = 7.6, face = "bold", colour = cK), panel.spacing = unit(9, "pt"))
+save((p10a | p10b) + plot_layout(widths = c(1, 2.6), guides = "collect") & theme(legend.position = "bottom"), "fig_p10_corner_groups", w = 9.6, h = 10.4)
+
+# ------------------------------------------------------------------ P11: Figure 2 -- resilient students in every system, grouped by region (step 17, model 3)
+# Model 3: 16 status x achievement cells, school fixed effects, sex, age and grade; reference advantaged top achievers. Panel A: the
+# coefficient of resilient students. Panel B: resilient students minus advantaged low achievers, from the same model. Regions are
+# ranked by their mean in panel A, systems within a region by their estimate in panel A. New Zealand and Kenya are shown at the
+# bottom without a region; the last row is the mean of all systems. Region and overall means: random effects (step 15).
+source("05_papers/03_resilience_cost/01_code/regions.R")
+xm <- rd("mxmod_sys.csv"); stopifnot(!"QUA" %in% xm$CNT, all(unique(xm$CNT) %in% names(NAMES)))
+P11 <- c(`mm:z:M3:S1A4` = "A. Resilient students against\nadvantaged top achievers", `mm:z:M3:R-AL` = "B. Resilient students against\nadvantaged low achievers")
+OTHER <- "New Zealand and Kenya"; lim11 <- c(-1, .75)
+z11 <- merge(xm[term %in% names(P11) & !is.na(est) & se > 0, .(key = term, CNT, est, se)], REGION_OF, by = "CNT"); stopifnot(!anyNA(z11$region))
+r11 <- rg[file == "mxmod" & term %in% names(P11), .(key = term, region, est = re_mean, se = re_se, n_sys)]
+regs11 <- r11[key == names(P11)[1] & !region %in% c("All systems", OTHER)][order(est), region]
+ordA11 <- z11[key == names(P11)[1]][order(est)]
+G_OTHER <- " "; G_ALL <- "  "                                                         # unlabelled groups at the bottom
+rows11 <- rbind(rbindlist(lapply(regs11, function(r) rbind(data.table(grp = r, CNT = ordA11[region == r, CNT], what = "system", region = r),
+                                                          data.table(grp = r, CNT = NA_character_, what = "mean", region = r)))),
+                data.table(grp = G_OTHER, CNT = ordA11[region == OTHER, CNT], what = "system", region = OTHER),
+                data.table(grp = G_ALL, CNT = NA_character_, what = "mean", region = "All systems"))
+rows11[, `:=`(grpf = factor(grp, levels = c(regs11, G_OTHER, G_ALL), labels = c(gsub(" and ", " and\n", regs11), G_OTHER, G_ALL)), y = rev(seq_len(.N)))]
+d11 <- merge(z11, rows11[what == "system", .(CNT, grpf, y)], by = "CNT")
+m11 <- merge(r11, rows11[what == "mean", .(region, grpf, y)], by = "region")
+for (x in list(d11, m11)) x[, `:=`(panel = factor(P11[key], levels = unname(P11)), lo = pmax(est - 1.96 * se, lim11[1]), hi = pmin(est + 1.96 * se, lim11[2]), Evidence = ev(est, se))]
+stopifnot(d11$est > lim11[1], d11$est < lim11[2], nrow(d11) == 2 * uniqueN(xm$CNT))
+labs11 <- rbind(d11[key == names(P11)[1], .(y, lab = sprintf("%s (%s)", NAMES[CNT], CNT))],
+                m11[key == names(P11)[1], .(y, lab = ifelse(region == "All systems", sprintf("Mean of %d systems", n_sys), sprintf("Region mean (%d)", n_sys)))])
+p11 <- ggplot(d11, aes(est, y)) + geom_vline(xintercept = 0, colour = cK, linewidth = .4) +
+  geom_segment(aes(x = lo, xend = hi, yend = y), colour = cR, linewidth = .4, alpha = .5) + geom_point(aes(shape = Evidence), colour = cR, size = 1.5, stroke = .45) + ev_shape +
+  geom_segment(data = m11, aes(x = lo, xend = hi, yend = y), colour = cK, linewidth = .7) + mean_pt(m11, aes(est, y), size = 2.6) + mean_key() +
+  scale_y_continuous(breaks = function(l) labs11[y >= l[1] & y <= l[2], y], labels = function(b) labs11$lab[match(b, labs11$y)], expand = expansion(add = .7)) +
+  scale_x_continuous(limits = lim11, breaks = seq(-1, .75, .25)) +
+  facet_grid(grpf ~ panel, scales = "free_y", space = "free_y", switch = "y") + labs(x = "Difference in life satisfaction (SD)", y = NULL) +
+  theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 5.6), strip.placement = "outside",
+        strip.text.x = element_text(size = 8.2, face = "bold", colour = cK, hjust = 0, lineheight = .95),
+        strip.text.y.left = element_text(size = 6.6, face = "bold", colour = cK, angle = 90, hjust = .5, lineheight = .95), panel.spacing.y = unit(5, "pt"), panel.spacing.x = unit(12, "pt"))
+save(p11, "fig_p11_resilient_by_region", h = 10.6)
+
+# ------------------------------------------------------------------ P12: Figure 1 -- the status x achievement matrix (step 16), the systems of the models
+# Mean over the systems of step 17 (each system weighted equally) of three cell statistics: mean life satisfaction (tile colour and
+# the large number), share answering 10 and share of the system's students. Descriptive, no controls. The four corner groups are named.
+xs12 <- rd("matrix_sys.csv"); sys12 <- unique(rd("mxmod_sys.csv")$CNT); stopifnot(all(sys12 %in% xs12$CNT))
+c12 <- xs12[CNT %in% sys12 & grepl("^(mean|ls10|share):S[1-4]A[1-4]$", term), .(v = mean(est)), by = term][, c("stat", "cell") := tstrsplit(term, ":")]
+c12 <- dcast(c12, cell ~ stat, value.var = "v")[, `:=`(S = as.integer(substr(cell, 2, 2)), A = as.integer(substr(cell, 4, 4)))]
+stopifnot(nrow(c12) == 16, abs(sum(c12$share) - 1) < 1e-6)
+corner12 <- c(S1A4 = "Resilient\nstudents", S1A1 = "Disadvantaged\nlow achievers", S4A1 = "Advantaged\nlow achievers", S4A4 = "Advantaged top\nachievers (reference)")
+c12[, `:=`(name = ifelse(cell %in% names(corner12), corner12[cell], ""), lab = sprintf("%.2f", mean), sub = sprintf("answer 10: %.0f%%   students: %.1f%%", 100 * ls10, 100 * share))]
+mid12 <- mean(range(c12$mean)); c12[, ink := ifelse(mean < mid12, "white", cK)]
+p12 <- ggplot(c12, aes(A, S)) + geom_tile(aes(fill = mean), colour = "white", linewidth = 1.2) +
+  geom_tile(data = c12[name != ""], fill = NA, colour = cK, linewidth = .5, width = .97, height = .97) +
+  geom_text(aes(label = name, colour = ink), y = c12$S + .3, size = 2.3, family = FAM, fontface = "italic", lineheight = .85) +
+  geom_text(aes(label = lab, colour = ink), size = 4.2, family = FAM, fontface = "bold") +
+  geom_text(aes(label = sub, colour = ink), y = c12$S - .3, size = 2.1, family = FAM) +
+  scale_colour_identity() + scale_fill_gradient(low = cR, high = tintR, name = "Mean life satisfaction (0-10)", guide = guide_colourbar(barwidth = unit(110, "pt"), barheight = unit(6, "pt"), title.position = "top")) +
+  scale_x_continuous(breaks = 1:4, labels = c("Bottom quarter", "Second quarter", "Third quarter", "Top quarter"), expand = c(0, 0)) +
+  scale_y_continuous(breaks = 1:4, labels = c("Bottom quarter\n(disadvantaged)", "Second quarter", "Third quarter", "Top quarter\n(advantaged)"), expand = c(0, 0)) +
+  coord_fixed() + labs(x = "Reading achievement (national quarters)", y = "Economic, social and cultural status\n(national quarters)") +
+  theme(panel.grid = element_blank(), legend.title = element_text(size = 7.6, colour = cK), axis.text = element_text(size = 7.4))
+save(p12, "fig_p12_matrix", w = 6.6, h = 6.4)
+
+# ------------------------------------------------------------------ P13: RQ2 -- what the characteristics do to the gap to advantaged top achievers; how far systems differ (step 17)
+# Panel A: each system's gap in model 3 against its gap in model 5 (skills, mindsets and relationships also held fixed); under the line
+# the gap is larger before the characteristics are held fixed. Panel B: the model-3 gap against its standard error, with the funnel in
+# which 95% of estimates would fall if every system had the pooled gap.
+xm13 <- rd("mxmod_sys.csv"); xp13 <- rd("mxmod_pool.csv")
+g13 <- wide(xm13, c(m3 = "mm:z:M3:S1A4", m5 = "mm:z:M5:S1A4")); lim13 <- c(floor(min(g13$m3, g13$m5) * 10 - .5), ceiling(max(g13$m3, g13$m5) * 10 + .5)) / 10
+p13a <- scat(g13[, .(CNT, x = m5, y = m3)], summ(xp13, c("mm:z:M5:S1A4", "mm:z:M3:S1A4")), lim13, breaks = seq(-1, 1, .25), tag = "A",
+  xlab = "Gap with skills, mindsets and relationships\nalso held fixed (model 5, SD)", ylab = "Gap with sex, age and grade held fixed (model 3, SD)", below = "Larger gap before the\ncharacteristics are held fixed") +
+  geom_hline(yintercept = 0, colour = cL, linewidth = .3, linetype = "22") + geom_vline(xintercept = 0, colour = cL, linewidth = .3, linetype = "22")
+f13 <- xm13[term == "mm:z:M3:S1A4" & !is.na(est) & se > 0, .(CNT, est, se)]; pm13 <- xp13[term == "mm:z:M3:S1A4", re_mean]; f13[, out := abs(est - pm13) > 1.96 * se]
+fun13 <- data.table(se = exp(seq(log(min(f13$se) * .9), log(max(f13$se) * 1.08), length.out = 80)))[, `:=`(lo = pm13 - 1.96 * se, hi = pm13 + 1.96 * se)]; xl13 <- c(-1, .5); stopifnot(f13$est > xl13[1], f13$est < xl13[2])
+revlog <- scales::trans_new("revlog", function(x) -log10(x), function(x) 10^(-x), domain = c(1e-6, Inf))
+p13b <- ggplot(f13, aes(est, se)) +
+  geom_ribbon(data = fun13, aes(y = se, xmin = pmax(lo, xl13[1]), xmax = pmin(hi, xl13[2])), inherit.aes = FALSE, fill = "#F1F1F1") +
+  geom_path(data = fun13[lo > xl13[1]], aes(lo, se), colour = cL, linewidth = .4) + geom_path(data = fun13[hi < xl13[2]], aes(hi, se), colour = cL, linewidth = .4) +
+  geom_vline(xintercept = 0, colour = cL, linewidth = .3, linetype = "22") + geom_vline(xintercept = pm13, colour = cK, linewidth = .35) +
+  geom_point(aes(colour = out), size = 1.5, alpha = .9, show.legend = FALSE) +
+  geom_text_repel(aes(label = CNT, colour = out), size = 1.95, family = FAM, segment.size = .15, segment.colour = cL, min.segment.length = .15, box.padding = .1, point.padding = .08, max.overlaps = Inf, max.time = 3, max.iter = 60000, seed = 7, show.legend = FALSE) +
+  annotate("text", x = xl13[1] + .04, y = min(fun13$se) * 1.03, label = sprintf("%d of %d systems\ninside the funnel", f13[out == FALSE, .N], nrow(f13)), hjust = 0, vjust = 1, size = 2.6, family = FAM, colour = cK, lineheight = .95) +
+  scale_colour_manual(values = c(`FALSE` = cP, `TRUE` = cR)) + scale_y_continuous(trans = revlog, breaks = c(.05, .075, .1, .15, .2, .3), limits = rev(range(fun13$se)), expand = c(0, 0)) +
+  scale_x_continuous(limits = xl13, breaks = seq(-1, .5, .25), expand = c(0, 0)) +
+  labs(x = "Gap with sex, age and grade held fixed (model 3, SD)", y = "Standard error of the system estimate (log scale)", tag = "B") + theme(aspect.ratio = 1)
+pair(p13a, p13b, "fig_p13_controls")
+
+# ------------------------------------------------------------------ P14: RQ2 -- what accounts for the gaps, system by system (Gelbach decomposition, step 17)
+# Two panels: resilient students against advantaged top achievers, and against advantaged low achievers. Each bar splits a system's
+# model-3 gap (marker) into the contributions of the characteristics added in models 4 and 5 (difference between the groups in the
+# characteristic x its model-5 coefficient) and the remainder, the gap left in model 5. The parts sum to the gap in every system. A
+# characteristic a system did not field contributes nothing there. Significance of the model-3 gap (two-sided): filled circle p < 0.05,
+# filled triangle p < 0.10; where it is not significant the bar is drawn in pale colours and the marker is an open circle. Last row: mean
+# of systems (each weighted equally; parts sum to the mean gap), marked by the significance of the random-effects mean.
+xm14 <- rd("mxmod_sys.csv"); xp14 <- rd("mxmod_pool.csv")
+PART14 <- list(`Sense of belonging` = "BELONG_z", `Family support` = "FAMSUP_z", `Safety and bullying` = c("FEELSAFE_z", "BULLIED_z"),
+               `Socio-emotional skills` = c("PERSEV_z", "CURIO_z", "ENPROBS_z", "COGABIL_z", "GOALSET_z", "SELFREG_z"), `Mindsets and attitudes` = c("growth", "EFFSCIE_z", "JOYSCIE_z"))
+CON14 <- c(`R-AT` = "A. Against advantaged top achievers", `R-AL` = "B. Against advantaged low achievers"); TOT14 <- c(`R-AT` = "S1A4", `R-AL` = "R-AL")
+w14 <- dcast(xm14[grepl("^gel:|^mm:z:M[35]:", term)], CNT ~ term, value.var = "est")
+all14 <- rbindlist(lapply(names(CON14), function(cn) {
+  t3 <- paste0("mm:z:M3:", TOT14[[cn]])
+  z <- data.table(CNT = w14$CNT, con = cn, gross = w14[[t3]], Remainder = w14[[paste0("mm:z:M5:", TOT14[[cn]])]])
+  for (pn in names(PART14)) { M <- as.matrix(w14[, intersect(paste0("gel:", cn, ":", PART14[[pn]]), names(w14)), with = FALSE]); M[is.na(M)] <- 0; z[, (pn) := rowSums(M)] }
+  stopifnot(max(abs(z$gross - z$Remainder - rowSums(z[, names(PART14), with = FALSE]))) < 1e-6)
+  z <- merge(z, xm14[term == t3, .(CNT, se)], by = "CNT")[, gross_sig := gross]
+  m <- z[, lapply(.SD, mean), .SDcols = c("gross", "Remainder", names(PART14))][, `:=`(CNT = "MEAN", con = cn, se = xp14[term == t3, re_se], gross_sig = xp14[term == t3, re_mean])]
+  rbind(z, m, use.names = TRUE) }))
+all14[, `:=`(Evidence = ev(gross_sig, se), conf = factor(CON14[con], levels = unname(CON14)))]
+sys14 <- unique(all14[CNT != "MEAN", CNT]); sys14 <- sys14[order(NAMES[sys14])]; ord14 <- rev(c(sys14, "GAP", "MEAN"))   # alphabetical from the top, a blank row, the mean at the bottom
+lab14 <- c(setNames(NAMES[sys14], sys14), GAP = "", MEAN = sprintf("Mean of %d systems", length(sys14)))
+long14 <- melt(all14[, c("CNT", "conf", "Evidence", "Remainder", names(PART14)), with = FALSE], id.vars = c("CNT", "conf", "Evidence"), variable.name = "part", value.name = "v")
+long14[, `:=`(y = factor(CNT, levels = ord14), part = factor(part, levels = c(names(PART14), "Remainder")))]
+P14L <- c(names(PART14), "Remainder")
+long14[, key := factor(ifelse(Evidence == EV[3], paste0(part, " (pale)"), as.character(part)), levels = c(P14L, paste0(P14L, " (pale)")))]   # same stacking order for solid and pale
+mk14 <- all14[, .(y = factor(CNT, levels = ord14), conf, gross, Evidence)]
+col14 <- c(`Sense of belonging` = "#1F5A99", `Family support` = "#5B9BD5", `Safety and bullying` = "#A9CCE8", `Socio-emotional skills` = "#D9730D", `Mindsets and attitudes` = "#F2B880", Remainder = cR)
+pale <- function(x, f = .78) grDevices::rgb(t(grDevices::col2rgb(x) + (255 - grDevices::col2rgb(x)) * f), maxColorValue = 255)   # mixed with white
+fill14 <- c(col14, setNames(vapply(col14, pale, ""), paste0(names(col14), " (pale)")))
+p14 <- ggplot(long14, aes(v, y)) + geom_vline(xintercept = 0, colour = cL, linewidth = .4) +
+  geom_col(aes(fill = key), width = .72, orientation = "y") +
+  geom_point(data = mk14, aes(gross, y, shape = Evidence, fill = I(ifelse(Evidence == EV[3], "white", cK)), colour = I(ifelse(Evidence == EV[3], cK, "white"))), size = 2, stroke = .5, show.legend = c(shape = TRUE, fill = FALSE, colour = FALSE)) +
+  scale_shape_manual(values = setNames(c(21, 24, 21), EV), drop = FALSE, name = NULL,
+                     guide = guide_legend(order = 1, nrow = 1, override.aes = list(fill = c(cK, cK, "white"), colour = c("white", "white", cK), size = 2.4))) +
+  scale_fill_manual(values = fill14, breaks = names(col14), name = NULL, guide = guide_legend(order = 2, nrow = 2)) +
+  scale_y_discrete(labels = lab14, drop = FALSE, limits = ord14) +
+  scale_x_continuous(breaks = round(seq(-.8, .4, .2), 1), labels = function(b) formatC(round(b, 1) + 0, format = "f", digits = 1)) +
+  facet_grid(. ~ conf) + labs(x = "Gap in model 3 (SD) and its parts", y = NULL) +
+  theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 6.4), legend.box = "vertical", legend.text = element_text(size = 7.6),
+        strip.text.x = element_text(size = 8.2, face = "bold", colour = cK, hjust = 0), panel.spacing.x = unit(12, "pt"),
+        panel.background = element_rect(fill = "#FAFAF8", colour = "#D9D9D9", linewidth = .4))
+save(p14, "fig_p14_decomposition", w = 7.6, h = 10.2)
+
+# ------------------------------------------------------------------ P15: RQ1 -- where on the scale the gap to advantaged top achievers lies (step 19, model 3; step 16)
+# Panel A: difference between resilient students and advantaged top achievers in the same school in the share giving each answer 0-10,
+# model 3 (16 groups, school fixed effects, sex, age, grade), in percentage points; thin lines are systems, the black line and squares the
+# random-effects mean with its 95% interval. Panel B: unadjusted share of each group answering 10 in each system of the models (step 16).
+xa15 <- rd("mxans_sys.csv"); xpa15 <- rd("mxans_pool.csv"); xs15 <- rd("matrix_sys.csv"); sys15 <- unique(xa15$CNT)
+a15 <- xa15[grepl("^ans:M3:[0-9]+:R-AT$", term) & !is.na(est)][, k := as.integer(sub(":R-AT$", "", sub("^ans:M3:", "", term)))][, est := est * 100]
+ap15 <- xpa15[grepl("^ans:M3:[0-9]+:R-AT$", term)][, k := as.integer(sub(":R-AT$", "", sub("^ans:M3:", "", term)))][order(k)][, v := re_mean * 100]
+yl15 <- c(-30, 20); cut15 <- a15[est < yl15[1] | est > yl15[2], .N]
+p15a <- ggplot(a15, aes(k, est)) + geom_hline(yintercept = 0, colour = cK, linewidth = .35) +
+  geom_line(aes(group = CNT), colour = cR, alpha = .2, linewidth = .3) +
+  geom_ribbon(data = ap15, aes(k, ymin = (re_mean - 1.96 * re_se) * 100, ymax = (re_mean + 1.96 * re_se) * 100), inherit.aes = FALSE, fill = cK, alpha = .18) +
+  geom_line(data = ap15, aes(k, v), colour = cK, linewidth = .6) + mean_pt(ap15, aes(k, v), size = 2.2) + mean_key() +
+  scale_x_continuous(breaks = 0:10) + scale_y_continuous(breaks = seq(-30, 20, 10)) + coord_cartesian(ylim = yl15) +
+  labs(x = "Answer on the 0-10 item", y = "Difference in the share giving the answer (points)", tag = "A") + theme(panel.grid.major.x = element_blank())
+t15 <- dcast(xs15[CNT %in% sys15 & term %in% c("ls10:S1A4", "ls10:S4A4")], CNT ~ term, value.var = "est")[, .(CNT, x = 100 * `ls10:S4A4`, y = 100 * `ls10:S1A4`)]
+s15 <- t15[, .(x = mean(x), y = mean(y))]
+p15b <- scat(t15, s15, c(0, 60), breaks = seq(0, 60, 20), tag = "B",
+  xlab = "Advantaged top achievers (%)", ylab = "Resilient students (%)", below = "Resilient students answer\n10 less often")
+pair(p15a, p15b, "fig_p15_answers", widths = c(1.12, 1))
 
 cat(sprintf("systems: means %d, benchmark %d, gap %d (%d negative), answers %d, interactions %d; interaction estimates at the axis limit: %d; answer estimates outside panel A: %d; font %s\n",
             nrow(m), n2, r6$n, r6$neg, uniqueN(a$CNT), uniqueN(z7$CNT), z7[abs(est) > cap7, .N], a[est < -42 | est > 22, .N], FAM))

@@ -3,7 +3,10 @@
 # differently (a higher bar for a 9 or a 10). PISA 2025 has no anchoring vignettes and no second wellbeing measure, so group-specific
 # thresholds are not separately identified from a group difference in latent satisfaction: a model can only show what a reporting
 # explanation would have to look like, and test implications that the two readings do not share. Three parts, all on resilient (R)
-# vs disadvantaged low achievers (PL), cells re-derived per plausible value and replicate weight, ladder coded <=3, 4, ..., 10:
+# vs advantaged top achievers (since 15 November 2026, evening; before: vs disadvantaged low achievers), cells re-derived per plausible
+# value and replicate weight, ladder coded <=3, 4, ..., 10. Labels kept from the earlier design: "top" is the indicator for resilient
+# students, "PL" the comparison group (now advantaged top achievers), and "sei" the specification that also holds the six skills
+# fixed (entered separately; the skill index is no longer used):
 #   A (per system, BRR + Rubin, RE pooled): ordered probit with one latent shift for R (the model behind a "gap in SD").
 #   B (pooled over systems, weights normalised per system, BRR + Rubin; thresholds and covariate effects free in every system):
 #     op   one latent shift for R (parallel thresholds)
@@ -29,7 +32,8 @@ d[, nf := sum(W_FSTUWT), by = CNT]
 for (v in c("W_FSTUWT", RW)) set(d, j = v, value = d[[v]] / d$nf)
 
 DEMO <- c("female", "AGE", "g_m1", "g_p1"); RSZ <- c("ERS_z", "ACQ5_z", "MRS5_z", "ERS5_z")
-XCOLS <- c(DEMO, "SEI", paste0("m_", c("top", DEMO, "SEI")))
+SKZ <- paste0(SE6, "_z")                              # the six skills, entered separately
+XCOLS <- c(DEMO, SKZ, paste0("m_", c("top", DEMO, SKZ)))
 K <- 7L                                               # thresholds: LS >= 4, ..., LS >= 10
 lsc <- function(ls) pmax(as.integer(ls) - 3L, 0L)     # 0 = LS <= 3, 1 = LS 4, ..., 7 = LS 10
 KN <- 4:10
@@ -106,8 +110,8 @@ build <- function(s, y, w, rs = FALSE) {
   sys <- unique(s$CNT); parts <- vector("list", length(sys)); idx <- split(seq_len(nrow(s)), s$CNT)
   for (c1 in seq_along(sys)) {
     i <- idx[[sys[c1]]]; q <- wquant(y[i], w[i], c(.25, .75))
-    top <- as.integer(y[i] >= q[2]); cell <- s$sesq[i] == 1 & (top == 1 | y[i] <= q[1])
-    ctrl <- c(avail(s[i, ..DEMO], DEMO), "SEI"); need <- c("LS", "CNTSCHID", ctrl, if (rs) RSZ)
+    cell <- y[i] >= q[2] & s$sesq[i] %in% c(1, 4); top <- as.integer(s$sesq[i] == 1)     # top achievers; resilient = bottom status quarter
+    ctrl <- c(avail(s[i, ..DEMO], DEMO), avail(s[i, ..SKZ], SKZ)); need <- c("LS", "CNTSCHID", ctrl, if (rs) RSZ)
     j <- which(cell & complete.cases(s[i, ..need]) & w[i] > 0); r <- i[j]; ww <- w[r]; tp <- top[j]
     R <- cbind(top = tp, as.matrix(s[r, ..ctrl])); g <- s$CNTSCHID[r]
     mu <- rowsum(R * ww, g) / as.vector(rowsum(ww, g)); B <- mu[match(g, rownames(mu)), , drop = FALSE]; colnames(B) <- paste0("m_", colnames(R))
@@ -120,7 +124,7 @@ build <- function(s, y, w, rs = FALSE) {
   if (rs) o$Z <- as.matrix(s[o$r, ..RSZ])
   o
 }
-no_sei <- function(X) { X[, c("SEI", "m_SEI")] <- 0; X }
+no_sei <- function(X) { X[, c(SKZ, paste0("m_", SKZ))] <- 0; X }
 tmean <- function(m, sd, a, b) { al <- (a - m) / sd; be <- (b - m) / sd; pr <- pnorm(be) - pnorm(al); list(mean = m + sd * (dnorm(al) - dnorm(be)) / pr, p = pr) }
 
 # ---------------- part A and C: per system ----------------
@@ -131,21 +135,21 @@ stat_sys <- function(s, y, w) {
   # part C: relationship composite on answer category, R, and R x upper categories; school fixed effects
   ss <- s[D$r]; g <- ss$CNTSCHID; ctrl <- avail(s[, ..DEMO], DEMO); ctrl <- ctrl[vapply(ctrl, function(v) var(ss[[v]]) > 0, logical(1))]
   cat <- vapply(1:K, function(k) as.numeric(D$y == k), numeric(length(D$y))); colnames(cat) <- paste0("c", KN)
-  top <- D$top; Cm <- as.matrix(ss[, ..ctrl])
+  top <- D$top; Cm <- as.matrix(ss[, ..ctrl]); skz <- avail(ss, SKZ); Sk <- as.matrix(ss[, ..skz])
   reg <- function(yv, X, coefs) tryCatch(unname(fwls(yv, X, D$w, g)[coefs]), error = function(e) rep(NA_real_, length(coefs)))
   jump <- cbind(x8 = top * cat[, "c8"], x9 = top * cat[, "c9"], x10 = top * cat[, "c10"]); up <- cbind(x8plus = top * (D$y >= 5L))
-  out[paste0("crit:sei:", c("top", "x8", "x9", "x10", colnames(cat)))] <- reg(ss$REL, cbind(top = top, cat, jump, Cm, SEI = ss$SEI), c("top", "x8", "x9", "x10", colnames(cat)))
-  out["crit:sei:x8plus"]  <- reg(ss$REL, cbind(top = top, cat, up, Cm, SEI = ss$SEI), "x8plus")
+  out[paste0("crit:sei:", c("top", "x8", "x9", "x10", colnames(cat)))] <- reg(ss$REL, cbind(top = top, cat, jump, Cm, Sk), c("top", "x8", "x9", "x10", colnames(cat)))
+  out["crit:sei:x8plus"]  <- reg(ss$REL, cbind(top = top, cat, up, Cm, Sk), "x8plus")
   out["crit:demo:x8plus"] <- reg(ss$REL, cbind(top = top, cat, up, Cm), "x8plus")
   # the whole profile (R x every category, reference LS <= 3), and the excess at 8-10 over what the lower categories predict: the
   # composite may simply be tied more closely to life satisfaction among resilient students (a slope difference along the whole
   # ladder, which says nothing about thresholds). Latent position of a category = normal score from the low achievers' distribution.
   shp <- vapply(0:K, function(k) sum(D$w[D$top == 0 & D$y == k]), 0); shp <- pmax(shp / sum(shp), 1e-6); tq <- qnorm(cumsum(shp / sum(shp))[1:K])
   mlat <- tmean(0, 1, c(-Inf, tq), c(tq, Inf))$mean[D$y + 1L]; sat <- top * cat; colnames(sat) <- paste0("x", KN)
-  out[paste0("crit:sat:x", KN)] <- reg(ss$REL, cbind(top = top, cat, sat, Cm, SEI = ss$SEI), paste0("x", KN))
-  out[paste0("crit:xs:", c("topXlat", "x8", "x9", "x10"))] <- reg(ss$REL, cbind(top = top, cat, topXlat = top * mlat, jump, Cm, SEI = ss$SEI), c("topXlat", "x8", "x9", "x10"))
+  out[paste0("crit:sat:x", KN)] <- reg(ss$REL, cbind(top = top, cat, sat, Cm, Sk), paste0("x", KN))
+  out[paste0("crit:xs:", c("topXlat", "x8", "x9", "x10"))] <- reg(ss$REL, cbind(top = top, cat, topXlat = top * mlat, jump, Cm, Sk), c("topXlat", "x8", "x9", "x10"))
   for (v in c("BELONG_z", "FAMSUP_z", "FEELSAFE_z", "NBULLIED_z"))
-    out[paste0("crit:sei:x8plus:", v)] <- if (mean(!is.na(ss[[v]])) > 0.5) reg(ss[[v]], cbind(top = top, cat, up, Cm, SEI = ss$SEI), "x8plus") else NA_real_
+    out[paste0("crit:sei:x8plus:", v)] <- if (mean(!is.na(ss[[v]])) > 0.5) reg(ss[[v]], cbind(top = top, cat, up, Cm, Sk), "x8plus") else NA_real_
   out["n:R"] <- sum(D$top == 1); out["n:PL"] <- sum(D$top == 0); out["n:R10"] <- sum(D$top == 1 & D$y == K)
   out
 }
@@ -210,7 +214,7 @@ pisa_est_par <- function(dt, statfun, ys, cores) {
 
 if (!nzchar(Sys.getenv("THR_NO_RUN"))) {
   # systems: school identifiers and at least MIN_CELL students in each cell (mean over plausible values), as in steps 3-5
-  cells <- rbindlist(lapply(ACH, function(p) d[, { q <- wquant(get(p), W_FSTUWT, c(.25, .75)); .(R = sum(sesq == 1 & get(p) >= q[2]), PL = sum(sesq == 1 & get(p) <= q[1])) }, by = CNT]))[, .(R = mean(R), PL = mean(PL)), by = CNT]
+  cells <- rbindlist(lapply(ACH, function(p) d[, { q <- wquant(get(p), W_FSTUWT, c(.25, .75)); .(R = sum(sesq == 1 & get(p) >= q[2]), PL = sum(sesq == 4 & get(p) >= q[2])) }, by = CNT]))[, .(R = mean(R), PL = mean(PL)), by = CNT]   # PL = advantaged top achievers
   SYS <- sort(intersect(cells[R >= MIN_CELL & PL >= MIN_CELL, CNT], d[!is.na(CNTSCHID), unique(CNT)]))
   if (nzchar(Sys.getenv("THR_SYSTEMS"))) SYS <- intersect(SYS, strsplit(Sys.getenv("THR_SYSTEMS"), " ")[[1]])     # testing only
   d <- d[CNT %in% SYS]; setkey(d, CNT)
