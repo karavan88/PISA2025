@@ -1,0 +1,294 @@
+---
+title: "IV learning"
+author:
+  - name: Garen Avanesian
+date: today
+date-format: "D MMMM YYYY"
+lang: en
+bibliography: literature/references.bib
+metadata-files:
+  - ../04_output/tables/numbers.yml
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2.4cm
+    mainfont: PT Serif
+    sansfont: PT Sans
+    fontsize: 10.5pt
+    linestretch: 1.25
+    number-sections: true
+    toc: false
+    colorlinks: true
+    linkcolor: "black"
+    citecolor: "black"
+    urlcolor: "blue"
+    fig-pos: "!htbp"
+    tbl-cap-location: top
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{threeparttable}
+        \usepackage{float}
+        \floatplacement{table}{!htbp}
+        \renewcommand{\topfraction}{0.9}
+        \renewcommand{\bottomfraction}{0.8}
+        \renewcommand{\textfraction}{0.08}
+        \renewcommand{\floatpagefraction}{0.8}
+        \setcounter{topnumber}{3}
+        \setcounter{totalnumber}{4}
+---
+
+<!-- Numbers in the text are not typed: `meta n.key` is read from ../04_output/tables/numbers.yml, written by
+     01_code/19_text_numbers.R. Tables are ../04_output/tables/table*.tex (01_code/18_tables.R), figures ../04_output/figures (01_code/07_figures.R). -->
+
+# Background and research questions {#sec-background}
+
+## A gap that precedes school
+
+Students from poorer families score lower than their better-off peers in every school system with comparable data, and over the last half-century the gap has widened in most of them [@chmielewski2019]. Studies that follow children from birth place its origin early. In the British 1970 cohort, differences by family background are visible in the second year of life [@feinstein2003]. In Germany, gaps by parental education emerge and widen before children enter school and then stay stable up to age 16 [@skopek2021]. Across Germany, the Netherlands and the United Kingdom, between half and four-fifths of the language gap at the end of primary school was already in place before school began [@passaretta2022]. In the United States, inequality in reading and mathematics is substantial at kindergarten entry and does not grow over the following years [@vonhippel2018]. Models of skill formation offer a reason for this persistence. Skills acquired early raise the return to later learning [@cunha2007].
+
+The size of the gap at age 15 is usually reported in score points or standard deviations, which say little about how far behind disadvantaged students are. A natural yardstick is what students learn in a year [@bloom2008; @hill2008]. For PISA, @avvisati2021a estimate the gain from one school year at about one-fifth of a standard deviation in 18 systems, and @avvisati2021b propose such a gain as a benchmark for other differences, socio-economic gaps among them [see also @avvisati2023]. A yearly gain estimated in the same systems and cohort as the gap turns the gap into learning time. Our first question is therefore:
+
+*RQ1. How large is the socio-economic gap in achievement at age 15 when it is measured in years of learning?*
+
+## School and the gap
+
+Whether school changes this gap has been argued for sixty years. Comparisons of learning during the school year and over the summer suggested that it does, and for the better. In the United States, gaps by family background grew mainly when school was out [@downey2004; @alexander2007]. On this evidence, schools came to be seen as neutral or compensatory with respect to class [@downey2016], and @condron2021 report a compensatory effect on overall inequality in skills for later grades as well. This evidence has been questioned. A replication with better-scaled tests found that inequality does not grow in the first school years [@vonhippel2018], and the direction of change depends on how the tests are scaled [@vonhippel2019].
+
+A newer set of studies identifies the effect of schooling from the dates on which children are born and tested. In German first grades, schooling raised learning in every domain, with no detectable difference by family background [@passaretta2021]. In the United States, the equalising effect obtained this way is about half of what the summer comparison implies [@passaretta2025]. In Italian fifth and sixth grades and in Danish second grades, exposure to school narrowed the gap [@skopek2024; @jensen2026], and an application to TIMSS finds that each month of school narrows it across countries [@jensen2025].
+
+The answers thus range from no effect to moderate equalisation, and they come from primary school and, at most, grade 8. There are grounds to expect less equalisation later. The benefit a child draws from instruction rises with what the child already knows, so the compensating effect of school should fade with age [@raudenbush2015]. Evidence for students at the end of compulsory schooling is scarce, and the cross-national estimate uses variation in when students are tested within a school year. Our second question is:
+
+*RQ2. Does the gain from a year of school differ by family socio-economic status?*
+
+## What schools add
+
+Schools differ widely in the achievement of their students, and these differences follow their intake. The average socio-economic status of a school is strongly associated with the achievement of its students [@perry2010; @vanewijk2010]. A school's contribution has to be separated from this level [@raudenbush1995]. When schools are judged by what students learn during the school year, fewer than half of those in the bottom fifth for achievement remain in the bottom fifth [@downey2008].
+
+Whether schools with a disadvantaged intake nevertheless add less is disputed. Longitudinal studies in Flanders and Australia find faster growth in schools of higher socio-economic composition [@belfi2016; @sciffer2022]. Others regard such effects as statistical artefacts [@marks2015], and the opposing conclusions of the two literatures have been traced to how initial achievement enters the model [@dumont2020]. That schools differ in effectiveness is better established. @deming2014 and @angrist2017 test estimates of school value added against admission lotteries. Effective high schools benefit their least advantaged students most [@jackson2024]. In Norway, the strength of the income gradient varies between schools and is largely unrelated to their intake [@borgen2026].
+
+Value added requires that students be followed over time, which international assessments do not do. How much the schools of one system differ in a causally identified yearly gain, and whether that gain is smaller where the intake is disadvantaged, has therefore remained open across systems. Our third question is:
+
+*RQ3. How much do schools of the same system differ in what a year adds, and do schools with a disadvantaged intake add less?*
+
+## Who gains more
+
+If the gain from a year does not depend on family background, it may still depend on what a student already knows. Theories of skill formation and reading development predict that it does. Early advantage compounds [@stanovich1986; @cunha2007], and current skill raises the benefit from new instruction [@raudenbush2015]. The evidence is less clear. A review of 25 years of research on reading finds general support neither for widening nor for narrowing differences [@pfost2014], and conclusions about the role of school in inequality turn on how achievement and growth are related in the model [@dumont2020].
+
+These results describe who grows faster. They do not identify what schooling adds at different points of the achievement distribution. Methods exist for estimating, along the distribution of an outcome, the effect of a treatment that students do not receive at random [@abadie2002; @chernozhukov2005]. Applied to the gain from a grade, they answer our fourth question:
+
+*RQ4. Does a year of school add the same along the achievement distribution?*
+
+## Socio-emotional skills
+
+Students take more from school than achievement. Perseverance, curiosity and related skills predict schooling and later outcomes beyond what test scores capture [@heckman2006b; @almlund2011; @kautz2014], and teachers and schools affect outcomes that tests miss [@jackson2018; @jackson2020]. These skills are also unequally distributed. In PISA 2018, advantaged students reported somewhat higher skills than disadvantaged students across 74 countries, while the association of skills with achievement was similar in both groups [@gruijters2024].
+
+What a year of school adds to such skills is harder to establish, partly because they are self-reported. Students admitted by lottery to charter schools gained in achievement and reported lower conscientiousness and self-control, a result attributed to their judging themselves against a more demanding standard [@west2016]. In Denmark, exposure to school improved reading and lowered self-reported conscientiousness [@jensen2026], and in cross-sectional surveys 15-year-olds report lower skills than 10-year-olds [@oecd2021; @soto2011]. Studies of skills and family background have mostly concerned levels of achievement [@gruijters2024]. Much less is known about skills and the gain from a year, including for disadvantaged students. Our fifth question is:
+
+*RQ5. What does a year of school add to socio-emotional skills, and do skills change who gains?*
+
+# Data {#sec-data}
+
+## PISA 2025
+
+PISA tests students who are between 15 years 3 months and 16 years 2 months old and attend grade 7 or above. We use the public student file of the 2025 round [@oecd2025], which covers {{< meta n.sys_file >}} school systems. The file gives ten plausible values each for mathematics, reading and science. We average the three domains within each plausible value and call the result achievement; results for single domains are in the robustness section. All estimates use the final student weight and the 80 replicate weights.
+
+Family socio-economic status is the PISA index of economic, social and cultural status, which combines parental education, parental occupation and home possessions. We standardise it within each system and, for comparisons of groups, divide students into weighted thirds. Grade is the international grade recorded in the file, and repetition is whether a student has ever repeated a grade.
+
+## Entry rules and cutoffs
+
+PISA samples by age, so each system contributes one cohort of twelve consecutive birth months. Where the cutoff date for school entry falls inside that window, the cohort is split between two grades. We take the official entrance age and the months of the school year from the UNESCO Institute for Statistics [@uis2026]. Children start primary school at 6 in {{< meta n.entry6 >}} of the systems we analyse, at 5 in {{< meta n.entry5_w >}} and at 7 in {{< meta n.entry7_w >}}.
+
+The Institute does not record the date by which a child must reach that age, so we read the cutoff month from the data. For each system we compute, by birth month, the share of students in the upper of its two main grades. The cutoff is the largest fall in that share between adjacent months. We keep a system when the fall is at least 0.20 and no other month-to-month change exceeds half of it. In {{< meta n.partial_month >}} systems the cutoff falls inside a calendar month, and we leave that month out. The rule uses grades and birth months only.
+
+We analyse {{< meta n.sys >}} systems that meet the rule. @tbl-systems lists them with their cutoff month, entrance age and first stage. The cutoffs fall in {{< meta n.cut_months_w >}} different calendar months.
+
+::: {#tbl-systems}
+
+```{=latex}
+\input{../04_output/tables/table1.tex}
+```
+
+School systems, cutoffs and samples
+
+:::
+
+## Samples
+
+The main sample has {{< meta n.students >}} students in {{< meta n.schools >}} schools and {{< meta n.sys >}} systems, {{< meta n.oecd >}} of them OECD members; {{< meta n.two_grades_pct >}}% of the students are in one of the two main grades. Costa Rica has no index of socio-economic status, so the questions on family background use {{< meta n.sys_ses >}} systems. In the United States the index is available for {{< meta n.usa_ses_pct >}}% of students.
+
+The questions on schools need schools that teach both grades. We use schools with at least five sampled students in each grade and at least three on each side of the cutoff. There are {{< meta n.sch_n >}} such schools with {{< meta n.sch_students >}} students, in the {{< meta n.sch_sys >}} systems that have 30 or more of them. In {{< meta n.sch_same_w >}} of these systems the two grades belong to the same level of education; in the other {{< meta n.sch_diff >}} the upper grade is the first year of upper secondary school. We determine the level from the programme each student attends.
+
+## Socio-emotional skills
+
+The student questionnaire yields seven scales: perseverance, curiosity, enjoyment of problem-solving, cognitive adaptability, goal setting, self-regulation and sense of belonging. We standardise each within the system. Our index of learning skills is the mean of the first six, computed when at least four are present and standardised again. A single item on whether intelligence can be changed measures growth mindset. At least one scale is available in {{< meta n.sk_sys >}} of the {{< meta n.sys >}} systems. Cambodia has none. Mauritius lacks four scales, the United States lacks curiosity and perseverance, and perseverance is also missing in {{< meta n.sk_persev_other_w >}} other systems. The index is available in {{< meta n.sk_index_sys >}} systems, all but these three.
+
+# Empirical approach {#sec-approach}
+
+## Identification
+
+Let $r_i$ be the number of months between a student's birth month and the first birth month on the younger side of the cutoff, so that $r_i < 0$ for students born before it. Let $Z_i = 1$ for those students, and let $D_i = 1$ for students in the upper grade. For each system we estimate
+
+$$
+y_i = \alpha + \tau D_i + \beta r_i + \varepsilon_i ,
+\qquad
+D_i = \pi_0 + \pi_1 Z_i + \pi_2 r_i + u_i ,
+$$ {#eq-main}
+
+by two-stage least squares. Birth month enters as a control because, within a cohort tested in the same weeks, it fixes age at the test. The design goes back to studies that separate schooling from age with birth dates and entry rules [@cahan1989; @angrist1991; @cascio2006; @luyten2006] and has been applied to PISA [@marchionni2019; @avvisati2021a].
+
+We assume that, given a linear trend in birth month, being born before the cutoff changes achievement only by changing the grade, and that it moves no student into a lower grade. The coefficient $\tau$ is then the effect of the upper grade for students whose grade the cutoff decides [@imbens1994]. The first stage $\pi_1$ averages {{< meta n.fs >}} across systems and ranges from {{< meta n.fs_min >}} to {{< meta n.fs_max >}}; it is 0.5 or more in {{< meta n.fs_strong >}} systems. The base model has no covariates. The instrument does not require them, and several systems withhold sex or immigrant background.
+
+## Estimands
+
+Age at the test, age at school entry and years in school are tied by an identity: the first is the sum of the other two. Two of the three can vary freely, and the choice determines what a grade is compared with. In @eq-main, birth month is held fixed. $\tau$ therefore compares two students of the same age, one of whom has spent a year longer in school, having started a year younger and as one of the youngest in the class. We call it the same-age gain.
+
+Holding the starting age fixed gives the second quantity. A student who started at the same age and is one grade higher is also twelve months older, so
+
+$$
+\gamma = \tau - 12\beta .
+$$ {#eq-gamma}
+
+Because students born later are younger, $\beta$ is negative and $\gamma$ exceeds $\tau$. We call $\gamma$ the yearly gain: what a student has gained after one more year, from school and from growing older together. Their difference, $-12\beta$, is the gain from being a year older at a given grade. Neither quantity isolates schooling. The same-age gain includes whatever entering school younger does to a student [@bedard2006; @black2011; @crawford2014], and the yearly gain includes age. We use the yearly gain as the yardstick, since it is the quantity a year of a student's life delivers and the one estimated by @avvisati2021a, and we report the same-age gain beside it.
+
+To express the socio-economic gap in years of learning, we divide the difference in mean achievement between the high and the low third by the mean yearly gain across systems. The standard error of this ratio comes from a jackknife over systems, in which each system is left out in turn and both means are recomputed. For single systems we divide the system's gap by the same mean yearly gain, because a system's own yearly gain is too imprecise to serve as its yardstick.
+
+## Estimation
+
+We estimate every model separately in each system. Sampling variance comes from the 80 replicate weights, and the variance between the ten plausible values is added to it [@rubin1987]. Across systems we report the random-effects mean [@dersimonian1986] and the number of systems in which an estimate is significant at 5% and at 10%.
+
+*Family background.* We add standardised socio-economic status $S_i$, $D_i S_i$ and $r_i S_i$ to @eq-main and instrument $D_i S_i$ with $Z_i S_i$. The coefficient on $D_i S_i$ is the change in the gain per standard deviation of socio-economic status. A second version replaces $S_i$ with indicators for the middle and the high third.
+
+*Schools.* For each school we compute the difference in mean achievement between its students born before and after the cutoff, after removing the system's age trend, and divide it by the system's first stage. This ratio is the school's gain. We measure the dispersion of these gains across the schools of a system by their precision-weighted sum of squares. With 3 to 15 students on each side of the cutoff, that statistic exceeds its nominal value even when schools do not differ. We therefore obtain its reference distribution by removing the common gain, shuffling birth side among the students of each school 200 times and recomputing the statistic. The between-school variance is the excess of the observed statistic over the mean of the shuffled ones. To compare school types, we interact the gain with indicators for the quarter of students whose schools have the largest share of low-third students and the quarter whose schools have the largest share of high-third students.
+
+*The achievement distribution.* We estimate the gain at the 10th, 25th, 50th, 75th and 90th percentile by instrumental-variable quantile regression [@chernozhukov2005; @chernozhukov2006]. At each percentile, the gain is the value that leaves the instrument with a zero coefficient in a quantile regression of achievement net of the gain on birth month and the instrument. The estimates assume that a student's rank in the distribution would be the same in either grade, up to noise.
+
+*Skills.* We use each skill scale as the outcome in @eq-main, and as a moderator in the same way as socio-economic status. To see how much of the gradient along the achievement distribution is associated with skills, we repeat the quantile model with the skill index held fixed.
+
+## Methodological threats
+
+*Repetition.* Students born just before the cutoff are the youngest in their grade and repeat more often, by {{< meta n.rep_jump >}} percentage points on average (SE {{< meta n.rep_jump_se >}}). Dropping repeaters would select the sample on an outcome of the instrument. We keep them and report three checks: the sample without repeaters, years in school as the treatment, and the {{< meta n.low_rep_sys >}} systems in which fewer than 5% of students have repeated.
+
+*Season of birth.* Birth month is related to family background in some countries [@buckles2013]. The cutoffs of our systems fall in {{< meta n.cut_months_w >}} different calendar months, so a given birth month lies before the cutoff in some systems and after it in others. As a second estimator we take the age trend from {{< meta n.flat_sys_w >}} systems in which grade does not vary with birth month and impose it on the others.
+
+*Intake.* A school's gain compares its two birth groups, which requires that they be the same intake. Where the upper grade belongs to another level of education, part of it is newly admitted. We test this by applying the school procedure to socio-economic status, which is fixed before school, and we read the school results in the systems where both grades belong to the same level. A false cutoff placed inside one birth side checks for age effects that differ between schools.
+
+*Weak first stages.* In systems where the cutoff moves few students, estimates are imprecise and sensitive to the age trend. We report every summary again for the systems with a first stage of 0.5 or more.
+
+*Self-reports.* Students rate their skills against the peers around them, and those peers change with the grade [@west2016]. We therefore treat effects on skills at a given age with caution.
+
+# Results {#sec-results}
+
+## The gap in years of learning
+
+In the {{< meta n.sys_ses >}} systems with an index of socio-economic status, students in the high third score {{< meta n.gap3 >}} points more than students in the low third (SE {{< meta n.gap3_se >}}), and achievement rises by {{< meta n.gapsd >}} points per standard deviation of the index (SE {{< meta n.gapsd_se >}}). The gap is significant in {{< meta n.gap_sig05 >}} systems; the exception is Kenya.
+
+The yearly gain averages {{< meta n.gain >}} points (SE {{< meta n.gain_se >}}). It equals one-fifth of the average within-system standard deviation of achievement, which is {{< meta n.sd_ach >}} points, and so matches the estimate of @avvisati2021a. The yearly gain is significantly positive in {{< meta n.gain_pos05 >}} systems at 5% and in {{< meta n.gain_pos10 >}} at 10%. Of the {{< meta n.gain0 >}} points, {{< meta n.tau >}} (SE {{< meta n.tau_se >}}) are the same-age gain and {{< meta n.age >}} (SE {{< meta n.age_se >}}) come from being a year older, so schooling at a given age accounts for {{< meta n.tau_share_pct >}}% of what a year adds.
+
+The gap between the high and the low third therefore equals {{< meta n.years >}} school years (SE {{< meta n.years_se >}}), and one standard deviation of socio-economic status equals {{< meta n.yearssd >}} years (SE {{< meta n.yearssd_se >}}). The estimate stays between {{< meta n.years_jk_min >}} and {{< meta n.years_jk_max >}} years when any one system is left out. @fig-gap shows the gap for each system. It is about six years in Romania and Germany and less than one year in Cambodia and Kenya, where the index is hardly related to achievement.
+
+![The socio-economic gap at age 15 in school years. Each circle is the difference in mean achievement between the high and the low third of socio-economic status in one system, divided by the mean yearly gain across systems ({{< meta n.gain0 >}} points). The upper axis gives the same gap in PISA points, and the shaded columns mark every second school year. Bars are 95% intervals from the system's own sampling error. They leave out the uncertainty of the yardstick, which moves all systems proportionally. Fill shows whether the gap differs from zero: full colour at p < 0.05, pale at p < 0.10, white if not significant. The heavy vertical line is the mean of systems.](../04_output/figures/fig1_gap_years.pdf){#fig-gap width=6.3in}
+
+## A year adds the same
+
+The gain from a year does not differ by family background (@tbl-ses). Per standard deviation of socio-economic status, the same-age gain changes by {{< meta n.ses_tau >}} points (SE {{< meta n.ses_tau_se >}}) and the yearly gain by {{< meta n.ses_gain >}} points (SE {{< meta n.ses_gain_se >}}), against a difference of {{< meta n.ses_level >}} points in level. The interaction with the yearly gain is significantly positive in no system at 5% and in one at 10%, and significantly negative in none at 5% and in one at 10%. Across systems the estimates vary no more than sampling error predicts. The comparison of thirds gives the same answer: the yearly gain of the high third exceeds that of the low third by {{< meta n.thirds_gain >}} points (SE {{< meta n.thirds_gain_se >}}). In @fig-equal the systems scatter around the line of equal gains, none differs from it at 5% and four differ at 10%.
+
+::: {#tbl-ses}
+
+```{=latex}
+\input{../04_output/tables/table2.tex}
+```
+
+The gain from a year of school by family socio-economic status
+
+:::
+
+The estimate is precise enough to bound the effect. The 95% interval for the interaction with the yearly gain runs from {{< meta n.ses_gain_lo >}} to {{< meta n.ses_gain_hi >}} points, which is {{< meta n.ses_gain_lo_pct >}}% to {{< meta n.ses_gain_hi_pct >}}% of the difference in level. For the same-age gain the interval is {{< meta n.ses_tau_lo >}} to {{< meta n.ses_tau_hi >}} points, or {{< meta n.ses_tau_lo_pct >}}% to {{< meta n.ses_tau_hi_pct >}}%. One more year thus changes the gap by at most about a tenth of its size.
+
+The result holds within schools, where the interaction with the yearly gain is {{< meta n.ses_gain_fe >}} points (SE {{< meta n.ses_gain_fe_se >}}). It also holds in each domain, with {{< meta n.ses_gain_math >}} points (SE {{< meta n.ses_gain_math_se >}}) in mathematics, {{< meta n.ses_gain_read >}} (SE {{< meta n.ses_gain_read_se >}}) in reading and {{< meta n.ses_gain_scie >}} (SE {{< meta n.ses_gain_scie_se >}}) in science. Two further estimates support the comparison. The age slope does not differ by socio-economic status ({{< meta n.ses_age >}} points per standard deviation, SE {{< meta n.ses_age_se >}}), so the same-age and the yearly version agree. The cutoff also moves grade to the same extent in the low and the high third on average, with first stages of {{< meta n.fs_low >}} and {{< meta n.fs_high >}}. The difference between these first stages is nonetheless significant at 5% in {{< meta n.fs_diff_05_w >}} single systems, {{< meta n.fs_diff_05_high_w >}} of them in favour of the high third. In those systems the students whose grade the cutoff decides are not the same mix in the two groups.
+
+![The yearly gain of the high third of socio-economic status against that of the low third, in PISA points. Each circle is a system. Systems above the diagonal (blue) have a larger estimated gain for the high third and systems below it (orange) for the low third; the counts in the corners are of point estimates. Fill shows whether the two gains differ: full colour at p < 0.05, pale at p < 0.10, white if they do not differ. No system differs at p < 0.05 and four differ at p < 0.10. The black ring marks the mean of systems.](../04_output/figures/fig2_equal_gain.pdf){#fig-equal width=5.6in}
+
+## Schools
+
+Schools of the same system differ in what a year adds (@tbl-schools). Across the {{< meta n.sch_n >}} schools that teach both grades, the between-school standard deviation of the gain is {{< meta n.spread_all >}} points (90% interval {{< meta n.spread_all_lo >}} to {{< meta n.spread_all_hi >}}), and none of the 200 shuffles of birth side produces as much dispersion.
+
+Part of this spread does not reflect learning. Where the two grades belong to different levels of education, the socio-economic difference between a school's two birth groups varies across schools more than chance allows ({{< meta n.balance_diff >}} standard deviations, p = {{< meta n.balance_diff_p >}}). Where both grades belong to the same level it does not ({{< meta n.balance_same >}}, p = {{< meta n.balance_same_p >}}). We therefore read the spread in the {{< meta n.sch_same_w >}} systems of the second kind. There it is {{< meta n.spread_same >}} points ({{< meta n.spread_same_lo >}} to {{< meta n.spread_same_hi >}}, p = {{< meta n.spread_same_p >}}), and {{< meta n.spread_same_strong >}} points ({{< meta n.spread_same_strong_lo >}} to {{< meta n.spread_same_strong_hi >}}, p = {{< meta n.spread_same_strong_p >}}) in the {{< meta n.spread_same_strong_sys_w >}} of them with a first stage of 0.5 or more. @fig-schools shows every system. Among the same-level systems only Serbia and Brunei show a significant spread on their own. A typical system can detect a spread only from about {{< meta n.spread_detect >}} points.
+
+::: {#tbl-schools}
+
+```{=latex}
+\input{../04_output/tables/table3.tex}
+```
+
+Schools: the spread of the gain, checks and school types
+
+:::
+
+A false cutoff inside the older birth side shows no spread across the {{< meta n.false_sys >}} systems where it can be placed (upper bound {{< meta n.false_hi >}} points), so school-specific age effects are small overall. In the same-level systems alone this check is weaker. It gives {{< meta n.false_same >}} points, not significant, with a bound of {{< meta n.false_same_hi >}}, which corresponds to {{< meta n.false_same_real >}} points at the age gap of the real comparison. If that much of the spread were age, about {{< meta n.spread_left >}} points would be left for the grade. We conclude that schools differ by {{< meta n.spread_left >}} to {{< meta n.spread_top >}} points in what a year adds, which is close to the mean yearly gain itself.
+
+![Between-school standard deviation of the gain from one more grade, by system. Bars are 90% intervals. Panel A: systems whose two main grades belong to the same level of education. Panel B, in grey: systems in which the upper grade belongs to the next level, where part of the upper grade is a new intake. Fill shows the permutation test of no spread, in both panels: full colour at p < 0.05, pale at p < 0.10, white if not significant. The heavy vertical line is the spread across all schools of the same-level systems.](../04_output/figures/fig3_school_spread.pdf){#fig-schools width=6.3in}
+
+Whether schools with a disadvantaged intake add less cannot be settled with these data. In disadvantaged schools {{< meta n.low_share_dis_pct >}}% of students come from the low third and {{< meta n.high_share_dis_pct >}}% from the high third; in advantaged schools the shares are {{< meta n.low_share_adv_pct >}}% and {{< meta n.high_share_adv_pct >}}%. The comparison of school types uses {{< meta n.types_sys >}} systems, {{< meta n.types_same_w >}} of them with both grades in the same level. In those {{< meta n.types_same_w >}}, students of the two types differ by {{< meta n.types_level >}} points, which is more than five school years. The yearly gain there is {{< meta n.types_dis >}} points (SE {{< meta n.types_dis_se >}}) in disadvantaged schools, {{< meta n.types_mixed >}} (SE {{< meta n.types_mixed_se >}}) in mixed schools and {{< meta n.types_adv >}} (SE {{< meta n.types_adv_se >}}) in advantaged schools. The difference between the two ends, {{< meta n.types_diff_same >}} points (SE {{< meta n.types_diff_same_se >}}), is not significant, and its 95% interval runs from {{< meta n.types_diff_same_lo >}} to {{< meta n.types_diff_same_hi >}}. A linear version points the same way without reaching significance: in these systems the yearly gain rises by {{< meta n.types_linear >}} points (SE {{< meta n.types_linear_se >}}) per standard deviation of school socio-economic status, with the student's own status held fixed. Across all {{< meta n.types_sys >}} systems the difference between the two school types is {{< meta n.types_diff_all >}} points (SE {{< meta n.types_diff_all_se >}}), because it has the opposite sign where the grades belong to different levels ({{< meta n.types_diff_other >}} points, SE {{< meta n.types_diff_other_se >}}).
+
+## Along the achievement distribution
+
+A year of school adds more at the top of the achievement distribution than at the bottom (@fig-percentile, panel A). The yearly gain is {{< meta n.q10 >}} points (SE {{< meta n.q10_se >}}) at the 10th percentile, {{< meta n.q25 >}} (SE {{< meta n.q25_se >}}) at the 25th, {{< meta n.q50 >}} (SE {{< meta n.q50_se >}}) at the median, {{< meta n.q75 >}} (SE {{< meta n.q75_se >}}) at the 75th and {{< meta n.q90 >}} (SE {{< meta n.q90_se >}}) at the 90th. The gain at the 75th percentile exceeds that at the 25th by {{< meta n.q7525 >}} points (SE {{< meta n.q7525_se >}}), and the gain at the 90th exceeds that at the 10th by {{< meta n.q9010 >}} points (SE {{< meta n.q9010_se >}}). Both differences are significant at 5%.
+
+@fig-percentile-sys shows the profile of every system. The gain is larger at the 75th than at the 25th percentile in {{< meta n.q7525_rising >}} of the {{< meta n.q7525_sys >}} systems in which both are estimated, and smaller in {{< meta n.q7525_falling >}}.
+
+The evidence is weaker than the summary suggests in three respects. Single profiles are imprecise. No single system shows a significant difference at 5%, and {{< meta n.q7525_sig10_w >}} do at 10% for the inner contrast. In the {{< meta n.fs_strong >}} systems with a first stage of 0.5 or more the differences are {{< meta n.q7525_strong >}} points (SE {{< meta n.q7525_strong_se >}}) and {{< meta n.q9010_strong >}} points (SE {{< meta n.q9010_strong_se >}}), which keep their sign and are not significant. Estimates for the 10th and the 90th percentile are missing in {{< meta n.q10_missing_w >}} systems each, where the instrument is too weak to locate them, so the outer contrast rests on {{< meta n.q9010_sys >}} systems and the inner one on {{< meta n.q7525_sys >}}. The same-age gain rises in the same order, from {{< meta n.tau_q10 >}} points at the 10th percentile to {{< meta n.tau_q90 >}} at the 90th, with differences that are not significant.
+
+This gradient is consistent with the equal gains by family background. Students of the high third stand on average {{< meta n.rank_diff >}} percentile points above students of the low third. At {{< meta n.q7525 >}} points across the middle half of the distribution, such a difference in rank implies a yearly gain about {{< meta n.rank_implied >}} points larger for the high third. We estimated {{< meta n.thirds_gain >}} points (SE {{< meta n.thirds_gain_se >}}).
+
+![The mean yearly gain along the achievement distribution. Panel A: the random-effects mean across systems of the gain from one more grade at five percentiles of achievement, with its 95% interval (shaded) and the estimates in points; each thin line in the background is one system. Panel B: the same mean in the systems with the index of learning skills, as estimated (blue) and with the index held fixed (orange); bars are 95% intervals. The vertical scales of the two panels differ. Fill shows whether an estimate differs from zero: full colour at p < 0.05, pale at p < 0.10, white if not significant.](../04_output/figures/fig4_gain_by_percentile.pdf){#fig-percentile width=6.3in}
+
+![The yearly gain along the achievement distribution in every system. Each panel shows one system's gain from one more grade at five percentiles of achievement, with 95% intervals (shaded); a line stops where a percentile cannot be estimated. Systems are ordered by the difference between the gain at the 75th and at the 25th percentile, from the largest rise to the largest fall, and by the slope across the available percentiles where that difference cannot be formed. Blue: the gain rises between the two percentiles; orange: it falls. The thin black line, the same in every panel, is the mean of systems. Fill shows whether an estimate differs from zero: full colour at p < 0.05, pale at p < 0.10, white if not significant. The vertical axis is cut at −25 and 60 points.](../04_output/figures/fig5_percentile_by_system.pdf){#fig-percentile-sys width=6.3in}
+
+## Skills
+
+A year adds far less to socio-emotional skills than to achievement (@fig-skills; @tbl-skills). Achievement rises by {{< meta n.gain_sd >}} standard deviations in a year. Curiosity rises by {{< meta n.sk_curio >}} (SE {{< meta n.sk_curio_se >}}), enjoyment of problem-solving by {{< meta n.sk_enprobs >}} (SE {{< meta n.sk_enprobs_se >}}) and the index of learning skills by {{< meta n.sk_learn >}} (SE {{< meta n.sk_learn_se >}}). Goal setting and cognitive adaptability rise by {{< meta n.sk_goalset >}} each and growth mindset by {{< meta n.sk_growth >}}, all three significant at 10% only. Perseverance, self-regulation and belonging do not change. At a given age, students in the higher grade report lower perseverance ({{< meta n.sk_persev_tau >}}, SE {{< meta n.sk_persev_tau_se >}}), cognitive adaptability ({{< meta n.sk_cogabil_tau >}}, SE {{< meta n.sk_cogabil_tau_se >}}) and enjoyment of problem-solving ({{< meta n.sk_enprobs_tau >}}, SE {{< meta n.sk_enprobs_tau_se >}}). These students are the youngest in their grade and compare themselves with older classmates, so we do not read the same-age estimates as an effect of school on skills.
+
+![What a year adds to achievement and to socio-emotional skills, in standard deviations. Each circle is the yearly change in one system: the gain from one more grade and one more year of age. Achievement is in orange and is divided by the system's standard deviation; skills are in blue and are standardised within the system. Fill shows whether a system's estimate differs from zero: full colour at p < 0.05, pale at p < 0.10, white if not significant. Black rings mark the mean of systems, with 95% intervals. Circles are spread vertically within a row only to keep them apart.](../04_output/figures/fig6_skills.pdf){#fig-skills width=6.3in}
+
+::: {#tbl-skills}
+
+```{=latex}
+\input{../04_output/tables/table4.tex}
+```
+
+Socio-emotional skills as outcomes and as moderators of the gain
+
+:::
+
+The socio-economic gap in skills, like the gap in achievement, is carried from one year to the next. The index rises by {{< meta n.sk_learn_ses >}} standard deviations per standard deviation of socio-economic status (SE {{< meta n.sk_learn_ses_se >}}). The yearly change in a skill differs by socio-economic status for one scale only, goal setting, where it is slightly smaller for advantaged students ({{< meta n.sk_goalset_x_ses >}}, SE {{< meta n.sk_goalset_x_ses_se >}}).
+
+Skills are associated with the level of achievement much more than with the gain. One standard deviation of the index is associated with {{< meta n.learn_level >}} points of achievement (SE {{< meta n.learn_level_se >}}) and with a yearly gain that is {{< meta n.learn_gain >}} points larger (SE {{< meta n.learn_gain_se >}}, significant at 10%). No single scale reaches one point.
+
+Skills do not offset a disadvantaged background (@tbl-skills2). The yearly gain is {{< meta n.grp_lo_weak >}} points (SE {{< meta n.grp_lo_weak_se >}}) for low-third students with weaker skills and {{< meta n.grp_lo_strong >}} (SE {{< meta n.grp_lo_strong_se >}}) for those with stronger skills. Low-third students with stronger skills gain no more than high-third students ({{< meta n.grp_lo_strong_vs_hi >}} points, SE {{< meta n.grp_lo_strong_vs_hi_se >}}), and they score {{< meta n.grp_level_gap >}} points (SE {{< meta n.grp_level_gap_se >}}) below high-third students with weaker skills. The effect of the index on the yearly gain does not vary with socio-economic status ({{< meta n.learn_x_ses >}} points, SE {{< meta n.learn_x_ses_se >}}).
+
+::: {#tbl-skills2}
+
+```{=latex}
+\input{../04_output/tables/table5.tex}
+```
+
+Skills, family background and the gradient along the achievement distribution
+
+:::
+
+Skills are associated with about a sixth of the gradient along the achievement distribution. In the {{< meta n.qs_sys >}} systems that have the index and estimates at both ends, the difference between the gain at the 90th and at the 10th percentile is {{< meta n.qs_base >}} points (SE {{< meta n.qs_base_se >}}), and {{< meta n.qs_held >}} (SE {{< meta n.qs_held_se >}}) with the index held fixed (@fig-percentile, panel B). The change, averaged over systems, is {{< meta n.qs_change >}} points (SE {{< meta n.qs_change_se >}}). It is {{< meta n.qs_share_pct >}}% of the difference and cannot be distinguished from zero. A direct calculation gives the same share. Students near the 90th percentile are {{< meta n.acc_gap >}} standard deviations above students near the 10th on the index, which at {{< meta n.learn_gain >}} points per standard deviation is {{< meta n.acc_explained >}} points (SE {{< meta n.acc_explained_se >}}) of the {{< meta n.q9010 >}}-point difference.
+
+## Robustness
+
+*The yearly gain.* The yearly gain is {{< meta n.gain_all >}} points (SE {{< meta n.gain_all_se >}}) in all {{< meta n.sys >}} systems. It is {{< meta n.gain_controls >}} (SE {{< meta n.gain_controls_se >}}) with sex and immigrant background as controls, {{< meta n.gain_norep >}} (SE {{< meta n.gain_norep_se >}}) without repeaters and {{< meta n.gain_years >}} (SE {{< meta n.gain_years_se >}}) with years in school as the treatment. It is {{< meta n.gain_strong >}} (SE {{< meta n.gain_strong_se >}}) in the {{< meta n.fs_strong >}} systems with a first stage of 0.5 or more and {{< meta n.gain_lowrep >}} (SE {{< meta n.gain_lowrep_se >}}) in the {{< meta n.low_rep_sys >}} systems where fewer than 5% of students have repeated. By domain it is {{< meta n.gain_math >}} points in mathematics, {{< meta n.gain_read >}} in reading and {{< meta n.gain_scie >}} in science. The same-age gain of {{< meta n.tau_all >}} points (SE {{< meta n.tau_all_se >}}) is {{< meta n.tau_norep >}} without repeaters, {{< meta n.tau_years >}} with years in school and {{< meta n.tau_strong >}} in the systems with a strong first stage.
+
+*Family background.* The interaction of the yearly gain with socio-economic status is {{< meta n.ses_gain_norep >}} points (SE {{< meta n.ses_gain_norep_se >}}) without repeaters and {{< meta n.ses_gain_years >}} (SE {{< meta n.ses_gain_years_se >}}) with years in school as the treatment (@tbl-ses).
+
+*A second estimator.* In the {{< meta n.flat_sys_w >}} systems where grade does not vary with birth month, achievement rises by {{< meta n.age_flat >}} points per year of age (SE {{< meta n.age_flat_se >}}). The model of @eq-main gives {{< meta n.age_cutoff >}} points (SE {{< meta n.age_cutoff_se >}}) inside the systems with a cutoff, so the two age slopes agree. With the first slope imposed, the same-age gain is {{< meta n.tau_pooled >}} points (SE {{< meta n.tau_pooled_se >}}). The same slope lets us use birth month as the instrument in {{< meta n.drift_sys >}} further systems where grade drifts with birth month without a single cutoff. Their same-age gain is {{< meta n.tau_drift >}} points (SE {{< meta n.tau_drift_se >}}). Estimated in this way on {{< meta n.both_sys >}} systems, the interaction of the same-age gain with socio-economic status is {{< meta n.ses_tau_both >}} points (SE {{< meta n.ses_tau_both_se >}}). Estimates of this kind for single systems do not agree with those of @eq-main, and we use them for summaries only.
+
+*A flexible search.* An instrumental forest [@athey2019] fitted to half of the schools and judged on the other half finds differences in the same-age gain across students. Its ranking of students has a rank-weighted average treatment effect of {{< meta n.rate_forest >}} points [SE {{< meta n.rate_forest_se >}}, p = {{< meta n.rate_forest_p >}}; @yadlowsky2025]. A ranking by the skill index alone gives {{< meta n.rate_skill >}} points (SE {{< meta n.rate_skill_se >}}, p = {{< meta n.rate_skill_p >}}) and a ranking by socio-economic status {{< meta n.rate_ses >}} points (SE {{< meta n.rate_ses_se >}}, p = {{< meta n.rate_ses_p >}}). The forest's standard errors are clustered by school and do not include the uncertainty of plausible values or replicate weights. Its most used variables are curiosity and sex, followed by socio-economic status and perseverance. The gain does not differ by sex on average ({{< meta n.sex_gain >}} points for girls, SE {{< meta n.sex_gain_se >}}), but it does in single systems: significantly in favour of girls in {{< meta n.sex_girls05_w >}} and of boys in {{< meta n.sex_boys05_w >}} at 5%, and in {{< meta n.sex_girls10_w >}} and {{< meta n.sex_boys10_w >}} at 10%.
+
+# References {.unnumbered}

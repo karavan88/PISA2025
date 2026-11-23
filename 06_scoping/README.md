@@ -13,3 +13,4 @@ Earlier drafts and exploratory analyses are preserved here. Only IJED, fuzzy-RD 
 | 08_skillsgain | [Code and manuscript](08_skillsgain/) |
 | 11_epf_postsoviet | [Code and manuscript](11_epf_postsoviet/) |
 | 12_caucasus_central_asia | [Code and manuscript](12_caucasus_central_asia/) |
+| 13_iv_learning | [Scope: grade gain by SES and between schools](13_iv_learning/); reads central products only, nothing estimated |

@@ -20,6 +20,8 @@ python3 02_scripts/00_tools/build_shared.py
 
 The central build reads each provider file once and creates `03_outputs/01_harmonized/`. Paper 01 uses its country/exposure inputs; paper 02 uses `cutoff/analytic.rds`, `systems.csv`, and the eligibility audit. Do not put manually prepared files in that output directory. Input/code/output hashes decide whether preparation needs to run again.
 
+`01_data/external_uis/` holds the UNESCO Institute for Statistics snapshot behind the central school-entry rules. It is downloaded, not placed by hand: see [the entry-rules guide](../02_scripts/01_harmonization/02_entry_rules/README.md). Stored snapshots are never overwritten.
+
 `01_data/derived/` contains historical local artifacts; it is not an input requirement for the maintained workflows of projects 01 and 02. Shared preparation now replaces those dependencies. Project 03 is still being migrated separately.
 
 ## Reproduce the current reports without re-estimating

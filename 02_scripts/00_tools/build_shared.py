@@ -1,7 +1,10 @@
 """Only entry point for shared variable construction. No regressions."""
 from project import *
 import argparse, os
-ap=argparse.ArgumentParser();ap.add_argument('--force',action='store_true');args=ap.parse_args()
+ap=argparse.ArgumentParser();ap.add_argument('--force',action='store_true');ap.add_argument('--entry-rules',action='store_true');args=ap.parse_args()
+if args.entry_rules:
+    if args.force: ap.error('--entry-rules is a separate hash-checked build')
+    run([sys.executable,str(ROOT/'02_scripts/01_harmonization/02_entry_rules/build.py')]);sys.exit(0)
 out=ROOT/'03_outputs/01_harmonized';out.mkdir(parents=True,exist_ok=True)
 raw=Path(os.environ.get('PISA_DATA',ROOT/'01_data'))
 inputs=[raw/'CY09_MS_STU_PUF.sav',raw/'CY09_MS_SCH_PUF.sav']

@@ -1,0 +1,38 @@
+{
+  "file": "uis_entry_rules_20261110-392b682a.json",
+  "sha256": "672cfab2a8fc7ddbcc330adf47f17758ff1f909b8a19aa04171025e90f305812",
+  "uis_version": "20261110-392b682a",
+  "uis_release": [
+    {
+      "theme": "EDUCATION",
+      "lastUpdate": "12/11/2026",
+      "description": "November 2026 Data Release"
+    },
+    {
+      "theme": "SCIENCE_TECHNOLOGY_INNOVATION",
+      "lastUpdate": "24/11/2026",
+      "description": "November 2026 Data Release"
+    },
+    {
+      "theme": "CULTURE",
+      "lastUpdate": "02/09/2026",
+      "description": "November 2026 Data Release"
+    },
+    {
+      "theme": "DEMOGRAPHIC_SOCIOECONOMIC",
+      "lastUpdate": "12/11/2026",
+      "description": "November 2026 Data Release"
+    }
+  ],
+  "url": "https://api.uis.unesco.org/api/public/data/indicators?indicator=403&indicator=404&indicator=299905&indicator=299932&indicator=999975&indicator=999977&start=2005&end=2026&version=20261110-392b682a",
+  "retrieved_utc": "2026-11-22T20:11:59+00:00",
+  "records": 28234,
+  "indicators": {
+    "299905": "Official entrance age to primary education (years)",
+    "299932": "Theoretical duration of primary education (years)",
+    "403": "Start month of the academic school year (pre-primary to post-secondary non-tertiary education)",
+    "404": "End month of the academic school year (pre-primary to post-secondary non-tertiary education)",
+    "999975": "Official entrance age to lower secondary education (years)",
+    "999977": "Official entrance age to upper secondary education (years)"
+  }
+}
