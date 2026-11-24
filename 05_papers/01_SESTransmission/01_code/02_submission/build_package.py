@@ -3,7 +3,7 @@ from pathlib import Path
 import re, shutil, subprocess, hashlib, json, zipfile
 ROOT=Path(__file__).resolve().parents[4]
 P=ROOT/'05_papers/01_SESTransmission'
-OUT=P/'06_submissions/01_ijed_20261124_v7'
+OUT=P/'06_submissions/01_ijed_20261124_v8'
 if OUT.exists():
  raise SystemExit('Refusing to overwrite a submission snapshot; choose a new version directory.')
 OUT.mkdir(parents=True)
@@ -25,10 +25,6 @@ for stem,target in [('ijed_ses_seg_rev2','manuscript_anonymized'),('ijed_ses_seg
   idx=text.index('\\section*{References}') if '\\section*{References}' in text else text.index('\\section{References}')
   declarations='\\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}\n'+AI+'\n\n'
   text=text[:idx]+declarations+text[idx:]
-  marker='All analyses use R 4.4.1'
-  pos=text.index(marker)
-  end=text.index('\n\n',pos)
-  text=text[:end]+"\n\nAI assistance from OpenAI's ChatGPT/Codex was used to develop and revise analysis and visualization code under the author's direction. Figures are generated from stored numerical results by reproducible R code; they are not synthetic images. The author reviewed and tested the code. Exact model-version identifiers were not consistently recorded.\n"+text[end:]
  assert 'Garen Avanesian' not in text and 'kavanesian@' not in text
  (S/f'{target}.tex').write_text(text)
  for _ in range(2):subprocess.run(['xelatex','-interaction=nonstopmode','-halt-on-error',f'{target}.tex'],cwd=S,stdout=subprocess.DEVNULL,check=True)

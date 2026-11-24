@@ -78,9 +78,9 @@ heat <- function(ex) {
       subtitle=if(ex=='SES') 'Skill contributions per 10 SES rank points, including observed school composition' else 'Skill contributions per additional unaffordable item, including observed school composition',
       caption='Persev. = perseverance; Adapt. = cognitive adaptability; Goals = goal setting / study management.\nProblem solving = enjoyment of problem solving; Help seeking = self-regulated help seeking.\nSymbols: strongest threshold met; unmarked = not significant at 10%. Mean: equal-weight country contributions.') +
     theme(panel.grid=element_blank(),strip.text=element_blank(),strip.background=element_blank(),
-      axis.text.x=element_text(size=7),axis.text.y=element_text(size=7),
+      axis.text.x=element_text(size=7,angle=45,hjust=0,vjust=.5),axis.text.y=element_text(size=7),
       legend.position='bottom',legend.key.width=grid::unit(1,'cm'),plot.caption=element_text(size=7.6,hjust=0),
-      panel.spacing=grid::unit(.35,'cm'))
+      panel.spacing=grid::unit(.35,'cm'),plot.margin=margin(45,35,8,8))
   save_fig(p,paste0(tolower(ex),'_skills'),7.4,8.2)
 }
 
@@ -93,6 +93,7 @@ gap_link <- function(level='W') {
   stopifnot(nrow(d)==nsys()*6,all(is.finite(d$a)),all(is.finite(d$b)))
   d[,skill:=factor(unname(sklab[skill_code]),levels=unname(sklab))]
   d[,example:=ifelse(CNT%in%c('KOR','JPN','ECU'),economy,'Other systems')]
+  mean_label <- paste0('Mean (',nsys(),' countries)')
   cols <- c('Other systems'='#9CAAB0','Japan'='#17677E','Korea'='#BB5839','Ecuador'='#70558C')
   maxa <- max(d$a)*1.08; maxb <- max(d$b)*1.08
   paths <- if(level=='W') c(.25,.5,1) else c(1,3,5)
@@ -101,6 +102,8 @@ gap_link <- function(level='W') {
     data.table(a=a,b=k/a,path=k)
   }))
   mn<-d[,.(a=mean(a),b=mean(b)),by=skill]
+  mn[,example:=mean_label]
+  cols<-c(cols,setNames('black',mean_label))
   p <- ggplot(d,aes(a,b)) +
     geom_hline(yintercept=0,colour='#89969C',linewidth=.35) +
     geom_vline(xintercept=0,colour='#89969C',linewidth=.35) +
@@ -109,9 +112,9 @@ gap_link <- function(level='W') {
     geom_point(data=d[example!='Other systems'],aes(colour=example,shape=example),size=2.3) +
     ggrepel::geom_text_repel(data=d[example!='Other systems'],aes(label=CNT,colour=example),
       size=2.6,seed=2026,min.segment.length=0,max.overlaps=Inf,box.padding=.3,show.legend=FALSE) +
-    geom_point(data=mn,shape=23,fill='black',colour='white',stroke=.4,size=3.2) +
+    geom_point(data=mn,aes(shape=example,colour=example),size=3.2) +
     facet_wrap(~skill,ncol=3,labeller=label_wrap_gen(23)) +
-    scale_colour_manual(values=cols) + scale_shape_manual(values=c('Japan'=16,'Korea'=17,'Ecuador'=15)) +
+    scale_colour_manual(values=cols) + scale_shape_manual(values=c('Japan'=16,'Korea'=17,'Ecuador'=15,setNames(18,mean_label))) +
     coord_cartesian(xlim=range(c(0,d$a)),ylim=range(c(0,d$b))) +
     labs(x=if(level=='W') 'Skill difference per 10 SES rank points within a school (aW, skill SD)' else 'Skill difference per 10 school-average SES rank points (aB, skill SD)',
       y=if(level=='W') 'Reading points per skill SD within a school (bW)' else 'Reading points per unit of school-average skill (bB)',

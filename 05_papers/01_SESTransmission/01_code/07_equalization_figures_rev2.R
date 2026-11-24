@@ -11,8 +11,9 @@ cf_forest <- function(ex) {
   ggplot(zz,aes(estimate,yy,shape=Evidence))+
    geom_hline(yintercept=seq_len(n1),colour='#EDF0F1',linewidth=.25)+
    geom_vline(xintercept=0,colour='#71838A',linewidth=.4)+
-   geom_segment(aes(x=lower,xend=upper,yend=yy),linewidth=.6)+geom_point(size=1.8,colour='#17677E')+
+   geom_segment(aes(x=lower,xend=upper,yend=yy),linewidth=.6,show.legend=FALSE)+geom_point(size=1.8,colour='#17677E')+
    scale_shape_manual(values=c(16,17,1),drop=FALSE)+
+   guides(shape=guide_legend(nrow=1,override.aes=list(size=2.5)))+
    scale_y_continuous(breaks=zz$yy,labels=zz$economy,limits=c(-.6,n1+.6),expand=c(0,0))+
    scale_x_continuous(limits=lim,breaks=scales::breaks_pretty(5))+
    labs(x='Predicted gap reduction (reading points)',y=NULL)+

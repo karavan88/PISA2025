@@ -1,7 +1,7 @@
 # 01 — Do socio-emotional skills transmit socio-economic (dis)advantage? Evidence from PISA 2025 data
 
 Active manuscript: `03_manuscript/ijed_ses_seg_rev2.qmd`.
-Tables/figures-only appendix: `03_manuscript/ijed_ses_seg_supplement_rev2.qmd`.
+Topically organized appendix with tables, figures, and model-specification snippets: `03_manuscript/ijed_ses_seg_supplement_rev2.qmd`.
 The study has 67 SES systems, 62 supplementary deprivation systems, and 6 skills.
 
 ## Folders
