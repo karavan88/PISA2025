@@ -1,6 +1,6 @@
 # Submission packaging
 
-Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261124_v16`.
+Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261125_v17`.
 
 Upload the clean manuscript PDF with `anonymous_latex_sources.zip` (editable TeX and figures), the anonymous supplement, title page, and separate highlights. Title-page and highlights TeX files are editable. No cover letter is generated. The named GitHub/data note is editor-only, not an anonymous reviewer attachment. The repository is public; the title page links directly to the paper folder.
 
