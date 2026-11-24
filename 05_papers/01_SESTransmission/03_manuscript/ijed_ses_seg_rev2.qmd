@@ -32,6 +32,8 @@ format:
       text: |
         \usepackage[most]{tcolorbox}
         \newtcolorbox{revision}{colback=cyan!8!white,colframe=cyan!8!white,boxrule=0pt,arc=0pt,breakable,left=4pt,right=4pt,top=4pt,bottom=4pt}
+        \usepackage{etoolbox}
+        \AtEndEnvironment{abstract}{\par\noindent\textbf{Keywords:} socio-emotional skills; socio-economic inequality; education production; multilevel mediation; school sorting; skill equalization\par}
         \usepackage{booktabs,longtable,array,float,etoolbox}
         \newcommand{\tblsize}{\footnotesize}
         \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
@@ -368,7 +370,7 @@ The findings document a socio-economic gradient in socio-emotional skills and a 
 \begin{revision}
 ```
 
-Skills can be both products of educational experience and inputs into subsequent learning. Curiosity may encourage exploration, while successful learning may stimulate further curiosity. Such feedback is compatible with self-productivity and complementarity in skill formation [@cunha2007], but is not identified by the present cross-section. Differences across grades are reported in [Appendix Figure A7](ijed_ses_seg_supplement_rev2.pdf#page=51). Those differences challenge an assumption of invariant measured skill profiles; they cannot establish individual development, malleability, or its direction. Selection, schooling, and differences in self-reporting remain possible explanations. Goal setting's negative conditional reading relationship likewise need not imply that planning damages learning; pupils facing difficulty may intensify corrective study strategies [@almlund2011].
+Skills can be both products of educational experience and inputs into subsequent learning. Curiosity may encourage exploration, while successful learning may stimulate further curiosity. Such feedback is compatible with self-productivity and complementarity in skill formation [@cunha2007], but is not identified by the present cross-section. Differences across grades are reported in [Appendix Figure A7](ijed_ses_seg_supplement_rev2.pdf#page=55). Those differences challenge an assumption of invariant measured skill profiles; they cannot establish individual development, malleability, or its direction. Selection, schooling, and differences in self-reporting remain possible explanations. Goal setting's negative conditional reading relationship likewise need not imply that planning damages learning; pupils facing difficulty may intensify corrective study strategies [@almlund2011].
 
 ```{=latex}
 \end{revision}

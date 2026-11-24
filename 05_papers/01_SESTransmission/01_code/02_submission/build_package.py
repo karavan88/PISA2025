@@ -3,7 +3,7 @@ from pathlib import Path
 import re, shutil, subprocess, hashlib, json, zipfile
 ROOT=Path(__file__).resolve().parents[4]
 P=ROOT/'05_papers/01_SESTransmission'
-OUT=P/'06_submissions/01_ijed_20261124_v4'
+OUT=P/'06_submissions/01_ijed_20261124_v5'
 if OUT.exists():
  raise SystemExit('Refusing to overwrite a submission snapshot; choose a new version directory.')
 OUT.mkdir(parents=True)
@@ -53,8 +53,6 @@ Corresponding author: \href{mailto:kavanesian@unicef.org}{kavanesian@unicef.org}
 The findings, interpretations, and conclusions expressed in this study are those of the author and do not necessarily reflect the views of any organization with which the author is affiliated.
 \section*{Competing interests}
 The author declares no competing interests.
-\section*{Funding}
-This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
 '''
 highlights=['Socio-emotional skills show socio-economic gradients across education systems.','The joint model-based skills pathway is positive in 52 of 67 systems.','School sorting enlarges the skills pathway in 27 systems.','Skill equalization projects gains that can exceed reductions in inequality.']
 assert all(len(x)<=85 for x in highlights)
