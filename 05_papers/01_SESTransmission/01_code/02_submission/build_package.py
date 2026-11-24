@@ -3,7 +3,7 @@ from pathlib import Path
 import re, shutil, subprocess, hashlib, json, zipfile
 ROOT=Path(__file__).resolve().parents[4]
 P=ROOT/'05_papers/01_SESTransmission'
-OUT=P/'06_submissions/01_ijed_20261124_v10'
+OUT=P/'06_submissions/01_ijed_20261124_v11'
 if OUT.exists():
  raise SystemExit('Refusing to overwrite a submission snapshot; choose a new version directory.')
 OUT.mkdir(parents=True)

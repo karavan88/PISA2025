@@ -33,7 +33,7 @@ format:
         \usepackage[most]{tcolorbox}
         \newtcolorbox{revision}{colback=cyan!8!white,colframe=cyan!8!white,boxrule=0pt,arc=0pt,breakable,left=4pt,right=4pt,top=4pt,bottom=4pt}
         \usepackage{etoolbox}
-        \AtEndEnvironment{abstract}{\par\noindent\textbf{Keywords:} socio-emotional skills; socio-economic inequality; education production; multilevel mediation; school sorting; skill equalization\par}
+        \AtEndEnvironment{abstract}{\par\vspace{0.75em}\noindent\textbf{Keywords:} socio-emotional skills; socio-economic inequality; education production; multilevel mediation; school sorting; skill equalization\par}
         \usepackage{booktabs,longtable,array,float,etoolbox}
         \newcommand{\tblsize}{\footnotesize}
         \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
@@ -41,7 +41,7 @@ format:
 
         \usepackage{caption}
         \captionsetup[figure]{justification=raggedright,singlelinecheck=false}
-        \DeclareRobustCommand{\figurenote}[1]{\par\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
+        \DeclareRobustCommand{\figurenote}[1]{\par\vspace{0.4em}\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
         \setlength{\emergencystretch}{3em}
 execute:
   echo: false
@@ -169,7 +169,7 @@ The distributional case for skills development therefore depends on how improvem
 
 ## Sample, outcome, and socio-economic rank
 
-**Sample.** I use the PISA 2025 student and school files [@oecd2026data], retaining 67 systems with all 6 skill indices. Models require valid reading scores, ESCS, age, gender, school identifiers, and survey weights, with at least 100 complete pupils and 30 schools. The analytic sample contains 428,040 pupils in 18,836 schools. All skill and achievement equations use the same pupils within each system. Complete-case coverage is lowest in Armenia (21.6%) and Lebanon (30.1%); retained pupils score approximately 40 and 52 reading points higher than excluded pupils with observed reading. Appendix Table A2 reports country coverage; Tables A5–A6 document complete-case selection in Armenia and Lebanon.
+*Sample.* I use the PISA 2025 student and school files [@oecd2026data], retaining 67 systems with all 6 skill indices. Models require valid reading scores, ESCS, age, gender, school identifiers, and survey weights, with at least 100 complete pupils and 30 schools. The analytic sample contains 428,040 pupils in 18,836 schools. All skill and achievement equations use the same pupils within each system. Complete-case coverage is lowest in Armenia (21.6%) and Lebanon (30.1%); retained pupils score approximately 40 and 52 reading points higher than excluded pupils with observed reading. Appendix Table A2 reports country coverage; Tables A5–A6 document complete-case selection in Armenia and Lebanon.
 
 ```{r}
 #| label: tbl-descriptives
@@ -182,11 +182,11 @@ z<-rbindlist(lapply(ids,function(cc){
 tbl(z,'Country descriptive statistics for the socio-economic-rank analysis. Reading and ESCS: weighted mean (SD). Pupil and school counts are unweighted. Reading descriptives use each pupil’s average of 10 plausible values.',size=8,widths=c('3.8cm','1.8cm','1.8cm','3cm','2.7cm'))
 ```
 
-**Outcome: reading achievement.** The outcome is the PISA reading score, represented by 10 plausible values that are analyzed separately and then combined. In the socio-economic-rank analytic samples, student-weighted country means range from `r fmt(DS[CNT=='MAR' & exposure=='SES' & variable=='Reading',mean],1)` points in Morocco to `r fmt(DS[CNT=='SGP' & exposure=='SES' & variable=='Reading',mean],1)` in Singapore. Within-country standard deviations range from `r fmt(min(DS[exposure=='SES' & variable=='Reading',SD]),1)` to `r fmt(max(DS[exposure=='SES' & variable=='Reading',SD]),1)` points. Descriptive means and standard deviations are calculated from each pupil's average across the 10 reading plausible values. @tbl-descriptives reports the weighted reading mean and SD for every system. All models retain the original reading-point scale.
+*Outcome: reading achievement.* The outcome is the PISA reading score, represented by 10 plausible values that are analyzed separately and then combined. In the socio-economic-rank analytic samples, student-weighted country means range from `r fmt(DS[CNT=='MAR' & exposure=='SES' & variable=='Reading',mean],1)` points in Morocco to `r fmt(DS[CNT=='SGP' & exposure=='SES' & variable=='Reading',mean],1)` in Singapore. Within-country standard deviations range from `r fmt(min(DS[exposure=='SES' & variable=='Reading',SD]),1)` to `r fmt(max(DS[exposure=='SES' & variable=='Reading',SD]),1)` points. Descriptive means and standard deviations are calculated from each pupil's average across the 10 reading plausible values. @tbl-descriptives reports the weighted reading mean and SD for every system. All models retain the original reading-point scale.
 
-**Exposure: socio-economic rank.** Family status is measured by PISA's index of economic, social, and cultural status (ESCS). I convert ESCS to a weighted midpoint percentile rank within each system, using all pupils with valid ESCS and final student weights before complete-case selection. Dividing by 10 makes 1 unit a 10-percentile-point difference in national socio-economic position, rather than an income percentage or a common absolute resource difference across countries.
+*Exposure: socio-economic rank.* Family status is measured by PISA's index of economic, social, and cultural status (ESCS). I convert ESCS to a weighted midpoint percentile rank within each system, using all pupils with valid ESCS and final student weights before complete-case selection. Dividing by 10 makes 1 unit a 10-percentile-point difference in national socio-economic position, rather than an income percentage or a common absolute resource difference across countries.
 
-**Mediators: 6 socio-emotional skills.** The OECD's Survey on Social and Emotional Skills (SSES) organizes skills as facets of a Big Five-based taxonomy [@kankaras2019]. Perseverance and goal setting concern conscientiousness (task performance); curiosity and enjoyment of problem solving concern openness (open-mindedness). Cognitive adaptability overlaps openness and emotional stability, while help seeking combines self-regulation with cooperation, conceptually related to conscientiousness and agreeableness. For the latter 4 PISA scales these are content-based correspondences, not validated 1-to-1 Big Five subscales; the 6 indices do not measure a full Big Five inventory. I use the released weighted-likelihood indices, standardized to mean 0 and SD 1 in each country's weighted analytic sample. All 6 enter jointly, with no imputation of missing indices. Appendix Table A4 maps the indices to questionnaire items [@oecd2025questionnaire; @oecd2025codebook].
+*Mediators: 6 socio-emotional skills.* The OECD's Survey on Social and Emotional Skills (SSES) organizes skills as facets of a Big Five-based taxonomy [@kankaras2019]. Perseverance and goal setting concern conscientiousness (task performance); curiosity and enjoyment of problem solving concern openness (open-mindedness). Cognitive adaptability overlaps openness and emotional stability, while help seeking combines self-regulation with cooperation, conceptually related to conscientiousness and agreeableness. For the latter 4 PISA scales these are content-based correspondences, not validated 1-to-1 Big Five subscales; the 6 indices do not measure a full Big Five inventory. I use the released weighted-likelihood indices, standardized to mean 0 and SD 1 in each country's weighted analytic sample. All 6 enter jointly, with no imputation of missing indices. Appendix Table A4 maps the indices to questionnaire items [@oecd2025questionnaire; @oecd2025codebook].
 
 ## Econometric strategy
 

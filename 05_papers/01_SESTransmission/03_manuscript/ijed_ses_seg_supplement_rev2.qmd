@@ -39,7 +39,7 @@ format:
 
         \usepackage{caption}
         \captionsetup[figure]{justification=raggedright,singlelinecheck=false}
-        \DeclareRobustCommand{\figurenote}[1]{\par\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
+        \DeclareRobustCommand{\figurenote}[1]{\par\vspace{0.4em}\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
         \setlength{\emergencystretch}{3em}
 execute:
   echo: false

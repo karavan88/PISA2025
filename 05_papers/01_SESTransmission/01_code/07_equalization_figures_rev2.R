@@ -24,7 +24,7 @@ cf_forest <- function(ex) {
    subtitle=if(ex=='SES')'Lower national SES quartile receives the upper-quartile skill distribution' else 'Pupils reporting deprivation receive the non-deprived skill distribution',
    caption=paste0(mean_note,'\nSymbols: strongest threshold met; not significant at 10%.\nSchool membership and exposures fixed; school skill means updated. Whole-school bootstrap / PV 95% intervals.\nPositive values indicate a narrower gap. This is an endowment-replacement benchmark.'),
    theme=theme(plot.caption=element_text(size=8,hjust=0,colour='#475961')))
- save_fig(p,paste0(tolower(ex),'_equalization'),8.6,10.3)
+ save_fig(p,paste0(tolower(ex),'_equalization'),8.6,10.7)
 }
 cf_forest('SES'); cf_forest('DEP')
 fwrite(CE,file.path(OUT,'tables/equalization_figure_data.csv'))

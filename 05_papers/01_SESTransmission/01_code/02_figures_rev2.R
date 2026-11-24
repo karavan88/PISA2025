@@ -53,7 +53,7 @@ forest <- function(ex, full=TRUE) {
     subtitle=paste0(n,' systems | ',if(full)'all 6 skills' else 'incomplete skill blocks',' | dots and 95% intervals'),
     caption=paste0(axis_label,'\nSymbols: strongest threshold met; not significant at 10%.\n',mean_note,if(ex=='DEP') '\nBrackets give retained deprivation items; item sets differ between systems.' else '',if(!full)'\nBraces give the number of observed skills.' else ''),
     theme=theme(plot.caption=element_text(size=9,hjust=0,colour='#475961')))
-  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)8.6 else 3.4)
+  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)9.0 else 3.4)
 }
 heat <- function(ex) {
   z<-E[exposure==ex & skills==6 & grepl('^indS_',term)]
@@ -81,7 +81,7 @@ heat <- function(ex) {
       axis.text.x=element_text(size=7,angle=45,hjust=0,vjust=.5),axis.text.y=element_text(size=7),
       legend.position='bottom',legend.key.width=grid::unit(1,'cm'),plot.caption=element_text(size=7.6,hjust=0),
       panel.spacing=grid::unit(.35,'cm'),plot.margin=margin(45,35,8,8))
-  save_fig(p,paste0(tolower(ex),'_skills'),7.4,8.2)
+  save_fig(p,paste0(tolower(ex),'_skills'),7.4,8.7)
 }
 
 gap_link <- function(level='W') {
