@@ -281,9 +281,9 @@ for(ex in c('SES','DEP')) {
 }
 ```
 
-![Country-specific joint deprivation pathways in the 62 full-6-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. Mean rows use equal country weights. Bars are individual 95% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
+![Country-specific joint deprivation pathways in the 62 full-6-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. The single mean row uses equal country weights. Bars are individual 95% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
 
-![Skill-specific contributions to the deprivation pathway. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level.](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
+![Skill-specific contributions to the deprivation pathway. Persev. denotes perseverance; Adapt., cognitive adaptability; Goals, goal setting; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level.](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
 
 ```{r}
 #| results: asis
@@ -291,7 +291,7 @@ x<-PCOV[order(economy),.(System=economy,`Earlier DEP N`=num(original_N),`Matched
 tbl(x,'Country sample change for the parental-controls comparison. Preferred controls are PAREDINT and HISEI at pupil and school levels; the comparator uses ESCS at both levels. Matched pupils are used in both the preferred parental model and the ESCS robustness model.',8,widths=c('4cm','2.5cm','2.5cm','2.5cm','2cm'))
 ```
 
-![Matched-pupil comparison of deprivation models. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
+![Matched-pupil comparison of deprivation models: joint mediation on the left and skill-profile equalization on the right. Black diamonds denote equal-weight system means. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
 
 ```{r}
 #| results: asis
@@ -304,7 +304,7 @@ for(tt in c('skills_sorting','gap_reduction')) {
 }
 ```
 
-![Socio-economic-rank counterfactual under 3 alternative specifications. Each point is a system. Colors compare individual interval status; they are not tests of differences between specifications.](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
+![Socio-economic-rank counterfactual under 3 alternative specifications, from top to bottom: unscaled weights, a minimum of 10 pupils per school, and an unweighted model. Each point is a system; black diamonds are equal-weight system means. The diagonal denotes identical estimates, and labels identify the 3 largest absolute changes. Colors compare individual interval status; they are not tests of differences between specifications.](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
 
 ```{r}
 #| results: asis
@@ -325,7 +325,7 @@ country_gradient_table()
 \begin{revision}
 ```
 
-![Grade differences in reading and socio-emotional skills. Equal-weight system means with 95% confidence intervals across 4 sample definitions and alternative adjustment specifications; coefficients compare pupils in different grades rather than following the same pupils over time. Differences may reflect selection, schooling, development, or reporting and do not identify causal change.](../04_output/grade_diagnostics_20261117_v2/figures/grade_means.png){width=100%}
+![Grade differences in reading and socio-emotional skills. Reading coefficients are in score points; skill coefficients are in original national skill standard deviations per additional grade. Equal-weight system means with 95% confidence intervals across 4 sample definitions and alternative adjustment specifications; coefficients compare pupils in different grades rather than following the same pupils over time. Differences may reflect selection, schooling, development, or reporting and do not identify causal change.](../04_output/rev2/figures/grade_means_clean.png){width=100%}
 
 ```{=latex}
 \end{revision}

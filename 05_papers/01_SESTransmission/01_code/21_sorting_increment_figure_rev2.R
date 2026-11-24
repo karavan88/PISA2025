@@ -16,14 +16,14 @@ lim<-c(-1.5,4.5)
 mn<-system_mean(z);mn[,`:=`(y=0,Evidence=factor(ifelse(p_value<.05,'p < 0.05',ifelse(p_value<.1,'p < 0.10','Not significant')),levels=levels(z$Evidence)),Adjustment=factor('Mean: unadjusted',levels=c(levels(z$Adjustment),'Mean: unadjusted')))]
 z[,Adjustment:=factor(Adjustment,levels=levels(mn$Adjustment))]
 pp<-lapply(1:2,function(k){
- d<-rbindlist(list(z[panel==k],mn),fill=TRUE)
+ d<-rbindlist(list(z[panel==k],if(k==1L) mn else NULL),fill=TRUE)
  ggplot(d,aes(estimate,y,colour=Adjustment,shape=Evidence))+
  geom_hline(yintercept=1:34,colour='#EDF0F1',linewidth=.25)+
  geom_vline(xintercept=0,colour='#596D77',linewidth=.5)+
  geom_segment(aes(x=lower,xend=upper,yend=y),linewidth=.55)+geom_point(size=1.9)+
  scale_colour_manual(values=c('#17677E','#9CA6AB','#202B30'),drop=FALSE)+scale_shape_manual(values=c(16,17,1),drop=FALSE)+
  scale_y_continuous(breaks=d$y,labels=d$economy,limits=c(-.6,34.6),expand=c(0,0))+
- scale_x_continuous(limits=lim,breaks=-1:4)+labs(x=NULL,y=NULL)+
+ scale_x_continuous(limits=lim,breaks=-1:4)+labs(x='Reading points per 10 SES rank points',y=NULL)+
  theme_minimal(base_size=9,base_family='Helvetica')+
  theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),panel.grid.major.x=element_line(colour='#E4E9EB'),
  axis.text.y=element_text(size=8,colour='#263A45'),axis.text.x=element_text(size=8),legend.title=element_blank(),legend.text=element_text(size=8),plot.margin=margin(8,8,8,8))

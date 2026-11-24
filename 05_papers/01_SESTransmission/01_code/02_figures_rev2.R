@@ -1,6 +1,12 @@
 source('05_papers/01_SESTransmission/01_code/reporting_rev2.R')
 library(ggplot2)
 library(patchwork)
+# Editorial text belongs in manuscript captions; preserve axis and facet labels.
+ggsave <- function(filename, plot, ...) {
+ blank <- theme(plot.title=element_blank(),plot.subtitle=element_blank(),plot.caption=element_blank())
+ plot <- if(inherits(plot,'patchwork')) plot & blank else plot + blank
+ ggplot2::ggsave(filename,plot=plot,...)
+}
 COL <- c('School setting fixed'='#17677E','With school sorting'='#BB5839')
 theme_set(theme_minimal(base_size=10, base_family='Helvetica') +
   theme(panel.grid.minor=element_blank(), panel.grid.major.y=element_blank(),
@@ -32,15 +38,15 @@ forest <- function(ex, full=TRUE) {
   mm[,yy:=ifelse(term=='skills_same_school',.15,-.15)]
   mm[,Evidence:=factor(ifelse(p_value<.05,'p < 0.05',ifelse(p_value<.1,'p < 0.10','Not significant')),levels=levels(z$Evidence))]
   panels <- lapply(c('A','B'),function(pn) {
-    zz<-rbindlist(list(z[panel==pn],mm),fill=TRUE); ll<-labels[panel==pn]
+    zz<-rbindlist(list(z[panel==pn],if(pn=='A') mm else NULL),fill=TRUE); ll<-labels[panel==pn]
     ggplot(zz,aes(x=estimate,y=yy,colour=Profile,shape=Evidence)) +
       geom_hline(yintercept=seq(1,n1),colour='#EDF0F1',linewidth=.25) +
       geom_vline(xintercept=0,colour='#71838A',linewidth=.4) +
       geom_segment(aes(x=lower,xend=upper,yend=yy),linewidth=.5) + geom_point(size=1.7) +
       scale_colour_manual(values=COL) + scale_shape_manual(values=c(16,17,1),drop=FALSE) +
-      scale_y_continuous(breaks=c(n1-ll$row+1,0),labels=c(ll$label,paste0('Mean (',n,' systems)')),limits=c(-.6,n1+.6),expand=c(0,0)) +
+      scale_y_continuous(breaks=c(n1-ll$row+1,if(pn=='A') 0),labels=c(ll$label,if(pn=='A') paste0('Mean (',n,' systems)')),limits=c(-.6,n1+.6),expand=c(0,0)) +
       scale_x_continuous(limits=lim,breaks=scales::breaks_pretty(5)) +
-      labs(x=NULL,y=NULL) + theme(axis.text.y=element_text(size=8),panel.grid.major.x=element_line(colour='#E4E9EB'))
+      labs(x=axis_label,y=NULL) + theme(axis.text.y=element_text(size=8),panel.grid.major.x=element_line(colour='#E4E9EB'))
   })
   p <- (panels[[1]] | panels[[2]]) + plot_layout(guides='collect') & theme(legend.position='top')
   p <- p + plot_annotation(title=if(ex=='SES') 'Socio-emotional skills and the socio-economic reading gradient' else 'Socio-emotional skills and material deprivation',
@@ -55,7 +61,7 @@ heat <- function(ex) {
   z[,Group:=ifelse(match(CNT,ids)<=split,'A','B')]
   z[,skill:=factor(sub('indS_','',term),levels=names(sklab))]
   mn<-system_mean(z);mn[,skill:=factor(sub('indS_','',term),levels=names(sklab))]
-  mn<-rbind(copy(mn)[,Group:='A'],copy(mn)[,Group:='B'])
+  mn[,Group:='A']
   countries<-unique(z[order(economy),economy]);z<-rbindlist(list(z,mn),fill=TRUE)
   z[,country:=factor(economy,levels=c(unique(mn$economy),rev(countries)))]
   z[,Evidence:=factor(ifelse(p_approx<.05,'p < 0.05',ifelse(p_approx<.1,'p < 0.10','Not significant')),levels=c('p < 0.05','p < 0.10','Not significant'))]

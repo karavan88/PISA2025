@@ -64,7 +64,7 @@ if args.mode=='estimate':
 # Drawing existing aggregate results never invokes the harmonizer or regressions.
 # These scripts share plotting helpers and must execute in one R session.
 expr="source('05_papers/01_SESTransmission/01_code/02_figures_rev2.R');"
-expr+=';'.join("source('05_papers/01_SESTransmission/01_code/"+n+"')" for n in ['24_within_between_figure_rev2.R','21_sorting_increment_figure_rev2.R','07_equalization_figures_rev2.R','22_recipient_gap_figure_rev2.R','12_counterfactual_robustness_figures_rev2.R'])
+expr+=';'.join("source('05_papers/01_SESTransmission/01_code/"+n+"')" for n in ['24_within_between_figure_rev2.R','21_sorting_increment_figure_rev2.R','07_equalization_figures_rev2.R','22_recipient_gap_figure_rev2.R','12_counterfactual_robustness_figures_rev2.R','28_clean_diagnostic_figures.R'])
 run(['Rscript','--vanilla','-e',expr])
 R('03_validate_rev2.R')
 if args.mode=='draw-check':R('08_validate_equalization_rev2.R')

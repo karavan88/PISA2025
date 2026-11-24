@@ -241,6 +241,8 @@ All analyses use R 4.4.1 [@rcore2024]. Survey-weighted random-intercept models u
 \end{revision}
 ```
 
+The appendix provides sample coverage and measurement documentation (Tables A2–A8), worked coefficient calculations (Tables A9–A10), and country evidence summaries (Tables A21–A24). The supplementary material-deprivation analysis, retained as a separate exposure comparison, is documented in Tables A3, A8, A12, A14, A20, A23, A27–A28, and A30–A33 and Figures A2–A5. These exhibits include coverage, pathway estimates, equalization, and the matched-sample comparison of parental controls.
+
 # Results
 
 ## Socio-economic gradients and reading relationships
@@ -249,7 +251,7 @@ All analyses use R 4.4.1 [@rcore2024]. Survey-weighted random-intercept models u
 \begin{revision}
 ```
 
-@fig-escs-descriptive shows the unadjusted relationship between continuous ESCS and each socio-emotional skill. All 65 displayed systems have positive fitted slopes for perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, and goal setting. Help seeking has positive slopes in 60 systems; Armenia and Kosovo have the clearest negative point estimates, while Bulgaria, Montenegro, and Guatemala are nearly flat. These counts concern slope direction, not statistical significance. The chart uses the saved grade-diagnostic sample and its minimum of 200 pupils and 20 schools per system; Austria and Ireland are omitted by that threshold. The multilevel analysis remains based on 67 systems. The appendix table titled “Socio-economic gradients in each skill, by system” retains the adjusted country gradients, distinguishing classmates from school intakes.
+@fig-escs-descriptive shows the unadjusted relationship between continuous ESCS and each socio-emotional skill. All 65 displayed systems have positive fitted slopes for perseverance, curiosity, enjoyment of problem solving, cognitive adaptability, and goal setting. Help seeking has positive slopes in 60 systems; Armenia and Kosovo have the clearest negative point estimates, while Bulgaria, Montenegro, and Guatemala are nearly flat. These counts concern slope direction, not statistical significance. The chart uses the saved grade-diagnostic sample and its minimum of 200 pupils and 20 schools per system; Austria and Ireland are omitted by that threshold. The multilevel analysis remains based on 67 systems. Appendix Table A37 retains the adjusted country gradients, distinguishing classmates from school intakes.
 
 ```{=latex}
 \end{revision}
@@ -259,7 +261,7 @@ All analyses use R 4.4.1 [@rcore2024]. Survey-weighted random-intercept models u
 \begin{revision}
 ```
 
-![Descriptive socio-economic gradients in 6 skills. Each line is a survey-weighted, unadjusted linear fit using continuous ESCS. Points are weighted means in 0.25-ESCS bins containing at least 30 pupils. Displayed ranges cover each system's weighted 2.5th--97.5th percentiles; fits use all eligible observations. Skill units retain the original national analytic-sample standardization. The 65-system diagnostic sample differs from the 67-system main analysis.](../04_output/escs_skill_scatter_20261117_v2/escs_skills_sample_1.png){#fig-escs-descriptive width=100%}
+![Descriptive socio-economic gradients in 6 skills. Each line is a survey-weighted, unadjusted linear fit using continuous ESCS. Points are weighted means in 0.25-ESCS bins containing at least 30 pupils. Displayed ranges cover each system's weighted 2.5th--97.5th percentiles; fits use all eligible observations. Skill units retain the original national analytic-sample standardization. The 65-system diagnostic sample differs from the 67-system main analysis.](../04_output/rev2/figures/escs_skills_clean.png){#fig-escs-descriptive width=100%}
 
 ```{=latex}
 \end{revision}
@@ -273,7 +275,7 @@ The equal-weight mean within-school gradient for curiosity is `r mean_ci('aW_CUR
 
 ## The combined skills pathway carries advantage in most systems
 
-@fig-ses displays all 67 country estimates, with and without the school component; Appendix Table A11 reports the estimates and sorting increments. The pathway allowing for sorting is positive and statistically significant in 52 systems and uncertain in 15; none has a negative interval excluding zero. After adjustment for multiple testing, 48 retain support. The result is broad evidence for a skills route, alongside meaningful variation in its magnitude and precision.
+@fig-ses displays all 67 country estimates, with and without the school component; Appendix Table A11 reports the estimates and sorting increments; Table A13 reports the total gradient, remaining component, and admissible skills share. The pathway allowing for sorting is positive and statistically significant in 52 systems and uncertain in 15; none has a negative interval excluding zero. After adjustment for multiple testing, 48 retain support. The result is broad evidence for a skills route, alongside meaningful variation in its magnitude and precision.
 
 The equal-weight mean joint pathway is `r mean_ci('skills_sorting')` reading points per 10 SES rank points. The worked examples show how its size differs across systems. Denmark's pathway is `r ci('DNK','skills_sorting')` reading points per 10 SES rank points, accounting for `r fmt(est('DNK','share'),1)`% of its model-implied total gradient. Malaysia's pathway is `r ci('MYS','skills_sorting')` points and `r fmt(est('MYS','share'),1)`%. Korea's is `r ci('KOR','skills_sorting')` points and `r fmt(est('KOR','share'),1)`%. For Malaysia, the `r fmt(est('MYS','skills_sorting'))`-point contrast means that predicted reading at the higher socio-economic profile falls by that amount when its joint skill profile is replaced by the one accompanying a profile 10 SES rank points lower, with the other inputs held fixed. These percentages concern different national gradients. They do not imply that Korea has the largest overall SES gap or that its schools generate the largest causal return to a skills program.
 
@@ -281,7 +283,7 @@ Germany provides a useful counterpoint: its combined pathway is `r ci('DEU','ski
 
 \clearpage
 
-![Country-specific joint skills pathways for socio-economic rank. Colors distinguish the fixed-school and sorting-inclusive contrasts; circles denote p < 0.05, triangles p < 0.10, and open circles not significant. Symbols indicate the strongest threshold met; not significant refers to the 10% level. Mean rows average all 67 country estimates with equal weights. Both are M1--M2 mediation contrasts, with S supplying the sorting profile. Bars are individual 95% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.](../04_output/rev2/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
+![Country-specific joint skills pathways for socio-economic rank. Colors distinguish the fixed-school and sorting-inclusive contrasts; circles denote p < 0.05, triangles p < 0.10, and open circles not significant. Symbols indicate the strongest threshold met; not significant refers to the 10% level. The single mean row averages all 67 country estimates with equal weights. Both are M1--M2 mediation contrasts, with S supplying the sorting profile. Bars are individual 95% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.](../04_output/rev2/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
 
 \clearpage
 
@@ -293,7 +295,7 @@ Curiosity is the most widespread positive contributor: its individual pathway is
 
 Goal setting, measured through planning study, checking understanding, and adapting strategies, illustrates another distinction. Its within-school social gradient is positive in `r supported('aW_GOALSET')` systems, yet its joint contribution to reading is positive in `r supported('indS_GOALSET')` and negative in `r evidence('indS_GOALSET',kind='Opposite')`, with the remaining intervals including zero. The data therefore do not support treating a socially advantaged disposition as automatically productive for reading, conditional on the other skills. The pattern is compatible with differences in what the scale measures in practice, overlaps among dispositions, and the uses to which pupils put them. It does not imply that setting goals generally damages learning.
 
-![Skill-specific contributions to the socio-economic pathway in every full-6-skill system. Colors show reading points, with zero at the center. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level. The mean row averages country-specific contributions with equal weights. Each country cell is part of the same joint model; cells sum across skills to the country pathway in @fig-ses.](../04_output/rev2/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
+![Skill-specific contributions to the socio-economic pathway in every full-6-skill system. Colors show reading points, with zero at the center. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level. The single mean row averages country-specific contributions with equal weights. Persev. denotes perseverance; Adapt., cognitive adaptability; Goals, goal setting; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Each country cell is part of the same joint model; cells sum across skills to the country pathway in @fig-ses.](../04_output/rev2/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
 
 \clearpage
 

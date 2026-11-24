@@ -7,7 +7,7 @@ cf_forest <- function(ex) {
  lim<-range(c(0,z$lower,z$upper));lim<-c(floor(lim[1]),ceiling(lim[2]))
  mm<-system_mean(z);mm[,yy:=0];mm[,Evidence:=factor(ifelse(p_value<.05,'p < 0.05',ifelse(p_value<.1,'p < 0.10','Not significant')),levels=levels(z$Evidence))]
  ps<-lapply(c('A','B'),function(pn) {
-  zz<-rbindlist(list(z[panel==pn],mm),fill=TRUE)
+  zz<-rbindlist(list(z[panel==pn],if(pn=='A') mm else NULL),fill=TRUE)
   ggplot(zz,aes(estimate,yy,shape=Evidence))+
    geom_hline(yintercept=seq_len(n1),colour='#EDF0F1',linewidth=.25)+
    geom_vline(xintercept=0,colour='#71838A',linewidth=.4)+
