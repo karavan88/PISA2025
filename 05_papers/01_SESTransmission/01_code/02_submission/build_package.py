@@ -3,7 +3,7 @@ from pathlib import Path
 import re, shutil, subprocess, hashlib, json, zipfile
 ROOT=Path(__file__).resolve().parents[4]
 P=ROOT/'05_papers/01_SESTransmission'
-OUT=P/'06_submissions/01_ijed_20261124_v6'
+OUT=P/'06_submissions/01_ijed_20261124_v7'
 if OUT.exists():
  raise SystemExit('Refusing to overwrite a submission snapshot; choose a new version directory.')
 OUT.mkdir(parents=True)
@@ -48,7 +48,7 @@ title=r'''\begin{center}\Large Do socio-emotional skills transmit socio-economic
 \noindent United Nations Children's Fund (UNICEF), Office of Strategy and Evidence -- Innocenti, Education Data and Analytics Unit, Via degli Alfani 58, 50121 Florence, Italy.
 
 \noindent Corresponding author: Garen Avanesian, \href{mailto:kavanesian@unicef.org}{kavanesian@unicef.org}.
-\section*{Institutional disclaimer}
+\section*{Disclaimer}
 The findings, interpretations, and conclusions expressed in this study are those of the author and do not necessarily reflect the views of any organization with which the author is affiliated.
 \section*{Competing interests}
 The author declares no competing interests.
@@ -57,15 +57,14 @@ title += r"""
 \section*{Funding}
 This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
 \section*{Data and code availability}
-This study uses OECD PISA public-use data. Provider data are not redistributed. Analysis code, software dependency records, and instructions for obtaining and preparing the data are maintained at \url{https://github.com/karavan88/PISA2025}. The repository is private; the link does not provide public access. An anonymized code archive is supplied with the submission for peer review. The archive excludes provider data and numerical result snapshots.
-\section*{Declaration of generative AI and AI-assisted technologies}
-""" + AI + '\n'
+This study uses OECD PISA public-use data. Provider data are not redistributed. Analysis code, software dependency records, and instructions for obtaining and preparing the data are maintained at \url{https://github.com/karavan88/PISA2025/tree/main/05_papers/01_SESTransmission}. The repository is publicly accessible. An anonymized code archive is supplied with the submission for peer review. The archive excludes provider data and numerical result snapshots.
+"""
 highlights=['Socio-emotional skills show socio-economic gradients across education systems.','The joint model-based skills pathway is positive in 52 of 67 systems.','School sorting enlarges the skills pathway in 27 systems.','Skill equalization projects gains that can exceed reductions in inequality.']
 assert all(len(x)<=85 for x in highlights)
 for name,body in [('title_page',title),('highlights', '\\section*{Highlights}\n\\begin{itemize}\n'+''.join('\\item '+x+'\n' for x in highlights)+'\\end{itemize}')]:
  (OUT/f'{name}.tex').write_text(common+body+'\n\\end{document}\n')
  subprocess.run(['xelatex','-interaction=nonstopmode','-halt-on-error',f'{name}.tex'],cwd=OUT,stdout=subprocess.DEVNULL,check=True)
-(OUT/'02_editor_only_data_statement.md').write_text('Data and code availability — editor-only submission field\n\nThe study uses OECD PISA public-use data. Data files are not redistributed. The anonymized code archive supplied for review contains analysis scripts, dependency records, and data-placement instructions. The working repository is https://github.com/karavan88/PISA2025 and is private; this URL is not a public download link. Reviewer access is provided through the anonymous archive, not through the named repository. A public persistent archive has not yet been deposited.\n\nVerify the exact provider release/access URL against the dataset citation before final submission.\n')
+(OUT/'02_editor_only_data_statement.md').write_text('Data and code availability — editor-only submission field\n\nThe study uses OECD PISA public-use data. Data files are not redistributed. The anonymized code archive supplied for review contains analysis scripts, dependency records, and data-placement instructions. The paper code and documentation are publicly available at https://github.com/karavan88/PISA2025/tree/main/05_papers/01_SESTransmission. An anonymized archive is also supplied for peer review. A public persistent archive has not yet been deposited.\n\nVerify the exact provider release/access URL against the dataset citation before final submission.\n')
 # Anonymous code-only archive, no Git history, provider data, results, or author files.
 with zipfile.ZipFile(OUT/'anonymous_replication_code.zip','w',zipfile.ZIP_DEFLATED) as z:
  roots=[P/'01_code',ROOT/'02_scripts/00_tools',ROOT/'02_scripts/01_harmonization']
