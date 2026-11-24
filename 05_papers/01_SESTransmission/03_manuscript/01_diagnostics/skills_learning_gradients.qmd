@@ -1,0 +1,186 @@
+---
+title: "Skills, reading, and math: associations and differences between grades"
+author: "Garen Avanesian"
+format:
+  html:
+    toc: true
+    embed-resources: true
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(data.table);library(knitr)
+root<-normalizePath('../../../..');out<-file.path(root,'05_papers/01_SESTransmission/04_output/learning_gradients_20261117')
+E<-fread(file.path(out,'country_models.csv'));P<-fread(file.path(out,'pooled_models.csv'));M<-fread(file.path(out,'gradient_associations.csv'))
+S<-c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG');labs<-setNames(c('Perseverance','Curiosity','Enjoyment of problem solving','Cognitive adaptability','Goal setting','Self-regulated help seeking'),S)
+fp<-function(p)ifelse(p==0,'<1e-300',ifelse(p<.001,formatC(p,format='e',digits=2),sprintf('%.3f',p)))
+ci<-function(x)paste0(sprintf('%.2f',x$estimate),' [',sprintf('%.2f',x$lower),', ',sprintf('%.2f',x$upper),']')
+tab<-function(x)kable(x,format='html',escape=FALSE)
+SUB<-c('All','Never repeated','Urban female non-repeaters','Urban male non-repeaters')
+```
+
+## What this report tests
+
+**First:** are higher socio-emotional skills associated with higher reading and math scores?
+
+**Second:** do countries with larger skill differences between grades also have larger achievement differences between grades?
+
+The second question implements the requested comparison without a separate treatment or comparison group. It is **not difference-in-differences**: grade replaces neither a genuine before–after comparison nor an identified treatment. PISA observes different pupils in different grades. “Grade difference” below means a fitted cross-sectional difference, not individual growth.
+
+The 4 samples remain all pupils, never-repeaters, urban female never-repeaters, and urban male never-repeaters. Urban denotes school location, not residence. Central preparation added the 10 math plausible values to the exact saved pupil records; **no pupils were lost when adding math**. Skill scales remain those of the original country samples.
+
+## Main findings among never-repeaters
+
+```{r, results='asis'}
+for(y in c('Reading','Math')){
+ a<-P[kind=='Skills to learning'&sample=='Never repeated'&model=='Adjusted'&outcome==y&term=='CURIO'];b<-M[sample=='Never repeated'&model=='Adjusted'&outcome==y&skill=='CURIO']
+ cat('**',y,':** in pooled adjusted pupil-level OLS, a 1-SD higher curiosity score is associated with ',ci(a),' points (p = ',fp(a$p),'). Across ',b$countries,' countries, a 0.1 SD/grade larger curiosity gradient accompanies a ',ci(b),' point larger ',tolower(y),' gradient (p = ',fp(b$p),'). These are different quantities at different levels of analysis.\n\n',sep='')
+}
+```
+
+Curiosity and enjoyment of problem solving show positive adjusted grade-gradient relationships for both reading and math. The other 4 skills do not show a statistically clear relationship at the 5% level in this never-repeater comparison. This pattern supports examining co-development, but it does not identify its direction.
+
+**A useful warning against a causal reading:** enjoyment of problem solving has a positive cross-country association between grade gradients, yet its pooled pupil-level reading coefficient is negative after holding the other skills and controls constant. This is not a contradiction: a relationship between countries' grade profiles is not the same as a relationship between individual pupils' skill scores and achievement.
+
+## Skills and learning: naive OLS
+
+Reading and math are estimated separately. All 6 skills enter jointly, so each coefficient holds the other 5 measured skills constant.
+
+- **Skills-only joint model:** achievement on the 6 skills and an intercept.
+- **Adjusted joint model:** adds age, grade, gender where it varies, and national SES rank.
+
+Age captures maturation differences; grade captures differences in schooling exposure; gender and SES account for observable differences related to both skills and achievement. Grade can also reflect earlier skill and achievement differences, so the adjusted result is a conditional association, not necessarily the total effect of skills. No school fixed effects, instruments, random effects, or mediation are used here. Earlier achievement, parental investments, and other unobserved factors remain uncontrolled. Reading and math scores measure achievement at the survey occasion, not observed learning gains.
+
+A coefficient of 10 means a 1-SD higher skill score is associated with 10 more achievement points. It does not establish that raising the skill through an intervention would produce that gain.
+
+### Pooled results
+
+Pooled models are pupil-level regressions with country indicators and equal total weight for each country, retaining survey weights within countries. They are not averages of country coefficients. Country coverage can differ across the 4 samples; the country count is shown.
+
+```{r, results='asis'}
+for(mod in c('Unadjusted','Adjusted'))for(y in c('Reading','Math')){
+ cat('\n#### ',y,' — ',if(mod=='Unadjusted')'skills-only joint model'else'adjusted joint model','\n\n',sep='')
+ x<-P[kind=='Skills to learning'&model==mod&outcome==y];x[,`:=`(Skill=factor(term,S,labels=labs),Sample=factor(sample,SUB),Result=paste0(ci(.SD),'<br>p = ',fp(p),'; K = ',countries))]
+ cat(as.character(tab(dcast(x,Skill~Sample,value.var='Result'))),'\n\n')
+}
+```
+
+Each cell shows coefficient [95% confidence interval], p-value, and number of countries (K). The units are reading or math points per original-country skill SD.
+
+<details><summary>Country-level skills–learning coefficients and p-values</summary>
+
+```{r}
+tab(E[kind=='Skills to learning',.(Country=economy,Sample=sample,Model=model,Outcome=outcome,Skill=labs[term],Pupils=N,Schools=schools,`Coefficient [95% CI]`=ci(.SD),`p-value`=fp(p))])
+```
+
+</details>
+
+## Comparing grade differences in learning with grade differences in skills
+
+For each country and sample, I estimate the grade coefficient in reading, math, and each of the 6 skills. The adjusted equations all control for age, gender where it varies, and SES. They use the same pupils and controls across the 8 outcomes. The grade coefficient summarizes a linear difference per additional grade across the observed grades; it is not a literal adjacent-grade panel change.
+
+For example, one country might have a curiosity difference of 0.05 SD and a reading difference of 20 points per grade; another might have differences of 0.10 SD and 30 points. The comparison asks whether these differences tend to be larger together across countries.
+
+I regress each country's reading or math grade coefficient on its skill grade coefficient, separately for each skill and sample, giving countries equal weight. This is a **descriptive relationship between estimated country gradients**, not an estimate of the causal return to increasing a skill.
+
+### Country patterns among never-repeaters
+
+```{r, fig.cap="Adjusted reading and skill grade coefficients among never-repeaters. Each point is a country. The fitted line describes their cross-country relationship; it does not identify a causal mechanism."}
+knitr::include_graphics(file.path(out,'gradients_reading.png'))
+```
+
+```{r, fig.cap="The corresponding comparison for math, on the same pupils used for reading."}
+knitr::include_graphics(file.path(out,'gradients_math.png'))
+```
+
+### Does a larger skill gradient accompany a larger learning gradient?
+
+The coefficient below is the difference in the learning grade gradient associated with a **0.1 SD per grade larger skill gradient** across countries. A coefficient of 5 means 5 more reading or math points per grade in countries whose skill gradient is 0.1 SD larger. The correlation is a descriptive correlation between country point estimates.
+
+```{r, results='asis'}
+for(mod in c('Unadjusted','Adjusted'))for(y in c('Reading','Math')){
+ cat('\n#### ',y,' — ',tolower(mod),' grade gradients\n\n',sep='')
+ x<-M[model==mod&outcome==y];x[,`:=`(Skill=factor(skill,S,labels=labs),Sample=factor(sample,SUB),Result=paste0(ci(.SD),'<br>p = ',fp(p),'; r = ',sprintf('%.2f',correlation),'; K = ',countries))]
+ cat(as.character(tab(dcast(x,Skill~Sample,value.var='Result'))),'\n\n')
+}
+```
+
+**How to interpret this evidence:** positive co-movement is consistent with skills and achievement developing together. It also fits schooling affecting both, achievement increasing self-reported skills, and shared selection into grades. A null or negative relationship does not invalidate an individual-level skills pathway: country gradients combine many influences, and measured skills differ in how they relate to schooling.
+
+The intervals propagate uncertainty in **both** country gradients, including their covariance because they come from the same pupils. They describe survey and plausible-value uncertainty for this fixed set of countries, not uncertainty for a hypothetical population of countries. Accounting for estimated-gradient uncertainty does **not** remove errors-in-variables bias or the possibility that common sampling noise influences the descriptive relationship. The cross-country relationship can also be sensitive to outlying countries; the figures and full country estimates remain primary evidence.
+
+<details><summary>Grade coefficients and p-values for each country, skill, and achievement domain</summary>
+
+```{r}
+tab(E[kind=='Grade gradients',.(Country=economy,Sample=sample,Model=model,Outcome=outcome,Pupils=N,Schools=schools,`Grade coefficient [95% CI]`=ci(.SD),`p-value`=fp(p))])
+```
+
+</details>
+
+<details><summary>Pooled pupil-level grade coefficients</summary>
+
+These estimate a common grade slope with country indicators. They differ from the cross-country association between grade slopes above.
+
+```{r}
+tab(P[kind=='Grade gradients',.(sample,model,outcome,countries,N,`Grade coefficient [95% CI]`=ci(.SD),`p-value`=fp(p))])
+```
+
+</details>
+
+## What could serve as an instrument?
+
+**I would not use grade, birth month, school-entry eligibility, or classmates' average skills as an instrument for curiosity in this design.** An instrument must shift the skill without affecting achievement through other routes, conditional on the model's controls. The issue is the substantive source of variation, not merely finding a variable with a strong first-stage coefficient. The interpretation of IV also depends on the population whose skill is shifted by the instrument ([Imbens and Angrist, 1994](https://www.nber.org/papers/t0118)).
+
+| Candidate | Why it might predict skills | Main exclusion problem | Assessment for this study |
+|---|---|---|---|
+| Grade, birth month, school-entry cutoff | Schooling exposure and maturation may change skills | These can affect reading and math directly, independently of the measured skill | Not a credible excluded instrument for skills; a cutoff might instead identify an effect of schooling |
+| Parental education, occupation, books, home resources | Unequal investment in skill development | Direct effects through instruction, resources, and other capabilities | Background controls, not excluded instruments |
+| Teacher support, feedback, teaching style | May stimulate curiosity and perseverance | Direct instructional and assessment effects on achievement | Not valid simply because the first stage is strong |
+| School/classmate mean skills, even leave-one-out | Peer environment may shape individual skills | Peer effects, school quality, and sorting can affect achievement directly | Leave-one-out construction does not fix the exclusion restriction |
+| Earlier skill score or another skill questionnaire | Predicts current skill | Earlier skills and persistent unobserved causes may also affect current achievement | Better measurement or longitudinal adjustment, not automatically a valid instrument |
+| Random assignment to a narrowly targeted skills encouragement | Exogenous encouragement could shift a pre-specified skill | Must rule out direct motivation, effort, attendance, instruction, and changes in other skills affecting achievement | Most promising design to investigate, but needs additional experimental data and a defensible mechanism |
+| Exogenous rollout or eligibility rule for a specific skills program | Could supply externally determined exposure | Often bundled with curriculum, resources, or teacher changes; targeting and anticipation also matter | Potentially useful with linked policy records, not established in the current inputs |
+
+School-entry research illustrates the problem with using grade variation as a skills instrument: starting age and school exposure have documented achievement effects, and school exposure can affect both cognitive and noncognitive outcomes ([Dhuey et al.](https://www.nber.org/papers/w23660); [Cornelissen and Dustmann, 2019](https://www.aeaweb.org/articles?id=10.1257/pol.20170641)). Finding both outcomes respond to the same source of variation does not isolate a skills-mediated effect.
+
+Even randomized assignment to a program does not, by itself, identify which skill produced its achievement effects. The Perry Preschool mechanism study explicitly distinguishes experimentally identified program effects from the additional assumptions needed to attribute those effects to measured skills ([Heckman, Pinto, and Savelyev, 2013](https://pmc.ncbi.nlm.nih.gov/articles/PMC3951747/)).
+
+### A realistic next step
+
+For the existing PISA analysis, retain these results as descriptive checks and avoid presenting an unsubstantiated IV estimate. A credible IV extension would require an external assignment mechanism—for example, random invitation to a narrowly specified skills intervention—with evidence that it did not simultaneously change instruction, resources, or other achievement determinants. No such excluded instrument has been established in the harmonized inputs used here.
+
+If all 6 skill coefficients are treated as endogenous, one instrument is insufficient: the joint model needs enough independent excluded variation to identify those coefficients. A study of one pre-specified skill or a justified skill index is more feasible, but the instrument must still affect achievement only through that target; simply controlling for other endogenous skills does not solve the problem.
+
+A school-entry design can instead address a different question: whether extra schooling changes both skills and achievement. If a documented intervention has pre/post outcomes and a suitable comparison group, a genuine DiD design becomes possible under its identifying assumptions ([Callaway and Sant'Anna, 2021](https://www.sciencedirect.com/science/article/pii/S0304407620303948)). Neither design automatically identifies the causal effect of skills on learning.
+
+Heteroskedasticity-generated instruments are another technical possibility, but they replace external exclusion restrictions with strong moment and error-structure assumptions. I would not use a Lewbel estimator as a generic fix for simultaneous skills and achievement ([Lewbel, 2012](https://www.tandfonline.com/doi/abs/10.1080/07350015.2012.643126)).
+
+## Survey-design uncertainty and validation
+
+Every reading and math regression is estimated separately for all 10 domain-specific plausible values. Sampling variance uses all 80 Fay replicate weights with factor 0.5; total variance adds plausible-value uncertainty. The models never use a pupil's averaged plausible value as the sole achievement outcome. This follows the principles in the [OECD analysis guidance](https://www.oecd.org/en/about/programmes/pisa/how-to-prepare-and-analyse-the-pisa-database.html).
+
+For pooled models, 1 independent country's replicate weights are changed at a time and national variance contributions are summed. For the grade-gradient comparison, both the skill and learning gradient are recomputed together for that country and replicate before refitting the cross-country relationship. Intervals are 95%, with normal-reference two-sided p-values; p-values are unadjusted for multiple testing.
+
+Country models require 200 pupils and 20 schools. Grade-gradient models additionally need identifiable grade variation in all replicate fits. Controls that are constant within a country–sample are absorbed by the intercept; the pupils are retained. Models that remain unidentified are listed below. Different populations may contribute different country sets, so differences between the 4 population estimates are descriptive rather than formal tests of subgroup differences.
+
+<details><summary>Unavailable models</summary>
+
+```{r}
+tab(fread(file.path(out,'failures.csv')))
+```
+
+</details>
+
+<details><summary>Validation against weighted lm()</summary>
+
+```{r}
+tab(fread(file.path(out,'validation.csv')))
+```
+
+</details>
+
+These are new estimates from centrally harmonized data. The manuscript and its appendix have not been changed.

@@ -1,0 +1,16 @@
+library(data.table)
+x<-parse('05_papers/01_SESTransmission/01_code/01_grade_diagnostics/01_estimate.R')
+for(e in x)if(is.call(e)&&identical(e[[1]],as.name('<-'))&&as.character(e[[2]])%in%c('fit','pool'))eval(e)
+set.seed(41);n<-500;g<-rep(1:20,each=25);w<-runif(n,.3,4);X<-cbind(x1=rnorm(n),x2=rnorm(n));Y<-cbind(y1=1+X[,1]*2+rnorm(n)+g/4,y2=X[,2]*3+rnorm(n));a<-fit(X,Y,w,g)
+b<-sapply(1:2,function(k)coef(lm(Y[,k]~X+factor(g),weights=w))[2:3]);stopifnot(max(abs(a-b))<1e-10)
+cat('Weighted FE agrees with explicit school-dummy OLS; max difference:',max(abs(a-b)),'\n')
+OUT<-Sys.getenv('GRADE_DIAG_OUT','05_papers/01_SESTransmission/04_output/grade_diagnostics_20261117_v2')
+source('05_papers/01_SESTransmission/01_code/01_grade_diagnostics/guard.R');guard_stage('ols');guard_stage('mediation')
+e<-fread(file.path(OUT,'ols_coefficients.csv'));m<-fread(file.path(OUT,'mediation.csv'))
+stopifnot(!any(e$CNT%in%c('ISR','UKR','QUA')),all(e[basis=='Common six-skill sample',uniqueN(N),by=.(CNT,sample)]$V1==1),all(m$bootstrap_valid>=475),all(is.finite(e$se)),all(is.finite(m$se)))
+w<-dcast(m,CNT+sample~term,value.var='estimate');stopifnot(max(abs(w$skills_sorting-w$joint_W-w$sorting_increment))<1e-10)
+for(f in list.files(OUT,pattern='^med_.*rds$',full.names=TRUE)){
+ z<-readRDS(f);stopifnot(dim(z$draws)[3]==499,ncol(z$point)==10)
+}
+stopifnot(max(fread(file.path(OUT,'mediation_validation.csv'))$max_difference)<1e-5)
+cat('PASS: signatures, common samples, exclusions, 499-draw checkpoints, sorting identities, finite uncertainty, and reference implementation.\n')

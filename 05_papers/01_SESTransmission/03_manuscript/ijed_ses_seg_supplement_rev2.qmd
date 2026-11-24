@@ -26,6 +26,8 @@ format:
     urlcolor: blue
     include-in-header:
       text: |
+        \usepackage[most]{tcolorbox}
+        \newtcolorbox{revision}{colback=cyan!8!white,colframe=cyan!8!white,boxrule=0pt,arc=0pt,breakable,left=4pt,right=4pt,top=4pt,bottom=4pt}
         \usepackage{booktabs,longtable,array,float,etoolbox}
         \newcommand{\tblsize}{\footnotesize}
         \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
@@ -43,6 +45,7 @@ execute:
 source('../01_code/reporting_rev2.R')
 source('../01_code/13_counterfactual_robustness_reporting.R')
 source('../01_code/25_within_between_reporting_rev2.R')
+source('../01_code/27_country_gradients_rev2.R')
 ```
 
 ```{r}
@@ -310,4 +313,20 @@ for(v in c('unscaled_weights','minimum_10','lmer_unweighted')) {
  y<-z[,.(System=economy,`Main [95% CI]`=vapply(CNT,function(cc)cfci(cc,'gap_reduction'),character(1)),`Alternative [95% CI]`=paste0(fmt(estimate),' [',fmt(lower),', ',fmt(upper),']'))]
  print(tbl(y,paste0('Socio-economic rank: ',cf_variant_names[v],'. Gap reduction in reading points.'),7.8,widths=c('4cm','5cm','5cm')))
 }
+```
+
+
+```{r}
+#| results: asis
+country_gradient_table()
+```
+
+```{=latex}
+\begin{revision}
+```
+
+![Grade differences in reading and socio-emotional skills. Equal-weight system means with 95% confidence intervals across 4 sample definitions and alternative adjustment specifications; coefficients compare pupils in different grades rather than following the same pupils over time. Differences may reflect selection, schooling, development, or reporting and do not identify causal change.](../04_output/grade_diagnostics_20261117_v2/figures/grade_means.png){width=100%}
+
+```{=latex}
+\end{revision}
 ```

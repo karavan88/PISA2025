@@ -1,0 +1,100 @@
+---
+title: "Skills and grade: simple OLS results"
+author: "Garen Avanesian"
+format:
+  html:
+    toc: true
+    embed-resources: true
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(data.table);library(knitr)
+root<-normalizePath('../../../..');out<-file.path(root,'05_papers/01_SESTransmission/04_output/simple_grade_ols_20261117')
+E<-fread(file.path(out,'country_ols.csv'));P<-fread(file.path(out,'pooled_ols.csv'));F<-fread(file.path(out,'exclusions.csv'))
+S<-c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG');labs<-c('Perseverance','Curiosity','Enjoyment of problem solving','Cognitive adaptability','Goal setting','Self-regulated help seeking');names(labs)<-S
+SUB<-c('All','Never repeated','Urban female non-repeaters','Urban male non-repeaters')
+fp<-function(p)ifelse(p==0,'<1e-300',ifelse(p<.001,formatC(p,format='e',digits=2),sprintf('%.3f',p)))
+tab<-function(x)kable(x,format='html',escape=FALSE)
+```
+
+## What was run
+
+**Primary model:** `skill = intercept + grade`.
+
+**Age sensitivity:** `skill = intercept + grade + age`.
+
+Each of the 6 skills is estimated separately for all pupils, never-repeaters, urban female never-repeaters, and urban male never-repeaters. These use the same prepared pupil samples as the earlier diagnostics. “Urban” refers to a school in a city of at least 100,000 people. The female and male groups are separate; the benchmark samples overlap them.
+
+The tables report the **grade coefficient and its two-sided p-value**. Skills are measured in original-country SD units. A coefficient of 0.05 means pupils 1 grade higher score 0.05 SD higher in that skill. A negative coefficient means a lower skill score. This compares different pupils; it is not a measure of individual change over time.
+
+No SES controls, school fixed effects, random effects, or mediation models are included.
+
+## Pooled results
+
+These are **pooled pupil-level regressions**, not averages of country coefficients. Country indicators account for differences in country means. Each country receives equal total weight, with survey weights retained within countries. The pooled coefficient thus describes the common within-country grade slope imposed by this model. Country-specific slopes appear below.
+
+```{r}
+tab(unique(P[,.(Sample=sample,Model=model,Countries=countries,Pupils=N,Schools=schools)]))
+```
+
+### Grade only
+
+```{r}
+x<-P[model=='Grade only'];x[,`:=`(Skill=factor(skill,S,labels=labs),Sample=factor(sample,SUB),Result=paste0(sprintf('%.4f',estimate),'<br>p = ',fp(p)))]
+tab(dcast(x,Skill~Sample,value.var='Result'))
+```
+
+### Grade adjusted for age
+
+```{r}
+x<-P[model=='Grade + age'];x[,`:=`(Skill=factor(skill,S,labels=labs),Sample=factor(sample,SUB),Result=paste0(sprintf('%.4f',estimate),'<br>p = ',fp(p)))]
+tab(dcast(x,Skill~Sample,value.var='Result'))
+```
+
+## Country results
+
+Each table reports grade coefficients (**b**) and p-values (**p**). Country regressions include an intercept, and the second set also includes age. No country is assigned a 0 coefficient when its model cannot be estimated.
+
+```{r, results='asis'}
+for(mod in c('Grade only','Grade + age')){
+ cat('\n### ',mod,'\n\n',sep='')
+ for(ss in SUB){
+  cat('<details><summary>',ss,' — country coefficients and p-values</summary>\n\n',sep='')
+  x<-E[model==mod&sample==ss];x[,`:=`(Skill=factor(skill,S,labels=labs),b=sprintf('%.4f',estimate),p_value=fp(p))]
+  w<-dcast(x,economy+N+schools~Skill,value.var=c('b','p_value'))
+  setnames(w,c('economy','N','schools'),c('Country','Pupils','Schools'))
+  # Keep each skill's coefficient next to its p-value.
+  setcolorder(w,c('Country','Pupils','Schools',unlist(lapply(labs,function(l)c(paste0('b_',l),paste0('p_value_',l))))))
+  cat('<div style="overflow-x:auto">',as.character(tab(w)),'</div>\n\n</details>\n\n',sep='')
+ }
+}
+```
+
+## Estimation notes
+
+All models are survey-weighted OLS. The country p-values use 80 Fay replicate weights with factor 0.5. Pooled uncertainty perturbs 1 country's replicate weights at a time, holding the other countries fixed, and sums the national variance contributions. The p-values use a normal reference distribution and are **unadjusted for multiple testing**. Small p-values are shown in scientific notation rather than rounded to 0.
+
+Country results require at least 200 pupils, 20 schools, and variation in grade. The pooled regressions include the countries whose corresponding country model is estimable. Consequently, country coverage can differ between samples. All 6 skills use the same pupils within a country–sample pair. Original skill standardizations are retained.
+
+The regressions were newly estimated from the saved harmonized pupil samples. The manuscript was not changed.
+
+<details><summary>Excluded or unidentified country models</summary>
+
+```{r}
+tab(F)
+```
+
+</details>
+
+<details><summary>Numerical validation against weighted lm()</summary>
+
+```{r}
+tab(fread(file.path(out,'validation.csv')))
+```
+
+</details>

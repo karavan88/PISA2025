@@ -1,0 +1,372 @@
+---
+title: "Grade, social background, skills, and learning"
+subtitle: "Population-composition diagnostics for the socio-emotional skills study"
+author: "Garen Avanesian"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    theme: cosmo
+    code-fold: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(data.table);library(knitr)
+root<-normalizePath('../../../..')
+out<-Sys.getenv('GRADE_DIAG_OUT',file.path(root,'05_papers/01_SESTransmission/04_output/grade_diagnostics_20261117_v2'))
+read<-function(n)fread(file.path(out,paste0(n,'.csv')))
+E<-read('ols_coefficients');G<-read('matched_grade_means');M<-read('mediation');MM<-read('matched_mediation_means');C<-read('coverage');DC<-read('direction_counts')
+S<-c('PERSEV','CURIO','ENPROBS','COGABIL','GOALSET','SELFREG');labels<-c(Reading='Reading',PERSEV='Perseverance',CURIO='Curiosity',ENPROBS='Enjoyment of problem solving',COGABIL='Cognitive adaptability',GOALSET='Goal setting',SELFREG='Self-regulated help seeking')
+fmt<-function(x)formatC(x,format='f',digits=2)
+ci<-function(x)paste0(fmt(x$estimate),' [',fmt(x$lower),', ',fmt(x$upper),']')
+tab<-function(x)knitr::kable(x,format='html',digits=3)
+picture<-function(n)knitr::include_graphics(file.path(out,'figures',paste0(n,'.png')))
+```
+
+## What these checks establish
+
+This report asks whether the paper's patterns survive comparisons among pupils with more similar grade-progression histories, school locations, and recorded genders. It asks whether grade differences in skills resemble grade differences in reading, whether the socio-economic gradient of skills survives population restrictions, whether the fitted skills pathway remains present, and whether adding grade to both mediation equations changes the curiosity and joint pathways.
+
+**The checks assess composition and consistency. They cannot establish whether skills cause learning or learning changes skills.** PISA observes different pupils at one occasion. An older grade is not a later observation of the same pupil. A flat grade coefficient does not establish stable personality; a negative coefficient alongside higher reading does not establish defective measurement. Entry age, acceleration, selection into grades, and self-assessment standards remain possible explanations. Cross-sectional mediation can differ substantially from longitudinal mediation ([Maxwell and Cole, 2007](https://pubmed.ncbi.nlm.nih.gov/17402810/)).
+
+```{r, results='asis'}
+g<-G[model=='School FE' & outcome=='Reading']
+cat('On the **same ',unique(g$K),' systems**, an additional grade is associated with ',ci(g[sample=='All']),' reading points in the benchmark and ',ci(g[sample=='Never repeated']),' among never-repeaters. These are age- and SES-adjusted comparisons within schools, not estimated gains caused by another year of schooling.\n\n',sep='')
+n<-DC[sample=='Never repeated' & model=='School FE' & outcome=='Reading']
+cat('Across all estimable never-repeater systems, the reading coefficient is positive with a 95% interval excluding 0 in **',n$positive,' of ',n$K,' systems**. The skill results are more mixed, as the tables below show.\n',sep='')
+```
+
+The manuscript, its appendix, and its original estimation checkpoints have not been changed. All results below come from a separate diagnostic run.
+
+## Samples and comparisons
+
+The starting scope is the manuscript's 67 systems with all 6 skills. Israel and Ukraine remain excluded. The original 428,040-pupil sample is further restricted to observed grade, age, SES rank, and valid model weights. Every primary outcome uses the same complete 6-skill pupil sample. The FE and non-FE models use identical pupils within each country–subsample pair.
+
+| Sample | Inclusion rule | What it addresses |
+|---|---|---|
+| All | Original paper pupils with the diagnostic variables | Benchmark |
+| Never repeated | Explicitly reports never repeating a grade | Removes observed repetition histories |
+| Urban female non-repeaters | Never repeated; sampling gender female; school in a city of at least 100,000 | More homogeneous comparison |
+| Urban male non-repeaters | Same rules, sampling gender male | Separate comparison, not pooled with females |
+
+“Urban” measures **school location**, not residence. Unknown repetition, school location, or sampling gender is not assigned to a restricted group. The female and male groups are mutually exclusive; the 4 samples are deliberately nested, not independent. Restricting to never-repeaters also selects on educational progression, so it is a sensitivity analysis rather than a cure for selection bias.
+
+```{r}
+tab(C[,.(Pupils=sum(N),Systems_with_pupils=sum(N>0),Systems_meeting_size_rule=sum(N>=200&schools>=20)),by=sample])
+```
+
+Regressions require at least 200 pupils and 20 schools. Grade FE models additionally require at least 10 schools with observed variation in grade. Designs that cannot be estimated are reported as failures, not as 0 effects. Country-level tables preserve these differences in coverage. Cross-model and cross-subsample mean comparisons use their common eligible country set, with each system weighted equally. The confidence interval describes uncertainty in this fixed-set mean, not the spread of country results or a global pupil population.
+
+<details><summary>Country-by-country sample coverage and missing source information</summary>
+
+```{r}
+tab(C[,.(System=economy,Sample=sample,Pupils=N,Schools=schools,Mixed_grade_schools=mixed_grade_schools,Original_paper_N=paper_N,Source_repeat_unknown=repeat_unknown,Source_location_unknown=location_unknown,Source_gender_unknown=sampling_gender_unknown)])
+```
+
+Missing counts describe the source-country pool and repeat across sample rows; they are not sequential attrition counts.
+
+</details>
+
+## Grade differences in skills and reading
+
+For each country and sample, the models ask how much the outcome differs for pupils 1 grade apart:
+
+1. **Age adjusted:** grade and age, plus the existing gender control where it varies.
+2. **SES adjusted:** adds national SES rank.
+3. **School FE:** compares pupils within the same school, controlling for age and SES rank.
+4. **School FE + quadratic age:** allows the age relationship to bend rather than imposing a straight line.
+
+Reading is measured in PISA points. Skills remain in SD units of the original country sample; they are not restandardized separately for females, males, or never-repeaters. Age in months is approximated from the supplied decimal-age variable, not calculated from an exact birth date.
+
+```{r, fig.cap="Grade coefficients on a common set of systems across all 4 samples and all 4 models. Panel scales differ because reading and skills have different units."}
+picture('grade_means')
+```
+
+::: {.callout-note}
+**How to read a grade coefficient.** A reading coefficient of 20 means pupils 1 grade higher score 20 reading points higher after the stated adjustments. A skill coefficient of 0.05 means a difference of 0.05 original-country SDs. Neither is a longitudinal change or a causal return to schooling. School FE removes between-school comparisons; it does not remove unobserved differences between classmates.
+:::
+
+```{r, results='asis'}
+a<-E[sample=='Never repeated' & model=='School FE' & outcome=='Reading' & basis=='Common six-skill sample' & lower>0][order(-estimate)][1]
+cat('**Country example:** the largest positive, individually significant never-repeater reading coefficient is in ',a$economy,': ',ci(a),' points per grade. This example is selected by that explicit rule; the full country distribution remains available below.\n',sep='')
+```
+
+```{r}
+tab(G[model=='School FE',.(Outcome=labels[outcome],Sample=sample,Systems=K,`Coefficient [95% CI]`=ci(.SD))])
+```
+
+### Does reading rise while skills fall or remain uncertain?
+
+```{r, fig.cap="Within-school grade associations among never-repeaters. Positive reading with a negative skill slope is a descriptive divergence, not evidence of reverse causality or measurement failure."}
+picture('grade_pattern')
+```
+
+```{r}
+tab(DC[sample=='Never repeated' & model=='School FE',.(Outcome=labels[outcome],Systems=K,Positive=positive,Negative=negative,Uncertain=uncertain,BH_significant)])
+```
+
+“Uncertain” means the 95% interval includes 0. It does not mean the skill is unchanged. Positive slopes for both reading and a skill do not invalidate mediation either: schooling can affect both, and the direction between them remains unresolved. These patterns identify which skills need particular attention when interpreting the paper, rather than choosing whichever pattern appears most favorable to its hypothesis.
+
+<details><summary>All country grade coefficients, intervals, and model samples</summary>
+
+```{r}
+tab(E[basis=='Common six-skill sample' & !grepl('SES slope',model),.(System=economy,Sample=sample,Model=model,Outcome=labels[outcome],N,Schools=schools,Estimate=estimate,Lower=lower,Upper=upper,p,BH_q=q)])
+```
+
+</details>
+
+### Are female and male coefficients actually different?
+
+The direct contrast subtracts the urban male coefficient from the urban female coefficient within each system. Replicate weights are paired across the 2 groups, retaining their shared survey-design uncertainty. Comparing “significant among females” with “not significant among males” would not test this difference.
+
+```{r}
+tab(read('sex_contrast_means')[model=='School FE',.(Outcome=labels[outcome],Systems=K,`Female-minus-male coefficient [95% CI]`=ci(.SD))])
+```
+
+<details><summary>Country-level female–male contrasts</summary>
+
+```{r}
+tab(read('sex_contrasts_intervals')[,.(CNT,model,Outcome=labels[outcome],female_N,male_N,estimate,lower,upper,p,q)])
+```
+
+</details>
+
+### Does requiring all 6 skills change the results?
+
+The availability sensitivity re-estimates reading and each skill using all otherwise eligible pupils with that particular outcome observed. It preserves the original national SES rank and skill scale. It therefore tests complete-profile selection rather than changing the measurement units.
+
+<details><summary>Country-level outcome-availability sensitivity, compared with the primary results</summary>
+
+```{r}
+tab(E[model%in%c('SES adjusted','School FE'),.(System=economy,Sample=sample,Outcome=labels[outcome],Model=model,Sample_basis=basis,N,estimate,lower,upper)])
+```
+
+</details>
+
+## Is every skill positively related to SES?
+
+```{r, fig.cap="Descriptive SES–skill profiles. Each line averages the same eligible systems across all 4 samples and all 10 deciles, requiring at least 20 pupils per country–sample–decile cell. These curves are descriptive point estimates, without confidence bands."}
+picture('ses_profiles')
+```
+
+The overall SES slope compares pupils across and within schools. The within-school slope compares classmates. Both are descriptive regressions of each skill on SES rank, rather than grade regressions or mediation effects. A coefficient of 0.04 means 0.04 skill SDs per 10 national SES percentile points.
+
+```{r}
+tab(DC[model%in%c('Total SES slope','Within-school SES slope') & outcome!='Reading',.(Sample=sample,Comparison=model,Skill=labels[outcome],Systems=K,Positive=positive,Negative=negative,Uncertain=uncertain)])
+```
+
+```{r}
+tab(read('matched_ses_means')[outcome!='Reading',.(Sample=sample,Comparison=model,Skill=labels[outcome],Systems=K,`Mean slope [95% CI]`=ci(.SD))])
+```
+
+A positive gradient is one necessary link in an advantage-transmission argument. It is not sufficient: the skill must also relate to reading, and the joint pathway must be assessed. A negative or uncertain slope should be retained in the account rather than treated as an inconvenient exception.
+
+<details><summary>Country SES slopes and weighted SES–skill correlations</summary>
+
+```{r}
+tab(E[grepl('SES slope',model)&outcome!='Reading',.(System=economy,Sample=sample,Comparison=model,Skill=labels[outcome],estimate,lower,upper,p,q)])
+tab(read('ses_skill_correlations'))
+```
+
+</details>
+
+## Does the multilevel skills pathway survive?
+
+These checks refit the paper's country-specific within–between random-intercept mediation models for each restricted sample. All 6 skills enter the reading model jointly. The mediator models relate each skill to SES; the reading model relates reading to SES and all skills. Age and the existing gender control are retained where they vary. These initial models retain the original specification. The [grade sensitivity](#grade-sensitivity) below then adds grade to both equations on exactly the same pupils.
+
+The **classmate pathway** combines the SES–skill and skill–reading links within schools. The **sorting-inclusive pathway** also allows the observed difference in school composition accompanying SES rank. The **sorting increment** is the difference between these 2 pathways. It is not the effect of moving a pupil to another school.
+
+```{r, fig.cap="Country-specific mediation re-estimated for each population. Means use the systems estimable in all 4 samples; 95% intervals combine school-bootstrap and plausible-value uncertainty."}
+picture('mediation')
+```
+
+```{r}
+tab(MM[term%in%c('joint_W','skills_sorting','sorting_increment'),.(Quantity=term,Sample=sample,Systems=K,`Reading points [95% CI]`=ci(.SD))])
+```
+
+::: {.callout-note}
+**How to read mediation.** A sorting-inclusive pathway of 1.5 means that the fitted skill differences accompanying a 10-percentile-point SES advantage account for 1.5 reading points. A classmate pathway of 1.0 and sorting-inclusive pathway of 1.5 imply a 0.5-point sorting increment. This is a joint pathway through measured skills, not the coefficient of 1 skill and not the percentage of all inequality explained.
+:::
+
+```{r, results='asis'}
+a<-M[sample=='Never repeated'&term=='skills_sorting'&lower>0][order(-estimate)][1]
+cat('**Country example:** among never-repeaters, ',a$economy,' has the largest individually significant sorting-inclusive pathway: ',ci(a),' reading points per 10 SES percentile points.\n',sep='')
+```
+
+```{r}
+tab(M[term%in%c('joint_W','skills_sorting','sorting_increment'),.(Systems=.N,Positive=sum(lower>0),Negative=sum(upper<0),Uncertain=sum(lower<=0&upper>=0),BH_significant=sum(q<.05)),by=.(sample,term)])
+```
+
+The appropriate interpretation is whether a pathway persists in more narrowly defined populations, how its magnitude changes, and whether precision deteriorates as samples shrink. Differences between the 4 estimates are not formal subgroup-interaction tests. Unlike the OLS female–male contrasts, the mediation bootstraps were not paired across samples.
+
+<details><summary>All country mediation estimates, including skill-specific contributions</summary>
+
+```{r}
+tab(M[,.(economy,sample,term,N,schools,estimate,lower,upper,p,q,bootstrap_valid)])
+```
+
+</details>
+
+## Sensitivity: adding grade to both equations {#grade-sensitivity}
+
+**Question:** does the curiosity pathway simply reflect the fact that higher-grade pupils have both higher curiosity and higher reading scores?
+
+I refit both the skill equations and the reading equation with **grade added as a linear control**, alongside the original controls. Grade enters as the pupil's deviation from the school mean and as the school mean itself, consistently with the within–between specification. All 6 skills remain in the reading equation. Every comparison uses **exactly the same pupils, skills scales, weights, and reading plausible values** as its original diagnostic model. No missing-grade pupils are dropped at this step: grade was already required for these samples.
+
+The grade-adjusted models therefore ask whether the SES–skill–reading pathway remains after accounting for linear grade differences both within and between schools. They do not track the same pupil over time, and they do not identify the causal direction between curiosity and reading. Grade progression can itself be related to earlier advantage and achievement, so this is a sensitivity specification rather than an automatically preferable main model.
+
+```{r}
+gradeout<-Sys.getenv('GRADE_CONTROL_OUT',file.path(root,'05_papers/01_SESTransmission/04_output/grade_control_20261117_v2'))
+GC<-fread(file.path(gradeout,'comparison.csv'));GM<-fread(file.path(gradeout,'matched_means.csv'));GV<-fread(file.path(gradeout,'validation.csv'));GF<-fread(file.path(gradeout,'failure_details.csv'));GN<-fread(file.path(gradeout,'direction_counts.csv'))
+glabels<-c(curiosity_within='Curiosity: within school',joint_within='All 6 skills: within school',curiosity_sorting='Curiosity: including sorting',joint_sorting='All 6 skills: including sorting',sorting_increment='Sorting increment')
+gci<-function(x)paste0(sprintf('%.3f',x$estimate),' [',sprintf('%.3f',x$lower),', ',sprintf('%.3f',x$upper),']')
+```
+
+**Coverage limitation:** 12 previously estimable country–population models cannot support this full grade sensitivity. In Japan's benchmark sample, grade is constant; in Korea's benchmark and never-repeater samples, only 1 school contains pupils in different grades. Other affected urban subsamples have 0–3 mixed-grade schools. A separately estimated within-school grade effect is therefore unidentified or unreliable under the school bootstrap. This does not establish that their original skills pathways are absent. It means the requested sensitivity cannot be evaluated reliably there under this specification. All comparisons below keep the same countries on both sides, and the matched-population means use 44 systems.
+
+### What changes in the average pathway?
+
+```{r, fig.cap="Original and grade-adjusted pathways on an identical set of systems across all 4 populations. Within each country–population pair, pupils are identical. All quantities are reading points per 10 SES percentile points."}
+knitr::include_graphics(file.path(gradeout,'grade_pathways.png'))
+```
+
+```{r, results='asis'}
+for(tt in c('curiosity_within','curiosity_sorting','joint_within','joint_sorting')){
+ a<-GM[sample=='Never repeated'&term==tt&specification=='baseline'];b<-GM[sample=='Never repeated'&term==tt&specification=='grade_adjusted'];d<-GM[sample=='Never repeated'&term==tt&specification=='change']
+ cat('**',glabels[tt],', never-repeaters:** ',gci(a),' before adjustment and ',gci(b),' after adjustment. The paired change is ',gci(d),' reading points',if(a$estimate>0)paste0(' (',sprintf('%.1f',100*(b$estimate/a$estimate-1)),'% relative change)')else'', '. ',if(d$upper<0)'The average reduction is statistically distinguishable from 0.'else if(d$lower>0)'The average increase is statistically distinguishable from 0.'else'The change is not statistically distinguishable from 0.', ' ',if(b$lower>0)'The adjusted mean pathway remains positive with a 95% interval excluding 0.'else'The adjusted mean interval includes 0 or is not positive.', '\n\n',sep='')
+}
+cat('These comparisons average the same **',unique(GM$K),' systems**. They isolate adjustment from changes in country coverage. Country-specific results and additional systems estimable in individual populations are retained below.\n',sep='')
+```
+
+::: {.callout-note}
+**How to read the change.** If the curiosity pathway falls from 0.40 to 0.30 reading points, the change is −0.10 points: 25% smaller. It would not mean that grade explains 25% of all reading inequality. The interval for the change uses paired bootstrap draws; it is not calculated by subtracting interval endpoints or by comparing whether each model is significant.
+:::
+
+```{r}
+z<-GM[term%in%c('curiosity_within','joint_within','curiosity_sorting','joint_sorting')&specification%in%c('baseline','grade_adjusted','change')]
+z[,value:=gci(.SD)];tab(dcast(z,sample+term+K~specification,value.var='value')[,.(Population=sample,Pathway=glabels[term],Systems=K,Original=baseline,Plus_grade=grade_adjusted,`Paired change [95% CI]`=change)])
+```
+
+### What does this mean for the curiosity argument?
+
+The within-school comparison is the most direct check of whether the pathway depends on mixing classmates in different grades. A smaller grade-adjusted estimate means some of the original pathway overlaps with grade differences. A remaining positive estimate means those observed differences do not account for the whole pathway. Neither result establishes whether curiosity raises reading or reading raises curiosity: both can influence each other among pupils in the same grade.
+
+The sorting-inclusive comparison answers a broader question. In its primary version, grade also enters the sorting projection, so adjustment can change both the skill–reading links and the school composition associated with SES. The additional table below **holds the original sorting coefficient fixed** while changing the skill and reading equations. This separates the equation adjustment from the changed sorting projection.
+
+```{r}
+z<-GM[term%in%c('curiosity_sorting','joint_sorting')&specification%in%c('baseline','grade_adjusted','grade_fixed_sorting','change_fixed_sorting')];z[,value:=gci(.SD)]
+tab(dcast(z,sample+term+K~specification,value.var='value')[,.(Population=sample,Pathway=glabels[term],Systems=K,Original=baseline,`Plus grade, sorting re-estimated`=grade_adjusted,`Plus grade, original sorting held fixed`=grade_fixed_sorting,`Change with original sorting [95% CI]`=change_fixed_sorting)])
+```
+
+### Country-level results and coverage
+
+The counts below refer to individual 95% intervals; adjusted q-values are retained in the machine-readable `comparison.csv` output. A country is not counted as evidence of disappearance merely because its adjusted pathway becomes insignificant: the paired change is the relevant test of whether its estimate changed.
+
+```{r}
+tab(GN[term%in%c('curiosity_within','joint_within','curiosity_sorting','joint_sorting') & specification%in%c('grade_adjusted','change'),.(Population=sample,Pathway=glabels[term],Quantity=specification,Systems=K,Positive=positive,Negative=negative,Uncertain=uncertain)])
+```
+
+<details><summary>All country estimates: original, grade-adjusted, and paired changes</summary>
+
+```{r}
+z<-GC[specification%in%c('baseline','grade_adjusted','change')];z[,value:=gci(.SD)]
+tab(dcast(z,economy+sample+term+N+schools~specification,value.var='value')[,.(System=economy,Population=sample,Pathway=glabels[term],Pupils=N,Schools=schools,Original=baseline,Plus_grade=grade_adjusted,`Paired change [95% CI]`=change)])
+```
+
+</details>
+
+<details><summary>Means across all estimable systems within each population</summary>
+
+These means use identical countries for the original and adjusted model within a population, but the country set can differ between populations. Use the common-system figure above for comparisons across populations.
+
+```{r}
+tab(fread(file.path(gradeout,'available_means.csv'))[specification%in%c('baseline','grade_adjusted','change'),.(sample,Pathway=glabels[term],specification,K,`Estimate [95% CI]`=gci(.SD))])
+```
+
+</details>
+
+<details><summary>Identification and numerical validation</summary>
+
+```{r}
+if(nrow(GF))tab(GF)else cat('All previously estimable country–population models support the grade adjustment.\n')
+tab(GV)
+```
+
+Both model versions use the same 499 school-bootstrap resamples. Fits with an unidentified or rank-deficient adjusted design are invalidated; at least 475 paired resamples must remain. The original and adjusted estimates and their changes all use that same valid set. The change's uncertainty also incorporates the paired differences across the 10 reading plausible values. Original point estimates and initial paired bootstrap draws are numerically reproduced, and the adjusted accelerated likelihood is checked against the reference R implementation in every estimable country–population model. National samples are treated as independent when calculating uncertainty for equal-weight system means. The original diagnostic checkpoints are preserved.
+
+</details>
+
+## SES, skills, and reading together
+
+The interactive display below shows 3 variables together without fitting a causal surface. SES is divided into national quintiles; skill bins use fixed original-country SD thresholds (below −1, −1 to −0.3, −0.3 to 0.3, 0.3 to 1, and above 1). Reading is averaged within each country cell and then equally across countries. Cells require 20 pupils per country and at least 5 contributing systems. Country coverage can vary by cell, so slopes of this surface can partly reflect composition. The country-level cells are retained in the results.
+
+```{r, results='asis'}
+t<-read('three_variable_means');t[,system:='Mean across systems'];tt<-read('three_variable_country_bins');tt[,`:=`(system=CNT,systems=1L)];t<-rbindlist(list(t,tt[,names(t),with=FALSE]));json<-jsonlite::toJSON(t,dataframe='rows',auto_unbox=TRUE)
+cat('<div><label>System <select id="system3"></select></label> <label>Skill <select id="skill3"></select></label> <label>Sample <select id="sample3"></select></label> <label>Rotate <input type="range" id="rot3" min="-150" max="150" value="-30"></label><canvas id="chart3" width="850" height="500" style="max-width:100%;border:1px solid #ddd"></canvas><p id="info3">Hover over a cell for its reading mean and coverage.</p></div>')
+cat('<script>const rows3=',json,'; const ca=document.getElementById("chart3"),cx=ca.getContext("2d"),sy=document.getElementById("system3"),sk=document.getElementById("skill3"),sa=document.getElementById("sample3"),ro=document.getElementById("rot3"); for(const [el,key] of [[sy,"system"],[sk,"skill"],[sa,"sample"]]){for(const v of [...new Set(rows3.map(r=>r[key]))]){const op=document.createElement("option");op.value=v;op.textContent=v;el.appendChild(op)}} let pts3=[]; function draw3(){cx.clearRect(0,0,850,500); const a=Number(ro.value)*Math.PI/180;const proj=(x,y,z)=>[425+75*(x*Math.cos(a)-y*Math.sin(a)),350+28*(x*Math.sin(a)+y*Math.cos(a))-z]; cx.strokeStyle="#75858d";cx.fillStyle="#243d4b";cx.font="14px sans-serif";for(const [x,y,z,t] of [[4,0,0,"SES quintile →"],[0,4,0,"Skill bin →"],[0,0,250,"Reading points ↑"]]){let p=proj(-2,-2,0),q=proj(x-2,y-2,z);cx.beginPath();cx.moveTo(...p);cx.lineTo(...q);cx.stroke();cx.fillText(t,q[0]-40,q[1]-10)}pts3=rows3.filter(r=>r.system===sy.value&&r.skill===sk.value&&r.sample===sa.value).map(r=>({...r,pos:proj(r.ses-3,r.skillbin-3,(r.reading-250)*.85)}));for(const r of pts3){cx.fillStyle=`hsl(${210-(r.reading-300)*.45},50%,48%)`;cx.beginPath();cx.arc(...r.pos,7,0,Math.PI*2);cx.fill();cx.fillStyle="#243d4b";cx.fillText(Math.round(r.reading),r.pos[0]+9,r.pos[1])}};for(const el of [sy,sk,sa,ro])el.addEventListener("input",draw3);ca.addEventListener("mousemove",e=>{let b=ca.getBoundingClientRect(),x=(e.clientX-b.left)*850/b.width,y=(e.clientY-b.top)*500/b.height;let p=pts3.find(r=>Math.hypot(x-r.pos[0],y-r.pos[1])<15);if(p)document.getElementById("info3").textContent=`SES quintile ${p.ses}; skill bin ${p.skillbin}; reading ${p.reading.toFixed(1)}; ${p.systems} systems.`});draw3();</script>')
+```
+
+## What the completed checks add to the argument
+
+```{r, results='asis'}
+x<-G[model=='School FE'&sample=='Never repeated'&outcome!='Reading'];pos<-x[lower>0];neg<-x[upper<0];unc<-x[lower<=0&upper>=0]
+cat('**Grade patterns are skill-specific.** On the common ',unique(x$K),' systems, the never-repeater mean within-school grade slope is positive with a 95% interval excluding 0 for ',if(nrow(pos))paste(labels[pos$outcome],collapse=', ')else'none of the 6 skills','. It is negative with an interval excluding 0 for ',if(nrow(neg))paste(labels[neg$outcome],collapse=', ')else'none','. The remaining ',nrow(unc),' skill slopes are uncertain. Reading therefore does not simply reproduce a uniform upward or downward pattern in all 6 skills.\n\n',sep='')
+x<-MM[term=='skills_sorting'];cat('**The pathway comparison is the more direct robustness check.** On the matched ',unique(x$K),' systems, the sorting-inclusive mean is ',ci(x[sample=='All']),' reading points in the benchmark, ',ci(x[sample=='Never repeated']),' among never-repeaters, ',ci(x[sample=='Urban female non-repeaters']),' among urban females, and ',ci(x[sample=='Urban male non-repeaters']),' among urban males. All figures concern a 10-percentile-point SES difference. These estimates show the size and precision of the pathway in each population; their differences are not paired statistical tests.\n\n',sep='')
+x<-DC[sample=='Never repeated'&model=='Within-school SES slope'&outcome!='Reading'];cat('**The SES link is not universal.** The number of never-repeater systems with a positive within-school SES slope and a 95% interval excluding 0 ranges from ',min(x$positive),' to ',max(x$positive),' across skills. The report retains negative and uncertain estimates rather than imposing a common positive gradient.\n\n',sep='')
+```
+
+```{r, results='asis'}
+a<-GM[sample=='Never repeated'&term=='curiosity_sorting'&specification=='baseline'];b<-GM[sample=='Never repeated'&term=='curiosity_sorting'&specification=='grade_adjusted'];d<-GM[sample=='Never repeated'&term=='curiosity_sorting'&specification=='change']
+cat('**Grade adjustment tests an additional explanation.** For never-repeaters on the matched country set, the sorting-inclusive curiosity pathway changes from ',gci(a),' to ',gci(b),' reading points; the paired change is ',gci(d),'. This compares exactly the same pupils. It tests overlap with observed grade differences, not whether curiosity temporally precedes reading.\n\n',sep='')
+```
+
+Together, the checks assess whether the pathway is simply an artifact of mixing repeaters, locations, and genders. Persistence within these restricted populations makes that particular explanation less compelling. It does not rule out common causes of skills and reading, reciprocal relationships, or selection into the restricted populations. The stronger defensible claim is robustness to observed population composition, not established temporal direction.
+
+## What should change in the paper after reviewing these checks?
+
+1. **Use the grade results as a composition diagnostic.** If the reading gradient survives among never-repeaters while skill gradients weaken, the 2 outcomes do not simply share the same grade pattern. That is useful descriptive evidence, not proof that skills precede reading.
+2. **Report the skill-specific SES gradients rather than claiming all traits are socially graded in the same way.** Separate overall and within-school evidence.
+3. **Judge robustness using the restricted-sample pathway itself.** A persisting mediation estimate is more informative for the paper than a favorable-looking grade slope. Smaller samples can widen intervals even when point estimates change little.
+4. **Keep a temporal-identification limitation.** Neither sign agreement nor sign disagreement between grade coefficients resolves reverse causality. Longitudinal measures, an intervention, or a defensible source of exogenous variation would be needed for a stronger directional test.
+5. **Investigate measurement only as a follow-up question.** These index-level checks do not test item invariance or differential item functioning. A formal item-level analysis would require a separate measurement model and should not be inferred from grade slopes.
+
+No manuscript revisions have been made on the basis of these results.
+
+## Computation and reproducibility
+
+The analysis uses the central harmonized data and a hash-checked diagnostic sidecar. Weighted OLS is computed directly in R; school FE is obtained by weighted within-school centering, recomputed for each replicate. Its standard errors use 80 Fay replicate weights (factor 0.5), with all 10 reading plausible values estimated separately and then pooled. This follows the design principles in the [OECD analysis documentation](https://www.oecd.org/en/about/programmes/pisa/how-to-prepare-and-analyse-the-pisa-database.html). Descriptive reading cell means average the 10 PV-specific means; no regression uses a pupil's PV average as the sole outcome.
+
+Multilevel models reuse the paper's profiled Gaussian survey-weighted random-intercept likelihood, implemented by the existing Rcpp/Armadillo engine equivalent to the WeMix specification. Each eligible country–sample model has 499 stratified whole-school bootstrap resamples; at least 95% must succeed. Where stratum identifiers are unreported, schools are resampled together in an explicitly labeled unreported group (an unstratified school bootstrap if the entire system lacks identifiers). Singleton strata contribute no resampling variation, a limitation where such strata occur. Intervals also include variation across reading plausible values. The fast and R implementations are numerically compared on initial models. No equalization or deprivation model is rerun here.
+
+All intervals shown are 95%. Unadjusted p-values and Benjamini–Hochberg adjusted q-values are retained; the latter use R's `stats::p.adjust(method="BH")` separately across systems for each outcome/model/sample (or mediation term/sample), to control the false-discovery rate among flagged tests. Country means average estimates, never significance indicators. A mean's variance is the sum of country variances divided by the squared number of systems, assuming independent national samples.
+
+<details><summary>Bootstrap coverage: singleton and unreported strata</summary>
+
+```{r}
+tab(read('bootstrap_strata')[order(-singleton_share)])
+```
+
+For the Philippine urban female and male samples, 20 of 82 schools lie in singleton strata (24.4%). Their confidence intervals should therefore be read with particular care: this bootstrap cannot represent variation contributed by those strata.
+
+</details>
+
+<details><summary>Models that could not be estimated</summary>
+
+```{r}
+tab(read('failures'));tab(read('mediation_failures'))
+```
+
+</details>
+
+<details><summary>Validation checks</summary>
+
+```{r}
+tab(read('report_validation'));tab(read('mediation_validation'))
+```
+
+</details>
