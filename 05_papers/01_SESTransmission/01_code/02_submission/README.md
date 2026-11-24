@@ -1,6 +1,6 @@
 # Submission packaging
 
-Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261124_v5`.
+Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261124_v6`.
 
 Upload the clean manuscript PDF with `anonymous_latex_sources.zip` (editable TeX and figures), the anonymous supplement, title page, and separate highlights. Title-page and highlights TeX files are editable. No cover letter is generated. The named GitHub/data note is editor-only, not an anonymous reviewer attachment. The repository remains private.
 
@@ -13,3 +13,5 @@ The project was estimated with R 4.4.1. The machine default now invokes R 4.6.1,
 ## Remaining submission checks
 
 Confirm exact provider release and access URL in the editor-only data statement. Supply any desired acknowledgments (none invented). Exact historical AI model versions were not consistently recorded; the manuscript says so rather than inventing them. No public DOI archive has been deposited. Submission itself remains the author's action.
+
+All author declarations are consolidated on the title-page document; the required AI declaration is also retained immediately before manuscript references. Author details are paragraphs. The named private repository link appears only in the title-page/editor materials. The author requested OpenAI wording; earlier Claude assistance should be considered by the author when confirming the final disclosure.
