@@ -19,7 +19,7 @@ cf_forest <- function(ex) {
    labs(x='Predicted gap reduction (reading points)',y=NULL)+
    theme(axis.text.y=element_text(size=8),panel.grid.major.x=element_line(colour='#E4E9EB'))
  })
- p<-(ps[[1]]|ps[[2]])+plot_layout(guides='collect') & theme(legend.position='top')
+ p<-(ps[[1]]|ps[[2]])+plot_layout(guides='collect',axis_titles='collect') & theme(legend.position='top')
  p<-p+plot_annotation(title='Equalizing joint skill profiles: the change in the reading gap',
    subtitle=if(ex=='SES')'Lower national SES quartile receives the upper-quartile skill distribution' else 'Pupils reporting deprivation receive the non-deprived skill distribution',
    caption=paste0(mean_note,'\nSymbols: strongest threshold met; not significant at 10%.\nSchool membership and exposures fixed; school skill means updated. Whole-school bootstrap / PV 95% intervals.\nPositive values indicate a narrower gap. This is an endowment-replacement benchmark.'),

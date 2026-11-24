@@ -36,6 +36,10 @@ format:
         \renewcommand{\thetable}{A\arabic{table}}
         \renewcommand{\thefigure}{A\arabic{figure}}
         \floatplacement{figure}{H}
+
+        \usepackage{caption}
+        \captionsetup[figure]{justification=raggedright,singlelinecheck=false}
+        \DeclareRobustCommand{\figurenote}[1]{\par\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
         \setlength{\emergencystretch}{3em}
 execute:
   echo: false
@@ -423,7 +427,7 @@ emit_appendix_tables(c(37,11,13,15,16,17,19))
 \setcounter{figure}{0}
 ```
 
-![Between-school skill gradients and reading relationships in all 67 6-skill systems. Dashed curves mark products of 1, 3, and 5 reading points, from lower to higher curves. Equal products can arise from different combinations of the 2 links. Black diamonds show equal-weight means of the 2 links. Their product is not the mean pathway. These are point estimates, not tests of cross-country differences.](../04_output/rev2/figures/ses_gap_link_b.pdf){width=100% fig-pos='H'}
+![Between-school skill gradients and reading relationships in all 67 6-skill systems. \figurenote{Dashed curves mark products of 1, 3, and 5 reading points, from lower to higher curves. Equal products can arise from different combinations of the 2 links. Black diamonds show equal-weight means of the 2 links. Their product is not the mean pathway. These are point estimates, not tests of cross-country differences.}](../04_output/rev2/figures/ses_gap_link_b.pdf){width=100% fig-pos='H'}
 
 \clearpage
 
@@ -448,7 +452,7 @@ emit_appendix_tables(c(25,26,29,34,35,36))
 \setcounter{figure}{5}
 ```
 
-![Socio-economic-rank counterfactual under 3 alternative specifications, from top to bottom: unscaled weights, a minimum of 10 pupils per school, and an unweighted model. Each point is a system; black diamonds are equal-weight system means. The diagonal denotes identical estimates, and labels identify the 3 largest absolute changes. Colors compare individual interval status; they are not tests of differences between specifications.](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
+![Socio-economic-rank counterfactual under 3 alternative specifications, from top to bottom: unscaled weights, a minimum of 10 pupils per school, and an unweighted model. \figurenote{Each point is a system; black diamonds are equal-weight system means. The diagonal denotes identical estimates, and labels identify the 3 largest absolute changes. Colors compare individual interval status; they are not tests of differences between specifications.}](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
 
 \clearpage
 
@@ -466,4 +470,4 @@ emit_appendix_tables(c(25,26,29,34,35,36))
 \setcounter{figure}{6}
 ```
 
-![Grade differences in reading and socio-emotional skills. Reading coefficients are in score points; skill coefficients are in original national skill standard deviations per additional grade. Equal-weight system means with 95% confidence intervals across 4 sample definitions and alternative adjustment specifications; coefficients compare pupils in different grades rather than following the same pupils over time. Differences may reflect selection, schooling, development, or reporting and do not identify causal change.](../04_output/rev2/figures/grade_means_clean.png){width=100%}
+![Grade differences in reading and socio-emotional skills. \figurenote{Reading coefficients are in score points; skill coefficients are in original national skill standard deviations per additional grade. Equal-weight system means with 95\% confidence intervals across 4 sample definitions and alternative adjustment specifications; coefficients compare pupils in different grades rather than following the same pupils over time. Differences may reflect selection, schooling, development, or reporting and do not identify causal change.}](../04_output/rev2/figures/grade_means_clean.png){width=100%}

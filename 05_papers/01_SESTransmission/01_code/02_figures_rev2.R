@@ -48,12 +48,12 @@ forest <- function(ex, full=TRUE) {
       scale_x_continuous(limits=lim,breaks=scales::breaks_pretty(5)) +
       labs(x=axis_label,y=NULL) + theme(axis.text.y=element_text(size=8),panel.grid.major.x=element_line(colour='#E4E9EB'))
   })
-  p <- (panels[[1]] | panels[[2]]) + plot_layout(guides='collect') & theme(legend.position='top')
+  p <- (panels[[1]] | panels[[2]]) + plot_layout(guides='collect',axis_titles='collect') & theme(legend.position='top')
   p <- p + plot_annotation(title=if(ex=='SES') 'Socio-emotional skills and the socio-economic reading gradient' else 'Socio-emotional skills and material deprivation',
     subtitle=paste0(n,' systems | ',if(full)'all 6 skills' else 'incomplete skill blocks',' | dots and 95% intervals'),
     caption=paste0(axis_label,'\nSymbols: strongest threshold met; not significant at 10%.\n',mean_note,if(ex=='DEP') '\nBrackets give retained deprivation items; item sets differ between systems.' else '',if(!full)'\nBraces give the number of observed skills.' else ''),
     theme=theme(plot.caption=element_text(size=9,hjust=0,colour='#475961')))
-  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)8.2 else 3.4)
+  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)8.6 else 3.4)
 }
 heat <- function(ex) {
   z<-E[exposure==ex & skills==6 & grepl('^indS_',term)]
@@ -66,7 +66,7 @@ heat <- function(ex) {
   z[,country:=factor(economy,levels=c(unique(mn$economy),rev(countries)))]
   z[,Evidence:=factor(ifelse(p_approx<.05,'p < 0.05',ifelse(p_approx<.1,'p < 0.10','Not significant')),levels=c('p < 0.05','p < 0.10','Not significant'))]
   lim<-ceiling(max(abs(z$estimate))*2)/2
-  short<-c(PERSEV='Persev.',CURIO='Curiosity',ENPROBS='Problem\nsolving',COGABIL='Adapt.',GOALSET='Goals',SELFREG='Help\nseeking')
+  short<-c(PERSEV='Persev.',CURIO='Curiosity',ENPROBS='Problem\nsolving',COGABIL='Adapt.',GOALSET='Goal\nsetting',SELFREG='Help\nseeking')
   p<-ggplot(z,aes(skill,country,fill=estimate)) + geom_tile(colour='white',linewidth=.25) +
     geom_point(aes(shape=Evidence),fill='white',colour='#183B4A',stroke=.3,size=1.4,na.rm=TRUE) +
     scale_shape_manual(values=c(21,24,NA),drop=FALSE,name='Two-sided p-value',labels=c('p < 0.05','p < 0.10','No symbol: Not significant')) +
@@ -76,7 +76,7 @@ heat <- function(ex) {
     facet_wrap(~Group,ncol=2,scales='free_y') + labs(x=NULL,y=NULL,
       title=if(ex=='SES') 'Which skills transmit the SES difference?' else 'Which skills carry the deprivation pathway?',
       subtitle=if(ex=='SES') 'Skill contributions per 10 SES rank points, including observed school composition' else 'Skill contributions per additional unaffordable item, including observed school composition',
-      caption='Persev. = perseverance; Adapt. = cognitive adaptability; Goals = goal setting / study management.\nProblem solving = enjoyment of problem solving; Help seeking = self-regulated help seeking.\nSymbols: strongest threshold met; unmarked = not significant at 10%. Mean: equal-weight country contributions.') +
+      caption='Persev. = perseverance; Adapt. = cognitive adaptability; Goal setting = study management.\nProblem solving = enjoyment of problem solving; Help seeking = self-regulated help seeking.\nSymbols: strongest threshold met; unmarked = not significant at 10%. Mean: equal-weight country contributions.') +
     theme(panel.grid=element_blank(),strip.text=element_blank(),strip.background=element_blank(),
       axis.text.x=element_text(size=7,angle=45,hjust=0,vjust=.5),axis.text.y=element_text(size=7),
       legend.position='bottom',legend.key.width=grid::unit(1,'cm'),plot.caption=element_text(size=7.6,hjust=0),
@@ -151,7 +151,7 @@ robustness <- function(ex='SES') {
       labs(title=paste0(paste(strwrap(names_variant[vv],width=24),collapse='\n'),'\n(n = ',nrow(zz),')'),x='Main specification',y='Alternative specification') +
       theme(plot.title=element_text(size=10),panel.grid.major.y=element_line(colour='#E4E9EB'))
   })
-  p<-wrap_plots(pp,ncol=if(ex=='SES')3 else 2) + plot_annotation(
+  p<-wrap_plots(pp,ncol=if(ex=='SES')3 else 2,axis_titles='collect') + plot_annotation(
     title=if(ex=='SES') 'Does the size of the SES skills pathway survive alternative choices?' else 'How sensitive is the deprivation skills pathway?',
     subtitle=if(ex=='SES') 'Reading points per 10 SES rank points | joint pathway including school composition' else 'Reading points per additional unaffordable item | joint pathway including school composition',
     caption=paste0('Black diamond: equal-weight means. Each dot is a system. On the diagonal, the 2 estimates agree; distance shows the change in magnitude.\nLabels identify the 3 largest absolute changes per panel. Saved point estimates; no new intervals.',

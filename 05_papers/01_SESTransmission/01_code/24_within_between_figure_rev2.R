@@ -51,7 +51,7 @@ ps <- lapply(c('A','B'),function(pn) {
           axis.title.x=element_text(size=8),
           panel.grid.major.x=element_line(colour='#E4E9EB',linewidth=.25))
 })
-p <- (ps[[1]]|ps[[2]])+plot_layout(guides='collect') &
+p <- (ps[[1]]|ps[[2]])+plot_layout(guides='collect',axis_titles='collect') &
   theme(legend.position='top',legend.text=element_text(size=8.5),
         legend.key.height=grid::unit(.26,'cm'),legend.key.width=grid::unit(.55,'cm'))
 p <- p+plot_annotation(title='Where the socio-economic reading gradient is distributed',

@@ -35,6 +35,10 @@ format:
         \renewcommand{\thetable}{A\arabic{table}}
         \renewcommand{\thefigure}{A\arabic{figure}}
         \floatplacement{figure}{H}
+
+        \usepackage{caption}
+        \captionsetup[figure]{justification=raggedright,singlelinecheck=false}
+        \DeclareRobustCommand{\figurenote}[1]{\par\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
         \setlength{\emergencystretch}{3em}
 execute:
   echo: false
@@ -383,19 +387,19 @@ emit_appendix_tables(c(12,14,20,23,32))
 \setcounter{figure}{2}
 ```
 
-![Country-specific joint deprivation pathways in the 62 full-6-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. The single mean row uses equal country weights. Bars are individual 95% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
+![Country-specific joint deprivation pathways in the 62 full-6-skill systems. \figurenote{Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. The single mean row uses equal country weights. Bars are individual 95\% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.}](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
 
 ```{=latex}
 \setcounter{figure}{3}
 ```
 
-![Skill-specific contributions to the deprivation pathway. Persev. denotes perseverance; Adapt., cognitive adaptability; Goals, goal setting; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level.](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
+![Skill-specific contributions to the deprivation pathway. \figurenote{Persev. denotes perseverance; Adapt., cognitive adaptability; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10\% level.}](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
 
 ```{=latex}
 \setcounter{figure}{4}
 ```
 
-![Matched-pupil comparison of deprivation models: joint mediation on the left and skill-profile equalization on the right. Black diamonds denote equal-weight system means. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
+![Matched-pupil comparison of deprivation models: joint mediation on the left and skill-profile equalization on the right. \figurenote{Black diamonds denote equal-weight system means. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.}](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
 
 # Material deprivation: skill equalization
 
@@ -408,4 +412,4 @@ emit_appendix_tables(c(27,28,30,33))
 \setcounter{figure}{1}
 ```
 
-![Deprivation-group gap reduction after replacing recipients' skill profiles with the joint empirical distribution among non-deprived pupils. All 62 full-6-skill systems are shown. Parental education and occupation remain fixed at both levels; the donor distribution is not matched on these controls.](../04_output/rev2/figures/dep_equalization.pdf){width=100% fig-pos='H'}
+![Deprivation-group gap reduction after replacing recipients' skill profiles with the joint empirical distribution among non-deprived pupils. \figurenote{All 62 full-6-skill systems are shown. Parental education and occupation remain fixed at both levels; the donor distribution is not matched on these controls.}](../04_output/rev2/figures/dep_equalization.pdf){width=100% fig-pos='H'}

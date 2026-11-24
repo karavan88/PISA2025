@@ -38,6 +38,10 @@ format:
         \newcommand{\tblsize}{\footnotesize}
         \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
         \floatplacement{figure}{H}
+
+        \usepackage{caption}
+        \captionsetup[figure]{justification=raggedright,singlelinecheck=false}
+        \DeclareRobustCommand{\figurenote}[1]{\par\begingroup\fontsize{9}{10.5}\selectfont\noindent\textit{Note.} #1\par\endgroup}
         \setlength{\emergencystretch}{3em}
 execute:
   echo: false
@@ -190,7 +194,7 @@ tbl(z,'Country descriptive statistics for the socio-economic-rank analysis. Read
 
 For each country, I estimate random-intercept models with pupils nested in schools. Every exposure, skill, and control enters as a within-school deviation ($Z^W_{ij}=Z_{ij}-\bar Z_j$) and a weighted school mean ($\bar Z_j$). This correlated-effects specification [@mundlak1978] separates comparisons among classmates from comparisons between school intakes. It retains the observed composition associated with non-random school allocation instead of absorbing all between-school variation into fixed effects.
 
-**Exposure-to-skill gradients.** I fit a separate equation for each skill $k$, with $X$ denoting socio-economic rank divided by 10:
+*Exposure-to-skill gradients.* I fit a separate equation for each skill $k$, with $X$ denoting socio-economic rank divided by 10:
 
 $$
 M_{kij}=\alpha_k+a_{Wk}X^W_{ij}+a_{Bk}\bar X_j+
@@ -199,7 +203,7 @@ $$ {#eq-m1}
 
 The $a_W$ and $a_B$ coefficients measure the exposure-to-skill gradients within and between schools. Controls $C$ comprise age and the recorded non-male gender indicator, entered at both levels. All equations use the same pupils and school means within each system.
 
-**Joint skills pathway.** The achievement equation includes all 6 skills jointly:
+*Joint skills pathway.* The achievement equation includes all 6 skills jointly:
 
 $$
 \begin{split}
@@ -211,15 +215,15 @@ $$ {#eq-m2}
 
 The reading coefficients measure how each skill relates to achievement among classmates and between school intakes, holding the other skills and controls constant. I refer to the skill equations as M1 and the joint reading equation as M2. A baseline model, M0, omits the skills.
 
-**Joint pathway and individual contributions.** For each skill, I multiply its socio-economic gradient by its reading coefficient at the corresponding school level. Adding the 6 products gives the joint skills pathway. This calculation compares predicted reading under the skill profiles associated with a 10-point difference in socio-economic rank, holding the reading equation's exposure and controls fixed. Under the additive model, these products equal the model-based mediation contrast obtained by integrating over the joint skill distribution [@imai2010; @preacher2010; @vansteelandt2017]. The skills need not have independent residuals.
+*Joint pathway and individual contributions.* For each skill, I multiply its socio-economic gradient by its reading coefficient at the corresponding school level. Adding the 6 products gives the joint skills pathway. This calculation compares predicted reading under the skill profiles associated with a 10-point difference in socio-economic rank, holding the reading equation's exposure and controls fixed. Under the additive model, these products equal the model-based mediation contrast obtained by integrating over the joint skill distribution [@imai2010; @preacher2010; @vansteelandt2017]. The skills need not have independent residuals.
 
 I report both a contrast entirely among classmates and a contrast that incorporates the school composition accompanying family rank. The latter uses a student-weighted regression of school-average rank on individual rank and controls. Each skill's contribution is its part of the joint pathway. The reported skills share divides this pathway by the model-implied total gradient, which also includes the remaining exposure relationship. Shares are withheld when denominators are unstable or components have opposing signs.
 
-**Where the gradient is concentrated.** The within--between decomposition divides the same total gradient into contributions from differences among classmates and differences between school intakes. I then separate each contribution into the part associated with the measured skills and the remainder. Differences between the 2 school-level contributions are calculated within each bootstrap and plausible-value draw.
+*Concentration of the gradient.* The within--between decomposition divides the same total gradient into contributions from differences among classmates and differences between school intakes. I then separate each contribution into the part associated with the measured skills and the remainder. Differences between the 2 school-level contributions are calculated within each bootstrap and plausible-value draw.
 
-**What sorting adds.** The sorting increment is the difference between the pathway incorporating observed school composition and the pathway for a 10-point rank difference entirely among classmates. It measures how much the observed allocation of pupils across schools adds to the skills pathway. This comparison can be positive even when the within-school contribution is larger than the between-school contribution. Appendix Section II gives the exact identities and country estimates.
+*School sorting.* The sorting increment is the difference between the pathway incorporating observed school composition and the pathway for a 10-point rank difference entirely among classmates. It measures how much the observed allocation of pupils across schools adds to the skills pathway. This comparison can be positive even when the within-school contribution is larger than the between-school contribution. Appendix Section II gives the exact identities and country estimates.
 
-**Recipient gains and gap reduction.** The equalization exercise replaces the joint skill profiles of pupils in the bottom national SES quartile with the student-weighted distribution among top-quartile pupils. The replacement preserves the skills' observed combinations. Socio-economic rank, controls, and school membership remain fixed. School-average skills change consistently with the recipients' new profiles.
+*Recipient gains and gap reduction.* The equalization exercise replaces the joint skill profiles of pupils in the bottom national SES quartile with the student-weighted distribution among top-quartile pupils. The replacement preserves the skills' observed combinations. Socio-economic rank, controls, and school membership remain fixed. School-average skills change consistently with the recipients' new profiles.
 
 The fitted reading model predicts changes for recipients and for classmates whose own profiles remain unchanged. Subtracting the comparison group's average gain from recipients' average gain gives the reduction in the reading gap. This exercise uses the observed differences between the 2 groups' skill distributions. The mediation calculation instead uses skill differences associated with a specified increment in socio-economic rank. Appendix Section III gives the prediction formula and country estimates.
 
@@ -235,7 +239,7 @@ All analyses use R 4.4.1 [@rcore2024]. Survey-weighted random-intercept models u
 \end{revision}
 ```
 
-The appendix documents sample coverage and measurement (Tables A2, A4–A7), adjusted skill gradients (Table A37), and the country-specific pathway and school-level comparisons (Tables A11, A13, A15–A17, and A19). Tables A25–A26 and A29 report equalization results and target-group coverage. Tables A34–A36 report the alternative specifications. Original exhibit numbers are retained for continuity.
+The appendix documents sample coverage and measurement (Tables A2, A4–A7), adjusted skill gradients (Table A37), and the country-specific pathway and school-level comparisons (Tables A11, A13, A15–A17, and A19). Tables A25–A26 and A29 report equalization results and target-group coverage. Tables A34–A36 report the alternative specifications.
 
 # Results
 
@@ -255,7 +259,7 @@ The appendix documents sample coverage and measurement (Tables A2, A4–A7), adj
 \begin{revision}
 ```
 
-![Descriptive socio-economic gradients in 6 skills. Each line is a survey-weighted, unadjusted linear fit using continuous ESCS. Points are weighted means in 0.25-ESCS bins containing at least 30 pupils. Displayed ranges cover each system's weighted 2.5th--97.5th percentiles; fits use all eligible observations. Skill units retain the original national analytic-sample standardization. The 65-system diagnostic sample differs from the 67-system main analysis.](../04_output/rev2/figures/escs_skills_clean.png){#fig-escs-descriptive width=100%}
+![Descriptive socio-economic gradients in 6 skills. \figurenote{Each line is a survey-weighted, unadjusted linear fit using continuous ESCS. Points are weighted means in 0.25-ESCS bins containing at least 30 pupils. Displayed ranges cover each system's weighted 2.5th--97.5th percentiles; fits use all eligible observations. Skill units retain the original national analytic-sample standardization. The 65-system diagnostic sample differs from the 67-system main analysis.}](../04_output/rev2/figures/escs_skills_clean.png){#fig-escs-descriptive width=100%}
 
 ```{=latex}
 \end{revision}
@@ -265,7 +269,7 @@ The equal-weight mean within-school gradient for curiosity is `r mean_ci('aW_CUR
 
 @fig-gap-link displays both links for every system. Moving right indicates a larger socio-economic skill gradient among classmates; moving up indicates a stronger reading relationship. The dashed curves mark equal products of those 2 links. Black diamonds locate their equal-weight means, while the country points show the variation around them. Appendix Figure A1 shows the corresponding between-school relationships.
 
-![Socio-economic skill gradients and their reading relationships within schools. Each panel contains all 67 systems. Black diamonds show the equal-weight means of the 2 coefficients; their product is not the mean mediation pathway. Dashed curves mark products of 0.25, 0.5, and 1 reading point per 10 SES rank points. Korea, Japan, and Ecuador have the largest sorting-inclusive joint pathway point estimates.](../04_output/rev2/figures/ses_gap_link_w.pdf){#fig-gap-link width=100% fig-pos='H'}
+![Socio-economic skill gradients and their reading relationships within schools. \figurenote{Each panel contains all 67 systems. Black diamonds show the equal-weight means of the 2 coefficients; their product is not the mean mediation pathway. Dashed curves mark products of 0.25, 0.5, and 1 reading point per 10 SES rank points. Korea, Japan, and Ecuador have the largest sorting-inclusive joint pathway point estimates.}](../04_output/rev2/figures/ses_gap_link_w.pdf){#fig-gap-link width=100% fig-pos='H'}
 
 ## The combined skills pathway carries advantage in most systems
 
@@ -277,7 +281,7 @@ Germany provides a useful counterpoint: its combined pathway is `r ci('DEU','ski
 
 \clearpage
 
-![Country-specific joint skills pathways for socio-economic rank. Colors distinguish the fixed-school and sorting-inclusive contrasts; circles denote p < 0.05, triangles p < 0.10, and open circles not significant. Symbols indicate the strongest threshold met; not significant refers to the 10% level. The single mean row averages all 67 country estimates with equal weights. Both contrasts use the skill and reading models. The sorting-inclusive contrast also uses the observed relationship between individual and school-average rank. Bars are individual 95% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.](../04_output/rev2/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
+![Country-specific joint skills pathways for socio-economic rank. \figurenote{Colors distinguish the fixed-school and sorting-inclusive contrasts; circles denote p < 0.05, triangles p < 0.10, and open circles not significant. Symbols indicate the strongest threshold met; not significant refers to the 10\% level. The single mean row averages all 67 country estimates with equal weights. Both contrasts use the skill and reading models. The sorting-inclusive contrast also uses the observed relationship between individual and school-average rank. Bars are individual 95\% bootstrap/PV intervals. Systems appear alphabetically, and both panels use the same horizontal scale.}](../04_output/rev2/figures/ses_pathways.pdf){#fig-ses width=100% fig-pos='H'}
 
 \clearpage
 
@@ -289,7 +293,7 @@ Curiosity is the most widespread positive contributor: its individual pathway is
 
 Goal setting, measured through planning study, checking understanding, and adapting strategies, illustrates another distinction. Its within-school social gradient is positive in `r supported('aW_GOALSET')` systems, yet its joint contribution to reading is positive in `r supported('indS_GOALSET')` and negative in `r evidence('indS_GOALSET',kind='Opposite')`, with the remaining intervals including zero. The data therefore do not support treating a socially advantaged disposition as automatically productive for reading, conditional on the other skills. The pattern is compatible with differences in what the scale measures in practice, overlaps among dispositions, and the uses to which pupils put them. It does not imply that setting goals generally damages learning.
 
-![Skill-specific contributions to the socio-economic pathway in every full-6-skill system. Colors show reading points, with zero at the center. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level. The single mean row averages country-specific contributions with equal weights. Persev. denotes perseverance; Adapt., cognitive adaptability; Goals, goal setting; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Each country cell is part of the same joint model; cells sum across skills to the country pathway in @fig-ses.](../04_output/rev2/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
+![Skill-specific contributions to the socio-economic pathway in every full-6-skill system. \figurenote{Colors show reading points, with zero at the center. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10\% level. The single mean row averages country-specific contributions with equal weights. Persev. denotes perseverance; Adapt., cognitive adaptability; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Each country cell is part of the same joint model; cells sum across skills to the country pathway in Figure~\ref{fig-ses}.}](../04_output/rev2/figures/ses_skills.pdf){#fig-ses-skills width=100% fig-pos='H'}
 
 \clearpage
 
@@ -301,7 +305,7 @@ In Korea, the total gradient comprises `r wbci('KOR','total_within')` points wit
 
 \clearpage
 
-![Within- and between-school contributions to the socio-economic reading gradient in all 67 systems. The final row gives equal-weight means across systems. For each country, the upper bar shows the within-school contribution and the lower bar shows the between-school contribution. Dark segments show the skills-mediated part. Black capped lines give 95% intervals for each level's net contribution, calculated from paired school-bootstrap draws and 10 plausible values. Negative segments are retained to the left of zero. Appendix Tables A16–A17 report component-specific standard errors and direct between-minus-within tests.](../04_output/rev2/figures/ses_within_between_composition.pdf){#fig-within-between width=100% fig-pos='H'}
+![Within- and between-school contributions to the socio-economic reading gradient in all 67 systems. \figurenote{The final row gives equal-weight means across systems. For each country, the upper bar shows the within-school contribution and the lower bar shows the between-school contribution. Dark segments show the skills-mediated part. Black capped lines give 95\% intervals for each level's net contribution, calculated from paired school-bootstrap draws and 10 plausible values. Negative segments are retained to the left of zero. Appendix Tables A16–A17 report component-specific standard errors and direct between-minus-within tests.}](../04_output/rev2/figures/ses_within_between_composition.pdf){#fig-within-between width=100% fig-pos='H'}
 
 \clearpage
 
@@ -317,7 +321,7 @@ The economic implication is that a student-level account can miss an appreciable
 
 \clearpage
 
-![Additional skills pathway associated with school sorting. Each point is the additional skills pathway associated with sorting, in reading points per 10 national socio-economic rank points. Bars are 95% intervals calculated for the difference within the school-bootstrap and plausible-value procedure. Positive values indicate a larger pathway when observed school composition is included. Shapes distinguish unadjusted p-value bands; color identifies support after BH adjustment across the joint-pathway and sorting-addition family. All 67 systems remain visible. The final row is the equal-weight mean, shown as a black diamond with an unadjusted interval.](../04_output/rev2/figures/ses_sorting_increment.pdf){#fig-sorting-addition width=100% fig-pos='H'}
+![Additional skills pathway associated with school sorting. \figurenote{Each point is the additional skills pathway associated with sorting, in reading points per 10 national socio-economic rank points. Bars are 95\% intervals calculated for the difference within the school-bootstrap and plausible-value procedure. Positive values indicate a larger pathway when observed school composition is included. Shapes distinguish unadjusted p-value bands; color identifies support after BH adjustment across the joint-pathway and sorting-addition family. All 67 systems remain visible. The final row is the equal-weight mean, shown as a black diamond with an unadjusted interval.}](../04_output/rev2/figures/ses_sorting_increment.pdf){#fig-sorting-addition width=100% fig-pos='H'}
 
 \clearpage
 
@@ -328,13 +332,13 @@ The full-profile replacement narrows the SES reading gap with a 95% interval exc
 The equal-weight mean projected gap reduction is `r mean_ci('gap_reduction',kind='equalisation')` reading points. The difference between recipient gains, and gap reduction matters economically. In Korea, the observed upper--lower-quartile reading gap is `r fmt(cfest('KOR','baseline_gap'))` points. Recipients gain `r cfci('KOR','recipient_change')` points under replacement, while the upper-quartile group gains `r cfci('KOR','reference_change')`. The gap reduction is therefore `r cfci('KOR','gap_reduction')` points, or `r fmt(cfest('KOR','gap_fraction'),1)`% of the observed gap. Counting only recipients' gains would overstate the reduction in inequality. The reference-group change arises from the fitted school-composition response, with school membership fixed. @fig-recipient-gap compares these quantities for Korea and for the equal-weight mean across systems. Appendix Tables A25–A26 report the country estimates, and Table A29 describes the recipient and reference groups.
 
 
-![Recipient gains and gap reduction under skill equalization in Korea and across the 67 systems. Recipients are pupils in the lower national socio-economic quartile; the comparison group is the upper quartile. The net gap reduction equals the recipient gain minus the comparison-group gain. Country intervals use saved joint school-bootstrap and plausible-value calculations. Mean intervals combine independent country variances with equal weights. School membership stays fixed and school-average skills update with the recipient profiles.](../04_output/rev2/figures/ses_recipient_gap_korea.pdf){#fig-recipient-gap width=100% fig-pos='H'}
+![Recipient gains and gap reduction under skill equalization in Korea and across the 67 systems. \figurenote{Recipients are pupils in the lower national socio-economic quartile; the comparison group is the upper quartile. The net gap reduction equals the recipient gain minus the comparison-group gain. Country intervals use saved joint school-bootstrap and plausible-value calculations. Mean intervals combine independent country variances with equal weights. School membership stays fixed and school-average skills update with the recipient profiles.}](../04_output/rev2/figures/ses_recipient_gap_korea.pdf){#fig-recipient-gap width=100% fig-pos='H'}
 
 In Denmark, the corresponding reduction is `r cfci('DNK','gap_reduction')` points, or `r fmt(cfest('DNK','gap_fraction'),1)`% of the gap. Malaysia's is `r cfci('MYS','gap_reduction')` points, or `r fmt(cfest('MYS','gap_fraction'),1)`%. Germany's reduction is not significant at the 5% level: `r cfci('DEU','gap_reduction')` points. Mongolia, whose original joint SES pathway is uncertain, has a positive equalization contrast of `r cfci('MNG','gap_reduction')` points. The 2 exercises use different skill differences: fitted exposure gradients in the mediation calculation, and observed recipient--donor distributions in the replacement. Their significance counts should not be treated as replications of the same test.
 
 \clearpage
 
-![Projected reductions in the upper--lower-quartile reading gap after joint skill-profile replacement. All 67 6-skill systems and their equal-weight mean are shown. School membership, socio-economic rank, and controls stay fixed; school skill means change consistently with recipients' profiles. Shapes mark unadjusted 2-sided p-value bands shown in the legend. Bars combine the original school-bootstrap coefficient draws with resampled donor profiles, group weights, and reading plausible values.](../04_output/rev2/figures/ses_equalization.pdf){#fig-equalization width=100% fig-pos='H'}
+![Projected reductions in the upper--lower-quartile reading gap after joint skill-profile replacement. \figurenote{All 67 6-skill systems and their equal-weight mean are shown. School membership, socio-economic rank, and controls stay fixed; school skill means change consistently with recipients' profiles. Shapes mark unadjusted 2-sided p-value bands shown in the legend. Bars combine the original school-bootstrap coefficient draws with resampled donor profiles, group weights, and reading plausible values.}](../04_output/rev2/figures/ses_equalization.pdf){#fig-equalization width=100% fig-pos='H'}
 
 \clearpage
 

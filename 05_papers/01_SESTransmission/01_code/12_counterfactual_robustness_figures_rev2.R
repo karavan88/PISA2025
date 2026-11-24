@@ -25,16 +25,16 @@ cf_robust_panel<-function(ex,v) {
         axis.title=element_text(size=8),axis.text=element_text(size=7),plot.margin=margin(9,9,9,9))
 }
 shared<-c('unscaled_weights','minimum_10','lmer_unweighted')
-p<-patchwork::wrap_plots(lapply(shared,function(v)lapply(c('SES','DEP'),function(ex)cf_robust_panel(ex,v))) |> unlist(recursive=FALSE),ncol=2,guides='collect')
+p<-patchwork::wrap_plots(lapply(shared,function(v)lapply(c('SES','DEP'),function(ex)cf_robust_panel(ex,v))) |> unlist(recursive=FALSE),ncol=2,guides='collect',axis_titles='collect')
 p<-p+plot_annotation(title='Does skill-profile equalization still narrow the reading gap?',
  caption='Diagonal: identical point estimates. Colours compare separate 95% intervals, not a test of the difference.\nAll eligible systems retained; labels identify the 3 largest point changes in each panel.') & theme(legend.position='bottom')
 save_fig(p,'equalization_robustness_shared',7,9.3)
 p2<-(cf_robust_panel('DEP','core_four_fixed_groups')|cf_robust_panel('DEP','core_four_redefined_groups')|cf_robust_panel('SES','SES_on_deprivation_sample'))+
- plot_layout(guides='collect')+plot_annotation(title='Exposure definitions and sample composition',
+ plot_layout(guides='collect',axis_titles='collect')+plot_annotation(title='Exposure definitions and sample composition',
  caption='Original versus redefined deprivation groups separates model-control and target-population changes.\nThe SES complete-sample comparison remains an SES analysis.') & theme(legend.position='bottom')
 save_fig(p2,'equalization_robustness_definitions',10,4.5)
 # Current publication: SES checks and matched parental-controls comparison.
-p3<-patchwork::wrap_plots(lapply(shared,function(v)cf_robust_panel('SES',v)),ncol=1,guides='collect')+
+p3<-patchwork::wrap_plots(lapply(shared,function(v)cf_robust_panel('SES',v)),ncol=1,guides='collect',axis_titles='collect')+
  plot_annotation(title='Rank-gap equalization under alternative specifications') & theme(legend.position='bottom')
 save_fig(p3,'ses_equalization_robustness',7,10)
 panel_parent<-function(tt){
@@ -47,6 +47,6 @@ panel_parent<-function(tt){
  geom_point(data=data.table(escs=mean(z$escs),parental=mean(z$parental)),aes(escs,parental),inherit.aes=FALSE,shape=23,fill='black',colour='white',size=3)+
  coord_equal(xlim=lim,ylim=lim)+labs(title=if(tt=='skills_sorting')'Joint mediation' else 'Skill-profile equalization',x='ESCS controls: reading points',y='Parental controls: reading points')+theme(legend.position='bottom',axis.title=element_text(size=9))
 }
-p4<-(panel_parent('skills_sorting')|panel_parent('gap_reduction'))+plot_layout(guides='collect')+
+p4<-(panel_parent('skills_sorting')|panel_parent('gap_reduction'))+plot_layout(guides='collect',axis_titles='collect')+
  plot_annotation(title='Material deprivation: changing controls on the same pupils',caption='62 systems; 331,622 pupils. The diagonal marks identical point estimates; black diamonds are equal-weight means.') & theme(legend.position='bottom')
 save_fig(p4,'parental_controls_comparison',8,5)

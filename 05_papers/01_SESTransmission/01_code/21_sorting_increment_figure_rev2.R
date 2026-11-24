@@ -34,7 +34,7 @@ pp<-lapply(1:2,function(k){
  theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),panel.grid.major.x=element_line(colour='#E4E9EB'),
  axis.text.y=element_text(size=8,colour='#263A45'),axis.text.x=element_text(size=8),legend.title=element_blank(),legend.text=element_text(size=8),plot.margin=margin(8,8,8,8))
 })
-p<-(pp[[1]]|pp[[2]])+plot_layout(guides='collect')+
+p<-(pp[[1]]|pp[[2]])+plot_layout(guides='collect',axis_titles='collect')+
  plot_annotation(title='How much does school sorting add to the skills pathway?',
  subtitle='27 of 67 systems have positive 95% intervals; 23 retain support after BH adjustment',
  caption=paste0(mean_note,'\nAdditional reading points per 10 socio-economic rank points. Bars: direct 95% intervals for the difference.\nOrdered by the estimated addition, continuing from left to right. Both panels use the same scale.\nShapes: strongest unadjusted threshold met; not significant at 10%. Colour: BH adjustment across joint-pathway and sorting tests.'),
