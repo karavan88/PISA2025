@@ -26,3 +26,24 @@ publication_format <- function(table=FALSE) {
   result_text(system_mean(z),digits,table)
  }
 }
+
+# Mutually exclusive unadjusted significance bands, from saved country estimates.
+count_bands <- function(tt, kind='mediation', negative=FALSE) {
+ z <- switch(kind, mediation=E[exposure=='SES' & term==tt],
+             equalization=CE[exposure=='SES' & term==tt], decomposition=WB[term==tt])
+ stopifnot(nrow(z)==67L, !anyDuplicated(z$CNT))
+ pv <- if('p_approx'%in%names(z)) z$p_approx else z$p_value
+ stopifnot(all(is.finite(pv)))
+ direction <- if(negative) z$estimate<0 else z$estimate>0
+ n05 <- sum(direction & pv<.05); extra <- sum(direction & pv>=.05 & pv<.10)
+ paste0(n05,' systems at p < 0.05 and ',extra,
+        if(extra==1L)' more system' else ' more systems',' at p < 0.10')
+}
+
+retained_band <- function(alpha) {
+ main <- CE[exposure=='SES' & term=='gap_reduction' & estimate>0 & p_value<alpha, CNT]
+ variants <- c('unscaled_weights','minimum_10','lmer_unweighted')
+ z <- CR[exposure=='SES' & term=='gap_reduction' & variant %in% variants & CNT %in% main]
+ stopifnot(nrow(z)==length(main)*length(variants))
+ z[,.(retained=all(estimate>0 & p_value<alpha)),by=CNT][,sum(retained)]
+}

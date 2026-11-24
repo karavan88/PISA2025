@@ -41,7 +41,7 @@ p<-(pp[[1]]|pp[[2]])+plot_layout(guides='collect',axis_titles='collect')+
  theme=theme(plot.title=element_text(size=13,face='bold',colour='#172F3B'),plot.subtitle=element_text(size=9,colour='#475961'),plot.caption=element_text(size=8,hjust=0,colour='#475961'))) & theme(legend.position='top',legend.box='vertical')
 for(ext in c('pdf','png','svg')) {
  dev<-switch(ext,pdf=cairo_pdf,png=ragg::agg_png,svg=svglite::svglite)
- ggsave(file.path(OUT,'figures',paste0('ses_sorting_increment.',ext)),p,width=7.4,height=8.7,dpi=300,device=dev,bg='white')
+ ggsave(file.path(OUT,'figures',paste0('ses_sorting_increment.',ext)),p,width=7.4,height=9.0,dpi=300,device=dev,bg='white')
 }
 fwrite(z,file.path(OUT,'tables/ses_sorting_increment_figure_data.csv'))
 message('Sorting-addition figure verified against all 67 saved contrasts; no regressions fitted.')

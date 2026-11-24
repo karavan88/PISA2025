@@ -53,7 +53,7 @@ forest <- function(ex, full=TRUE) {
     subtitle=paste0(n,' systems | ',if(full)'all 6 skills' else 'incomplete skill blocks',' | dots and 95% intervals'),
     caption=paste0(axis_label,'\nSymbols: strongest threshold met; not significant at 10%.\n',mean_note,if(ex=='DEP') '\nBrackets give retained deprivation items; item sets differ between systems.' else '',if(!full)'\nBraces give the number of observed skills.' else ''),
     theme=theme(plot.caption=element_text(size=9,hjust=0,colour='#475961')))
-  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)9.0 else 3.4)
+  save_fig(p,paste0(tolower(ex),'_pathways',if(!full)'_partial' else ''),7.4,if(full)9.3 else 3.4)
 }
 heat <- function(ex) {
   z<-E[exposure==ex & skills==6 & grepl('^indS_',term)]
@@ -107,7 +107,8 @@ gap_link <- function(level='W') {
   p <- ggplot(d,aes(a,b)) +
     geom_hline(yintercept=0,colour='#89969C',linewidth=.35) +
     geom_vline(xintercept=0,colour='#89969C',linewidth=.35) +
-    geom_line(data=curves,aes(group=path),colour='#BEC6C8',linetype='dashed',linewidth=.35) +
+    geom_line(data=curves,aes(group=path),colour='#87979F',linetype='dashed',linewidth=.45) +
+    geom_text(data=curves[a<=max(d$a)*.90,.SD[.N],by=path],aes(label=paste0(path,' pt')),size=2.6,hjust=1,vjust=-.4,colour='#657781') +
     geom_point(data=d[example=='Other systems'],colour=cols[1],size=1.7,alpha=.7) +
     geom_point(data=d[example!='Other systems'],aes(colour=example,shape=example),size=2.3) +
     ggrepel::geom_text_repel(data=d[example!='Other systems'],aes(label=CNT,colour=example),
@@ -116,8 +117,8 @@ gap_link <- function(level='W') {
     facet_wrap(~skill,ncol=3,labeller=label_wrap_gen(23)) +
     scale_colour_manual(values=cols,breaks=c('Ecuador','Japan','Korea',mean_label)) + scale_shape_manual(values=c('Japan'=16,'Korea'=17,'Ecuador'=15,setNames(18,mean_label)),breaks=c('Ecuador','Japan','Korea',mean_label)) +
     coord_cartesian(xlim=range(c(0,d$a)),ylim=range(c(0,d$b))) +
-    labs(x=if(level=='W') 'Skill difference per 10 SES rank points within a school (aW, skill SD)' else 'Skill difference per 10 school-average SES rank points (aB, skill SD)',
-      y=if(level=='W') 'Reading points per skill SD within a school (bW)' else 'Reading points per unit of school-average skill (bB)',
+    labs(x=if(level=='W') 'Within-school skill difference per 10 SES rank points (skill SD)' else 'Skill difference per 10 school-average SES rank points (aB, skill SD)',
+      y=if(level=='W') 'Within-school reading difference per skill SD (points)' else 'Reading points per unit of school-average skill (bB)',
       title=if(level=='W') '2 links are needed for a skill to transmit advantage' else 'The 2 links between school averages',
       subtitle=paste0(nsys(),' systems | 6 skills | all skills enter the reading equation together'),
       caption=paste0('1 dot per system. JPN = Japan; KOR = Korea; ECU = Ecuador. Gray dots: all other systems.\nBlack diamond: equal-weight means of the 2 links; their product is not the mean pathway.\nDashed curves: products of ',paste(paths,collapse=', '),' reading points. Point estimates; intervals in the saved tables.')) +

@@ -1,0 +1,144 @@
+---
+title: "Chart alternatives: SES, skills, and learning"
+subtitle: "Editorial comparison booklet — manuscript unchanged"
+author: Garen Avanesian
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    papersize: a4
+    geometry: margin=2cm
+    mainfont: PT Serif
+    fontsize: 10pt
+    number-sections: false
+    keep-tex: true
+    colorlinks: true
+    include-in-header:
+      text: |
+        \usepackage{graphicx}
+        \setlength{\emergencystretch}{3em}
+---
+
+This booklet compares the current figures with 6 alternatives built from the same saved results. It does not replace figures in the manuscript. All country sets and estimates are unchanged. No model was re-estimated.
+
+| Choice | Current design | Alternative |
+|:--|:--|:--|
+| F2 | Two-link scatterplots | Plain-language axes and labeled product curves |
+| F3 | Paired country intervals | Connected pathway estimates |
+| F4 | Country-by-skill heatmap | Country distributions and skill means |
+| F5 | Four-color decomposition | Two fills and explicit within/between rows |
+| F7 | Recipient and comparison-group estimates | Two-panel accounting waterfall |
+| F8 | Country gap-reduction intervals | Recipient gains versus gap reduction |
+
+**Suggested first comparisons:** F4 and F7. They change how the story is communicated most substantially. F2, F3, and F5 are gentler revisions. F8 is a larger editorial choice because it shifts attention from uncertainty in each estimate to the relationship between 2 estimates.
+
+**Uncertainty.** Existing 95% intervals are retained where shown. F4's alternative shows intervals for system means, not each country's estimate. F8's alternative shows point estimates only. The full country interval displays remain available as the current versions. A country connector in F3 is not a test of the change.
+
+**Reading order.** Means appear last in country lists and legends. In scatterplots, their positions reflect the estimated values. All systems receive equal weight in the mean. Ecuador, Japan, and Korea are highlighted consistently with the current paper's largest joint-pathway point estimates.
+
+**Decision labels:** refer to an option as “F4 current” or “F4 alternative.” The F6 page is included to decide whether its direct sorting-increment intervals should remain in the main text or move to the appendix.
+
+
+\clearpage
+
+# F2 — Current
+
+The existing display relates the socio-economic gradient of each skill to its reading relationship. It preserves the 2-link logic of mediation.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f2_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F2 — Alternative: clearer links
+
+All 67 country points remain. Axis labels spell out the quantities, and dashed curves are labeled in reading points per 10 SES rank points. Diamonds are the means of the 2 coefficients; their product is not the mean pathway. This option mainly reduces decoding rather than changing the evidence.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f2_plain_links.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F3 — Current
+
+The existing country-specific pathways, with 95% intervals and significance symbols. Both estimates are already available for each country.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f3_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F3 — Alternative: connected pathways
+
+A light connector joins the estimate among classmates to the estimate including school sorting. Open and filled markers identify the 2 contrasts; thin lines retain their individual 95% intervals. Connector length shows the point-estimate change, not its significance. F6 supplies the direct uncertainty for that change.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f3_connected.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F6 — Current: a placement decision
+
+This figure tests the sorting increment directly. It is retained here because a connector in F3 cannot replace that test. One possible layout is F3 in the main text and F6 in the appendix, with the principal sorting findings still reported in the text.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f6_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F4 — Current
+
+The complete country-by-skill heatmap is strong for looking up an individual system, but less immediate for comparing the distributions of contributions across skills.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f4_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F4 — Alternative: country distributions
+
+Each light dot is a country estimate. Vertical offsets separate points and carry no meaning. Highlighted markers identify Ecuador, Japan, and Korea. The dark diamond and short line show the equal-weight mean and its 95% interval. This makes the typical contribution and cross-country spread visible together. Country-specific intervals and the detailed heatmap would remain in the appendix.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f4_country_distribution.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F5 — Current
+
+The current decomposition distinguishes the skills-mediated and remaining components within and between schools using 4 colors. Negative contributions are retained.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f5_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F5 — Alternative: simpler composition
+
+Dark fill denotes the skills-mediated component and pale fill the remainder. W labels the upper within-school bar; B labels the lower between-school bar. Thin lines retain 95% intervals for each level’s total contribution. Country order and signed components are unchanged. This reduces the color vocabulary but introduces repeated W/B row labels.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f5_two_fills.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F7 — Current
+
+The existing worked example and system mean show recipient gains, comparison-group gains, and gap reduction, with intervals for all 3 quantities.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f7_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F7 — Alternative: accounting waterfall
+
+Recipient gains minus gains among advantaged pupils equal the reduction in the gap. The middle bar displays the subtraction. Korea retains the saved bootstrap/PV intervals for recipient gains and gap reduction. Mean intervals use equal weights and independent-country variance aggregation. Gap-reduction uncertainty uses the saved gap-reduction variances, preserving covariance between recipient and reference changes within each system. The middle subtraction has no interval in this design. This is an accounting illustration, not a time sequence.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f7_waterfall.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F8 — Current
+
+The existing full country display shows projected gap reductions and their 95% intervals. It is the strongest option for inspecting country-specific precision.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f8_current.pdf){width=100% height=7.8in}
+
+\clearpage
+
+# F8 — Alternative: gains versus gap reduction
+
+The dashed 45-degree line marks equal recipient gains and gap reductions. Points below it indicate that gains among advantaged pupils reduce the equalizing effect. All 67 systems remain, with the mean diamond plotted at the mean of both estimates. This option highlights the distributional argument, but shows no country confidence intervals; the current figure should remain available in the appendix if this replaces it.
+
+![](../04_output/01_chart_alternatives/20261124_v1/f8_gains_vs_gap.pdf){width=100% height=7.8in}

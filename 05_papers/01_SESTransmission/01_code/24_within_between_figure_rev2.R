@@ -60,5 +60,5 @@ p <- p+plot_annotation(title='Where the socio-economic reading gradient is distr
   theme=theme(plot.title=element_text(size=13,face='bold',colour='#172F3B'),
               plot.subtitle=element_text(size=9.5,colour='#475961'),
               plot.caption=element_text(size=7.7,hjust=0,colour='#475961')))
-save_fig(p,'ses_within_between_composition',8.6,10.7)
+save_fig(p,'ses_within_between_composition',8.6,11.0)
 fwrite(parts,file.path(OUT,'tables/within_between_figure_segments.csv'))

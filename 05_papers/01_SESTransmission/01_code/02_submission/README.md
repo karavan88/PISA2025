@@ -1,6 +1,6 @@
 # Submission packaging
 
-Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261124_v11`.
+Run `python3 05_papers/01_SESTransmission/01_code/02_submission/build_package.py` from the repository root after rendering the current manuscript and supplement. This packaging step uses their generated TeX, removes author metadata and revision shading, embeds declarations, collects figure dependencies, and compiles with XeLaTeX. It does not harmonize data or estimate models. Outputs are ignored under `06_submissions/01_ijed_20261124_v15`.
 
 Upload the clean manuscript PDF with `anonymous_latex_sources.zip` (editable TeX and figures), the anonymous supplement, title page, and separate highlights. Title-page and highlights TeX files are editable. No cover letter is generated. The named GitHub/data note is editor-only, not an anonymous reviewer attachment. The repository is public; the title page links directly to the paper folder.
 
@@ -15,3 +15,5 @@ The project was estimated with R 4.4.1. The machine default now invokes R 4.6.1,
 Confirm exact provider release and access URL in the editor-only data statement. Supply any desired acknowledgments (none invented). No public DOI archive has been deposited. Submission itself remains the author's action.
 
 The disclaimer, competing interests, funding, and data/code availability statements appear on the title-page document. The AI declaration appears only immediately before manuscript references, avoiding duplication on the title page. Author details are paragraphs. The named public repository link appears only in the title-page/editor materials. The author requested OpenAI wording; earlier Claude assistance should be considered by the author when confirming the final disclosure.
+
+Packaging also requires Poppler’s `pdftotext`. After compilation, the builder checks that the complete abstract and key results appear in the rendered manuscript and that figure-note commands are not printed literally.

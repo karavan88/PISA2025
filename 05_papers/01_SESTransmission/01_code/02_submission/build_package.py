@@ -3,7 +3,7 @@ from pathlib import Path
 import re, shutil, subprocess, hashlib, json, zipfile
 ROOT=Path(__file__).resolve().parents[4]
 P=ROOT/'05_papers/01_SESTransmission'
-OUT=P/'06_submissions/01_ijed_20261124_v11'
+OUT=P/'06_submissions/01_ijed_20261124_v15'
 if OUT.exists():
  raise SystemExit('Refusing to overwrite a submission snapshot; choose a new version directory.')
 OUT.mkdir(parents=True)
@@ -28,6 +28,15 @@ for stem,target in [('ijed_ses_seg_rev2','manuscript_anonymized'),('ijed_ses_seg
  assert 'Garen Avanesian' not in text and 'kavanesian@' not in text
  (S/f'{target}.tex').write_text(text)
  for _ in range(2):subprocess.run(['xelatex','-interaction=nonstopmode','-halt-on-error',f'{target}.tex'],cwd=S,stdout=subprocess.DEVNULL,check=True)
+ # Check rendered text, not only successful LaTeX compilation.
+ rendered = subprocess.run(['pdftotext', '-layout', str(S/f'{target}.pdf'), '-'],
+                           capture_output=True, text=True, check=True).stdout
+ assert r'\figurenote' not in rendered, 'A figure-note command was printed literally.'
+ assert '�' not in rendered, 'Replacement glyph in rendered PDF.'
+ if target == 'manuscript_anonymized':
+  abstract_text = ' '.join(rendered.split('Abstract', 1)[1].split('Keywords:', 1)[0].split())
+  assert 'direction between skills and learning.' in abstract_text, 'Abstract is truncated.'
+  assert '7.94' in abstract_text and '20.74' in abstract_text, 'Abstract results missing.'
  shutil.copy2(S/f'{target}.pdf',OUT/f'{target}.pdf')
 (S/'README.md').write_text('Compile manuscript_anonymized.tex and supplement_anonymized.tex with XeLaTeX twice. PT Serif must be installed. References are embedded in the generated editable TeX; no data or R execution is needed to typeset this frozen submission. Keep both PDFs together for the appendix hyperlink.\n')
 # Title page and highlights are editable LaTeX files as well as PDFs.
