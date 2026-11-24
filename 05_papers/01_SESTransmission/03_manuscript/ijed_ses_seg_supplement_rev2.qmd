@@ -28,7 +28,8 @@ format:
       text: |
         \usepackage[most]{tcolorbox}
         \newtcolorbox{revision}{colback=cyan!8!white,colframe=cyan!8!white,boxrule=0pt,arc=0pt,breakable,left=4pt,right=4pt,top=4pt,bottom=4pt}
-        \usepackage{pdflscape,makecell}
+        \usepackage{pdflscape,makecell,listings}
+        \lstdefinestyle{modelR}{language=R,basicstyle=\ttfamily\footnotesize,keywordstyle=\color{blue!55!black},commentstyle=\color{teal!60!black},stringstyle=\color{purple!60!black},breaklines=true,columns=fullflexible,showstringspaces=false}
         \usepackage{booktabs,longtable,array,float,etoolbox}
         \newcommand{\tblsize}{\footnotesize}
         \AtBeginEnvironment{longtable}{\tblsize\setlength{\tabcolsep}{3pt}}
@@ -57,13 +58,13 @@ source('../01_code/30_appendix_layout_rev2.R')
 inference <- data.table(
  Item=c('Sample and units','Uncertainty','Plausible-value pooling','Multiplicity','System means','Validation'),
  Specification=c(
- '67 SES systems; 62 deprivation systems; all 6 skills. SES: reading points per 10 national percentile-rank points. Deprivation: points per additional unaffordable item, controlling parental education and occupation at pupil and school levels.',
+ '67 systems with all 6 skills. Reading points per 10 national socio-economic percentile-rank points.',
  'Estimates with standard errors in parentheses. *** p < 0.01; ** p < 0.05; * p < 0.10 (unadjusted). 499 whole-school bootstrap draws and 10 reading plausible values. The cluster bootstrap approximates the survey design and does not implement the full stratified 2-stage BRR procedure.',
  'Pooled variance = mean within-plausible-value bootstrap variance + 1.1 times the variance of the 10 point estimates. Rank and skill standardization remain fixed at their prepared values.',
  'Benjamini-Hochberg false discovery rate target: 5 percent. Separate families by exposure: within/between skill gradients; individual skill contributions; joint pathway plus sorting increment; counterfactual gap reductions. Reading coefficients have no adjusted q-values.',
  'Equal-weight averages of country estimates. Mean variance is the sum of country variances divided by the squared number of systems, conditional on the retained system set.',
  'Custom R estimates checked against WeMix 4.0.3. Maximum fixed-coefficient discrepancy in 10 additional deprivation cases: 0.00000432. The matched-control comparison produced 499 valid paired draws per country; counterfactual prediction discrepancies were below 0.000001.'))
-tbl(inference,'Estimation and reporting conventions for the appendix. These conventions apply unless a caption specifies otherwise.',8,widths=c('3cm','12cm'))
+tbl(inference[Item!='Validation'],'Estimation and reporting conventions for the appendix. These conventions apply unless a caption specifies otherwise.',8,widths=c('3cm','12cm'))
 ```
 
 
@@ -74,8 +75,8 @@ c <- merge(A[exposure=='SES' & status=='Eligible',.(CNT,economy,N,schools,skills
            A[exposure=='DEP',.(CNT,depN=ifelse(status=='Eligible',N,NA_integer_),items)],by='CNT',all.x=TRUE)
 c <- c[order(economy)]
 x <- c[,.(Code=CNT,System=economy,Skills=skills,`SES N`=num(N),Schools=num(schools),
-           `Complete %`=fmt(100*complete_share,1),`DEP N`=ifelse(is.na(depN),'—',num(depN)),Items=ifelse(is.na(depN),'—',items))]
-tbl(x,'Country coverage. Eligibility requires at least 100 complete pupils and 30 schools. All models within an exposure use identical pupils. Complete percent is the SES analytic share of the source pupil count; DEP N is its complete-deprivation subset. Schools refers to the SES sample.',7.2,widths=c(NA,'3.5cm',NA,NA,NA,NA,NA,NA))
+           `Complete %`=fmt(100*complete_share,1))]
+tbl(x,'Country coverage. Eligibility requires at least 100 complete pupils and 30 schools. All models within an exposure use identical pupils. Complete percent is the SES analytic share of the source pupil count; the table reports the SES sample. Schools refers to the SES sample.',7.2,widths=c(NA,'3.5cm',NA,NA,NA,NA))
 ```
 
 ```{r}
@@ -95,7 +96,7 @@ measures <- data.table(
  Content=c('Persistence through difficulty or boredom; task completion.','Interest in discovery and learning.','Enjoying challenging problems and sustained problem engagement.','Coping with unfamiliar situations, pressure, cultures, and interpersonal difficulty.','Planning study, checking understanding, and adapting strategy.','Seeking help from classmates or teachers, including after own effort.'),
  Items=c('ST307: Q01, Q02, Q03, Q07, Q09, Q10 (JA); p. 74','ST301: Q01, Q04, Q06, Q08, Q10 (JA); p. 75','ST435: Q01, Q03, Q04, Q05 (DA); p. 76','ST216: Q01, Q03, Q04, Q05 (HA); p. 77','ST432: Q02, Q03, Q04, Q06 (DA); p. 78','ST434: Q01, Q02, Q04, Q06 (DA); p. 79'),
  Responses=c('5 agreement categories; Q07 and Q10 worded negatively.','5 agreement categories; Q08 worded negatively.','4 agreement categories.','5 self-description categories, from very much to not at all like me.','4 frequency categories, from never/almost never to very often.','4 agreement categories, listed from strongly agree to strongly disagree.'))
-tbl(measures,'Scale content, questionnaire identifiers, and response formats. Source: OECD PISA 2025 student questionnaire, pp. 74-79, and student codebook. Released weighted-likelihood scores are standardized within the SES sample and retained on that scale for deprivation; missing indices are not imputed. Codes in parentheses complete each item identifier; for example ST307Q01JA.',9,widths=c('2cm','5.5cm','6cm','8cm'))
+tbl(measures,'Scale content, questionnaire identifiers, and response formats. Source: OECD PISA 2025 student questionnaire, pp. 74-79, and student codebook. Released weighted-likelihood scores are standardized within the SES sample with no imputation of missing indices. Codes in parentheses complete each item identifier; for example ST307Q01JA.',9,widths=c('2cm','5.5cm','6cm','8cm'))
 ```
 
 ```{=latex}
@@ -121,9 +122,9 @@ tbl(cvd[,.(System=economy,Group=group,Measure=variable,`Observed N`=num(N_availa
 ids<-A[exposure=='SES' & status=='Eligible'][order(economy),CNT]
 xx<-rbindlist(lapply(ids,function(cc) {
  f<-function(v,ex='SES') {z<-DS[CNT==cc & variable==v & exposure==ex];if(nrow(z)) paste0(fmt(z$mean,2),' (',fmt(z$SD,2),')') else '—'}
- data.table(Code=cc,System=G[CNT==cc,economy],Reading=f('Reading'),Rank=f('SES_rank'),ESCS=f('ESCS'),Deprivation=f('DEP','DEP'))
+ data.table(Code=cc,System=G[CNT==cc,economy],Reading=f('Reading'),Rank=f('SES_rank'),ESCS=f('ESCS'))
 }))
-tbl(xx,'Country means (standard deviations), weighted by final student weights. Deprivation uses its own analytic sample.',7.5,widths=c(NA,'3.5cm',NA,NA,NA,NA))
+tbl(xx,'Country means (standard deviations), weighted by final student weights. ',7.5,widths=c(NA,'3.5cm',NA,NA,NA))
 ```
 
 ```{r}
@@ -364,18 +365,58 @@ country_gradient_table(landscape=TRUE)
 
 ```
 
-# Sample and measurement
 
-```{r}
-#| results: asis
-emit_appendix_tables(c(1,2,3,4,5,6,7,8))
+```{=latex}
+
+\section*{Contents}
+\begin{tabular}{p{12cm}r}
+\textbf{Section} & \textbf{Page}\\
+\hyperref[app-sample]{I. Sample and measurement} & \pageref{app-sample}\\
+\hyperref[app-ses]{II. SES mediation and school allocation} & \pageref{app-ses}\\
+\hyperref[app-equal]{III. Skill equalization} & \pageref{app-equal}\\
+\hyperref[app-diag]{IV. Additional diagnostics} & \pageref{app-diag}\\
+\end{tabular}
+
 ```
 
-# SES mediation and school allocation
+\clearpage
+
+# I. Sample and measurement
+
+```{=latex}
+\label{app-sample}
+```
 
 ```{r}
 #| results: asis
-emit_appendix_tables(c(9,10,11,13,15,16,17,18,19,22,37))
+emit_appendix_tables(c(1,2,4,5,6,7))
+```
+
+\clearpage
+
+# II. SES mediation and school allocation
+
+```{=latex}
+\label{app-ses}
+```
+
+School-level and individual contrasts use the same fitted models. The notation below records the accounting identities used to construct the reported estimates.
+
+
+With $\delta$ denoting the school-rank difference accompanying a 1-unit individual rank difference, define
+$$
+I_W=\sum_k a_{Wk}b_{Wk},\quad I_B=\sum_k a_{Bk}b_{Bk},\quad
+I_S=(1-\delta)I_W+\delta I_B.
+$$
+The sorting increment is $I_S-I_W=\delta(I_B-I_W)$. Individual contributions are
+$I_{S,k}=(1-\delta)a_{Wk}b_{Wk}+\delta a_{Bk}b_{Bk}$.
+The remaining component is $D=(1-\delta)c'_W+\delta c'_B$, and the total is $T=D+I_S$.
+
+The within-school total contribution is $G_W=(1-\delta)(c'_W+I_W)$; the between-school contribution is $G_B=\delta(c'_B+I_B)$. Their skills components are $K_W=(1-\delta)I_W$ and $K_B=\delta I_B$. Thus $G_W+G_B=T$ and $K_W+K_B=I_S$. These are contributions to the same individual-rank contrast, not variance components.
+
+```{r}
+#| results: asis
+emit_appendix_tables(c(37,11,13,15,16,17,19))
 ```
 
 ```{=latex}
@@ -384,43 +425,24 @@ emit_appendix_tables(c(9,10,11,13,15,16,17,18,19,22,37))
 
 ![Between-school skill gradients and reading relationships in all 67 6-skill systems. Dashed curves mark products of 1, 3, and 5 reading points, from lower to higher curves. Equal products can arise from different combinations of the 2 links. Black diamonds show equal-weight means of the 2 links. Their product is not the mean pathway. These are point estimates, not tests of cross-country differences.](../04_output/rev2/figures/ses_gap_link_b.pdf){width=100% fig-pos='H'}
 
-# Material deprivation mediation
+\clearpage
+
+# III. Skill equalization
+
+```{=latex}
+\label{app-equal}
+```
+
+Let $d_{ik}$ denote the expected change in recipient $i$'s skill $k$ and $\bar d_{jk}$ its weighted school mean. The fitted change in reading is
+$$
+\Delta\widehat Y_{ij}=\sum_k\{b_{Wk}(d_{ik}-\bar d_{jk})+b_{Bk}\bar d_{jk}\}.
+$$
+The reduction in the reading gap equals the weighted mean recipient gain minus the weighted mean reference-group gain. School membership remains fixed.
 
 ```{r}
 #| results: asis
-emit_appendix_tables(c(12,14,20,23,31,32))
+emit_appendix_tables(c(25,26,29,34,35,36))
 ```
-
-```{=latex}
-\setcounter{figure}{2}
-```
-
-![Country-specific joint deprivation pathways in the 62 full-6-skill systems. Negative values indicate a reading penalty transmitted through skills per additional unaffordable item, accounting for individual and school parental education and occupational status. Brackets after system names give the retained item count; equal counts can still represent different item sets. The single mean row uses equal country weights. Bars are individual 95% bootstrap/PV intervals; shapes mark unadjusted 2-sided p-value bands as shown in the legend.](../04_output/rev2/figures/dep_pathways.pdf){#fig-dep width=100% fig-pos='H'}
-
-```{=latex}
-\setcounter{figure}{3}
-```
-
-![Skill-specific contributions to the deprivation pathway. Persev. denotes perseverance; Adapt., cognitive adaptability; Goals, goal setting; Problem solving, enjoyment of problem solving; and Help seeking, self-regulated help seeking. Values are reading points per additional unaffordable item, including the school sorting component. White circles denote p < 0.05 and triangles p < 0.10; unmarked cells are not significant (unadjusted, 2-sided). Symbols indicate the strongest threshold met; not significant refers to the 10% level.](../04_output/rev2/figures/dep_skills.pdf){#fig-dep-skills width=100% fig-pos='H'}
-
-```{=latex}
-\setcounter{figure}{4}
-```
-
-![Matched-pupil comparison of deprivation models: joint mediation on the left and skill-profile equalization on the right. Black diamonds denote equal-weight system means. The diagonal marks equal point estimates. Labels identify the 3 largest absolute changes in each panel. Colors show separate interval status; paired tests of changes are reported in the following tables.](../04_output/rev2/figures/parental_controls_comparison.pdf){width=100% fig-pos='H'}
-
-# Counterfactual skill equalization
-
-```{r}
-#| results: asis
-emit_appendix_tables(c(24,25,26,27,28,29,30,33,34,35,36))
-```
-
-```{=latex}
-\setcounter{figure}{1}
-```
-
-![Deprivation-group gap reduction after replacing recipients' skill profiles with the joint empirical distribution among non-deprived pupils. All 62 full-6-skill systems are shown. Parental education and occupation remain fixed at both levels; the donor distribution is not matched on these controls.](../04_output/rev2/figures/dep_equalization.pdf){width=100% fig-pos='H'}
 
 ```{=latex}
 \setcounter{figure}{5}
@@ -428,15 +450,19 @@ emit_appendix_tables(c(24,25,26,27,28,29,30,33,34,35,36))
 
 ![Socio-economic-rank counterfactual under 3 alternative specifications, from top to bottom: unscaled weights, a minimum of 10 pupils per school, and an unweighted model. Each point is a system; black diamonds are equal-weight system means. The diagonal denotes identical estimates, and labels identify the 3 largest absolute changes. Colors compare individual interval status; they are not tests of differences between specifications.](../04_output/rev2/figures/ses_equalization_robustness.pdf){width=100% fig-pos='H'}
 
-# Cross-analysis evidence and grade diagnostics
+\clearpage
 
-```{r}
-#| results: asis
-emit_appendix_tables(c(21))
+# IV. Additional diagnostics
+
+```{=latex}
+\label{app-diag}
 ```
 
 ```{=latex}
 \hypertarget{appendix-grade}{}
+```
+
+```{=latex}
 \setcounter{figure}{6}
 ```
 

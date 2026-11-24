@@ -2,7 +2,7 @@
 
 Active manuscript: `03_manuscript/ijed_ses_seg_rev2.qmd`.
 Topically organized appendix with tables, figures, and model-specification snippets: `03_manuscript/ijed_ses_seg_supplement_rev2.qmd`.
-The study has 67 SES systems, 62 supplementary deprivation systems, and 6 skills.
+The submission focuses on 67 SES systems and 6 skills. The 62-system material-deprivation analysis is retained separately in `03_manuscript/material_deprivation_report.qmd` and is not part of the submission appendix.
 
 ## Folders
 
@@ -45,3 +45,15 @@ use run_all.py for the maintained reporting workflow.
 ## Reproduction verification
 
 See the [environment, data, and command guide](../../00_documentation/REPRODUCE.md). The 2026-11-14 audit rebuilt all 157 prepared inputs without numerical changes, refit all 157 main point models, and reproduced 5 seeded bootstrap draws for each Korean exposure. Reporting rebuilt both PDFs under renv. This does not claim a new full 499-draw rerun of every main and alternative model. Fresh estimation now includes the previously missing evidence-classification postprocessor; historical pilot checks are optional. Use `report --current-results` after a successful `estimate --fresh` to avoid restoring the frozen snapshot over new estimates.
+
+## Separate material-deprivation report
+
+The submission appendix omits the deprivation module. Its results remain available
+in the standalone report, using the same saved estimates and original exhibit IDs:
+
+```sh
+quarto render 05_papers/01_SESTransmission/03_manuscript/material_deprivation_report.qmd --to pdf
+```
+
+This reporting command does not rerun estimation. The report is not included in the
+anonymized journal submission package.

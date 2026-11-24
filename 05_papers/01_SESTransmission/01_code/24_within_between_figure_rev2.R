@@ -1,6 +1,6 @@
 # Use the shared publication theme/save_fig from 02_figures_rev2.R.
 WB <- fread(file.path(OUT,'tables/within_between_decomposition.csv'))
-order_ids <- c('MEAN',WB[term=='total_between_minus_within'][order(-estimate,economy), CNT])
+order_ids <- c(WB[term=='total_between_minus_within'][order(-estimate,economy), CNT], 'MEAN')
 WB<-rbindlist(list(WB,system_mean(WB[!grepl('share',term)])),fill=TRUE)
 part_terms <- c('skills_within','remaining_within','skills_between','remaining_between')
 parts <- copy(WB[term %in% part_terms])
@@ -56,7 +56,7 @@ p <- (ps[[1]]|ps[[2]])+plot_layout(guides='collect') &
         legend.key.height=grid::unit(.26,'cm'),legend.key.width=grid::unit(.55,'cm'))
 p <- p+plot_annotation(title='Where the socio-economic reading gradient is distributed',
   subtitle='Each country: within schools above; between schools below\nDark segments: skills-mediated contribution. Pale segments: remaining contribution.',
-  caption=paste0(mean_note,'\nBlack capped lines: 95% intervals for each level’s net contribution, including skills and the remainder.\nNegative segments extend left of zero; positive segments stack to the right. Both panels share the same scale.\nOrdered by between minus within total contribution, continuing down the left panel then the right; the all-system mean is shown first.'),
+  caption=paste0(mean_note,'\nBlack capped lines: 95% intervals for each level’s net contribution, including skills and the remainder.\nNegative segments extend left of zero; positive segments stack to the right. Both panels share the same scale.\nOrdered by between minus within total contribution, continuing down the left panel then the right; the all-system mean is shown last.'),
   theme=theme(plot.title=element_text(size=13,face='bold',colour='#172F3B'),
               plot.subtitle=element_text(size=9.5,colour='#475961'),
               plot.caption=element_text(size=7.7,hjust=0,colour='#475961')))

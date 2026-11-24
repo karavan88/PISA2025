@@ -38,13 +38,13 @@ forest <- function(ex, full=TRUE) {
   mm[,yy:=ifelse(term=='skills_same_school',.15,-.15)]
   mm[,Evidence:=factor(ifelse(p_value<.05,'p < 0.05',ifelse(p_value<.1,'p < 0.10','Not significant')),levels=levels(z$Evidence))]
   panels <- lapply(c('A','B'),function(pn) {
-    zz<-rbindlist(list(z[panel==pn],if(pn=='A') mm else NULL),fill=TRUE); ll<-labels[panel==pn]
+    zz<-rbindlist(list(z[panel==pn],if(pn=='B') mm else NULL),fill=TRUE); ll<-labels[panel==pn]
     ggplot(zz,aes(x=estimate,y=yy,colour=Profile,shape=Evidence)) +
       geom_hline(yintercept=seq(1,n1),colour='#EDF0F1',linewidth=.25) +
       geom_vline(xintercept=0,colour='#71838A',linewidth=.4) +
-      geom_segment(aes(x=lower,xend=upper,yend=yy),linewidth=.5) + geom_point(size=1.7) +
+      geom_segment(aes(x=lower,xend=upper,yend=yy),linewidth=.5,show.legend=FALSE) + geom_point(size=1.7) +
       scale_colour_manual(values=COL) + scale_shape_manual(values=c(16,17,1),drop=FALSE) +
-      scale_y_continuous(breaks=c(n1-ll$row+1,if(pn=='A') 0),labels=c(ll$label,if(pn=='A') paste0('Mean (',n,' systems)')),limits=c(-.6,n1+.6),expand=c(0,0)) +
+      scale_y_continuous(breaks=c(n1-ll$row+1,if(pn=='B') 0),labels=c(ll$label,if(pn=='B') paste0('Mean (',n,' systems)')),limits=c(-.6,n1+.6),expand=c(0,0)) +
       scale_x_continuous(limits=lim,breaks=scales::breaks_pretty(5)) +
       labs(x=axis_label,y=NULL) + theme(axis.text.y=element_text(size=8),panel.grid.major.x=element_line(colour='#E4E9EB'))
   })
@@ -61,7 +61,7 @@ heat <- function(ex) {
   z[,Group:=ifelse(match(CNT,ids)<=split,'A','B')]
   z[,skill:=factor(sub('indS_','',term),levels=names(sklab))]
   mn<-system_mean(z);mn[,skill:=factor(sub('indS_','',term),levels=names(sklab))]
-  mn[,Group:='A']
+  mn[,Group:='B']
   countries<-unique(z[order(economy),economy]);z<-rbindlist(list(z,mn),fill=TRUE)
   z[,country:=factor(economy,levels=c(unique(mn$economy),rev(countries)))]
   z[,Evidence:=factor(ifelse(p_approx<.05,'p < 0.05',ifelse(p_approx<.1,'p < 0.10','Not significant')),levels=c('p < 0.05','p < 0.10','Not significant'))]
@@ -114,7 +114,7 @@ gap_link <- function(level='W') {
       size=2.6,seed=2026,min.segment.length=0,max.overlaps=Inf,box.padding=.3,show.legend=FALSE) +
     geom_point(data=mn,aes(shape=example,colour=example),size=3.2) +
     facet_wrap(~skill,ncol=3,labeller=label_wrap_gen(23)) +
-    scale_colour_manual(values=cols) + scale_shape_manual(values=c('Japan'=16,'Korea'=17,'Ecuador'=15,setNames(18,mean_label))) +
+    scale_colour_manual(values=cols,breaks=c('Ecuador','Japan','Korea',mean_label)) + scale_shape_manual(values=c('Japan'=16,'Korea'=17,'Ecuador'=15,setNames(18,mean_label)),breaks=c('Ecuador','Japan','Korea',mean_label)) +
     coord_cartesian(xlim=range(c(0,d$a)),ylim=range(c(0,d$b))) +
     labs(x=if(level=='W') 'Skill difference per 10 SES rank points within a school (aW, skill SD)' else 'Skill difference per 10 school-average SES rank points (aB, skill SD)',
       y=if(level=='W') 'Reading points per skill SD within a school (bW)' else 'Reading points per unit of school-average skill (bB)',

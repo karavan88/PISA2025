@@ -7,39 +7,71 @@ tbl <- function(x,caption=NULL,...) {
  invisible(structure('',class='knitr_kable',format='latex'))
 }
 model_snippet <- function(id) {
- if(!id %in% c(9,11:20,25:28,32:37))return('')
- dep<-id %in% c(12,14,20,27,28,32,33)
- controls<-if(dep)'c("AGE", "nonmale", "PAREDINT", "HISEI")' else 'c("AGE", "nonmale")'
- lines<-c('# Equivalent model specification; not executed',
- '# W: pupil deviation; B: weighted school mean',
- paste0('controls <- ',controls),
- 'skills <- c("PERSEV", "CURIO", "ENPROBS",',
- '            "COGABIL", "GOALSET", "SELFREG")',
- 'f <- function(y, x) as.formula(paste(y, "~",',
- '  paste(c(paste0(x, "_W"), paste0(x, "_B"),',
- '          "(1 | school)"), collapse = " + ")))',
- 'M1 <- f(skill, c("status", controls))',
- 'M2 <- f(reading_PV, c("status", controls, skills))',
- 'WeMix::mix(M2, d, weights=c("w1", "w2"), cWeights=TRUE)')
- if(id==37)lines<-c(lines[!grepl('M2',lines,fixed=TRUE)], 'WeMix::mix(M1, d, weights=c("w1", "w2"), cWeights=TRUE)')
- if(id%in%c(11:20,32))lines<-c(lines,
- 'S <- reformulate(c("status", controls,',
- '                   paste0(controls, "_B")), "status_B")',
- 'lm(S, d, weights=W_FSTUWT)')
- if(id%in%c(25:28,33:36))lines<-c(lines,
- '# Equalization uses M2 and empirical donor profiles.',
- '# Update school skill means; predict both group gains.',
- '# Gap reduction = recipient gain - reference gain.')
- if(id%in%c(32,33))lines<-c(lines,
- '# Comparator: identical pupils, replace parent controls',
- 'controls <- c("AGE", "nonmale", "ESCS")',
- '# Rebuild M1/M2, refit within the same bootstrap draws.',
- '# Paired change = parental estimate - ESCS estimate.')
- if(id==34)lines<-c('# Before fitting: retain unscaled conditional weights', 's <- prepare_model(z, mode="unscaled")', 'd <- s$d', lines)
- if(id==35)lines<-c('# Before fitting: restrict and rebuild school quantities', 'counts <- z$data[, .N, by=school]', 'z$data <- z$data[school %in% counts[N >= 10, school]]', 's <- prepare_model(z); d <- s$d', lines)
- if(id==36)lines<-gsub('WeMix::mix(M2, d, weights=c("w1", "w2"), cWeights=TRUE)',
- 'lme4::lmer(M2, d, REML=FALSE)',lines,fixed=TRUE)
- paste0('\n{\\footnotesize\n\\begin{verbatim}\n',paste(lines,collapse='\n'),'\n\\end{verbatim}\n}\n')
+ title<-NULL; lines<-NULL
+ if(id==37) {
+  title<-'R code: Socio-economic gradients in skills'
+  lines<-c('# Formula specification; saved results are used below.',
+   '# W = within-school deviation; B = weighted school mean.',
+   'controls <- c("AGE", "nonmale")',
+   'form <- function(y, x) as.formula(paste(y, "~",',
+   '  paste(c(paste0(x, "_W"), paste0(x, "_B"),',
+   '          "(1 | school)"), collapse = " + ")))',
+   'M1 <- form(skill, c("status", controls))',
+   'WeMix::mix(M1, d, weights=c("w1", "w2"), cWeights=TRUE)')
+ }
+ if(id==11) {
+  title<-'R code: Joint reading model and school sorting'
+  lines<-c('skills <- c("PERSEV", "CURIO", "ENPROBS",',
+   '            "COGABIL", "GOALSET", "SELFREG")',
+   'M2 <- form(reading_PV, c("status", controls, skills))',
+   'WeMix::mix(M2, d, weights=c("w1", "w2"), cWeights=TRUE)',
+   'S <- reformulate(c("status", controls,',
+   '                   paste0(controls, "_B")), "status_B")',
+   'lm(S, d, weights=W_FSTUWT)',
+   '# Apply within each country and reading plausible value.',
+   'within_path <- sum(a_within * b_within)',
+   'between_path <- sum(a_between * b_between)',
+   'joint_path <- (1 - delta) * within_path + delta * between_path',
+   'sorting_increment <- joint_path - within_path')
+ }
+ if(id==15) {
+  title<-'R code: Within- and between-school decomposition'
+  lines<-c('# Apply to paired model estimates in each saved draw.',
+   'skills_within <- (1 - delta) * within_path',
+   'skills_between <- delta * between_path',
+   'total_within <- (1 - delta) * (direct_within + within_path)',
+   'total_between <- delta * (direct_between + between_path)',
+   'total_difference <- total_between - total_within',
+   'skills_difference <- skills_between - skills_within')
+ }
+ if(id==25) {
+  title<-'R code: Recipient gains and gap reduction'
+  lines<-c('# Prediction identity, applied within each saved resample.',
+   '# D: expected pupil skill changes (zero for non-recipients).',
+   '# school_D: corresponding weighted school means by pupil.',
+   'change <- (D - school_D) %*% b_within + school_D %*% b_between',
+   'recipient_gain <- weighted.mean(change[recipient], w[recipient])',
+   'reference_gain <- weighted.mean(change[reference], w[reference])',
+   'gap_reduction <- recipient_gain - reference_gain')
+ }
+ if(id==34) {
+  title<-'R code: Alternative specifications'
+  lines<-c('# Unscaled conditional student weights',
+   'unscaled <- prepare_model(z, mode="unscaled")',
+   '# At least 10 pupils per school; rebuild school quantities',
+   'counts <- z$data[, .N, by=school]',
+   'restricted <- z',
+   'restricted$data <- z$data[school %in% counts[N >= 10, school]]',
+   'minimum_10 <- prepare_model(restricted)',
+   '# Unweighted mixed model, using the same formula',
+   'lme4::lmer(M2, d, REML=FALSE)',
+   '# Refit and recalculate gains within each school resample.')
+ }
+ if(is.null(title))return('')
+ paste0('\n\\begin{tcolorbox}[colback=blue!3!white,colframe=blue!25!black,',
+  'boxrule=0.4pt,arc=2pt,breakable,title={',title,'},fonttitle=\\bfseries]\n',
+  '\\begin{lstlisting}[style=modelR]\n',paste(lines,collapse='\n'),
+  '\n\\end{lstlisting}\n\\end{tcolorbox}\n')
 }
 emit_appendix_tables <- function(ids) {
  stopifnot(length(appendix_tables)==37L)
